@@ -75,7 +75,10 @@ export async function fetchLatestTweets(username: string, count = 100): Promise<
     next: { revalidate: 0 },
   });
 
-  if (!res.ok) throw new Error(`Syndication fetch failed: ${res.status}`);
+  if (!res.ok) {
+    if (res.status === 429) throw new Error('Twitter rate-limited this request — wait a few minutes and try again.');
+    throw new Error(`Syndication fetch failed: ${res.status}`);
+  }
 
   const html = await res.text();
   const match = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);

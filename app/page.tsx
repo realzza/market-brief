@@ -33,6 +33,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [fetching, setFetching] = useState(false);
+  const [fetchCooldown, setFetchCooldown] = useState(0); // seconds remaining
   const [statusMsg, setStatusMsg] = useState('');
   const [statusType, setStatusType] = useState<'info' | 'error' | 'success'>('info');
   const cancelRef = useRef(false);
@@ -61,10 +62,18 @@ export default function Home() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  useEffect(() => {
+    if (fetchCooldown <= 0) return;
+    const t = setTimeout(() => setFetchCooldown((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [fetchCooldown]);
+
   const setStatus = (msg: string, type: 'info' | 'error' | 'success' = 'info') => {
     setStatusMsg(msg);
     setStatusType(type);
   };
+
+  const FETCH_COOLDOWN_SEC = 300; // 5 min — avoid Twitter syndication rate limits
 
   const handleFetch = async () => {
     setFetching(true);
@@ -72,8 +81,13 @@ export default function Home() {
     try {
       const res = await fetch('/api/tweets', { method: 'POST' });
       const data = await res.json();
-      if (data.error) { setStatus(`${data.error}`, 'error'); return; }
+      if (data.error) {
+        setStatus(data.error, 'error');
+        if (res.status === 429 || data.error.includes('rate-limit')) setFetchCooldown(FETCH_COOLDOWN_SEC);
+        return;
+      }
       setStatus(`Fetched ${data.fetched} tweets — ${data.saved} new saved.`, 'success');
+      setFetchCooldown(FETCH_COOLDOWN_SEC);
       await loadData();
     } catch {
       setStatus('Failed to connect to X API.', 'error');
@@ -183,11 +197,11 @@ export default function Home() {
               )}
               <button
                 onClick={handleFetch}
-                disabled={fetching || analyzing}
+                disabled={fetching || analyzing || fetchCooldown > 0}
                 className="flex items-center gap-1.5 rounded-xl border border-slate-700/60 bg-slate-800/60 px-3.5 py-1.5 text-xs font-medium text-slate-300 transition-all hover:border-slate-600 hover:bg-slate-800 hover:text-white disabled:opacity-40"
               >
                 <Download className={`h-3.5 w-3.5 ${fetching ? 'animate-pulse text-indigo-400' : ''}`} />
-                {fetching ? 'Fetching…' : 'Fetch Tweets'}
+                {fetching ? 'Fetching…' : fetchCooldown > 0 ? `Wait ${fetchCooldown}s` : 'Fetch Tweets'}
               </button>
 
               {analyzing ? (
