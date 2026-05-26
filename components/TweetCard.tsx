@@ -13,6 +13,35 @@ import TickerModal from './TickerModal';
 
 interface Props { tweet: StoredTweet; onAnalyzed?: () => void; onTickerClick?: (ticker: string) => void }
 
+// Matches $KRUS, $RDDT, $BTC-USD — 1-6 uppercase letters optionally followed by -USD / .L etc.
+const TICKER_RE = /(\$[A-Z]{1,6}(?:[-\.][A-Z]{1,4})?)/g;
+
+function TweetText({ text, onTicker }: { text: string; onTicker: (t: string) => void }) {
+  const parts = text.split(TICKER_RE);
+  return (
+    <p className="whitespace-pre-wrap text-[14px] leading-[1.72] text-slate-700">
+      {parts.map((part, i) => {
+        if (TICKER_RE.test(part)) {
+          // reset lastIndex after test()
+          TICKER_RE.lastIndex = 0;
+          const sym = part.slice(1); // strip leading $
+          return (
+            <button
+              key={i}
+              onClick={() => onTicker(sym)}
+              className="font-mono font-semibold text-indigo-600 hover:text-indigo-800 hover:underline underline-offset-2 cursor-pointer"
+            >
+              {part}
+            </button>
+          );
+        }
+        TICKER_RE.lastIndex = 0;
+        return part;
+      })}
+    </p>
+  );
+}
+
 function DomainBadge({ domain }: { domain: string }) {
   const cfg = getDomainConfig(domain);
   return (
@@ -154,10 +183,8 @@ export default function TweetCard({ tweet, onAnalyzed }: Props) {
         </div>
       )}
 
-      {/* ── Tweet text ── */}
-      <p className="whitespace-pre-wrap text-[14px] leading-[1.72] text-slate-700">
-        {tweet.text}
-      </p>
+      {/* ── Tweet text — $TICKER mentions are clickable inline ── */}
+      <TweetText text={tweet.text} onTicker={setActiveTicker} />
 
       {/* ── Media ──
           Single image: natural height so charts display fully, no letterboxing.
