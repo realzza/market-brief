@@ -1,7 +1,15 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
+interface Ticker {
+  ticker: string;
+  count: number;
+  asset_type: string;
+}
+
 interface Props {
-  topTickers: Array<{ ticker: string; count: number }>;
+  topTickers: Ticker[];
 }
 
 const COLORS = [
@@ -17,13 +25,43 @@ const COLORS = [
   { bar: '#84cc16', bg: '#f7fee7' },
 ];
 
-const ASSET_HINT: Record<string, string> = {
-  BTC: 'Crypto', ETH: 'Crypto', SOL: 'Crypto', XRP: 'Crypto', DOGE: 'Crypto',
-  SPY: 'ETF',   QQQ: 'ETF',   IWM: 'ETF',   GLD: 'ETF',   TLT: 'ETF',
-  NVDA: 'Stock', TSLA: 'Stock', AAPL: 'Stock', MSFT: 'Stock', AMZN: 'Stock',
+const EXCHANGE_STYLE: Record<string, string> = {
+  NASDAQ:    'text-blue-700   bg-blue-50   border-blue-200',
+  NYSE:      'text-indigo-700 bg-indigo-50 border-indigo-200',
+  LSE:       'text-violet-700 bg-violet-50 border-violet-200',
+  TSX:       'text-red-700    bg-red-50    border-red-200',
+  Crypto:    'text-orange-700 bg-orange-50 border-orange-200',
+  FX:        'text-purple-700 bg-purple-50 border-purple-200',
+  Commodity: 'text-amber-700  bg-amber-50  border-amber-200',
+  Euronext:  'text-sky-700    bg-sky-50    border-sky-200',
+  Tokyo:     'text-rose-700   bg-rose-50   border-rose-200',
+  HKEX:      'text-red-700    bg-red-50    border-red-200',
+  ASX:       'text-emerald-700 bg-emerald-50 border-emerald-200',
+  OTC:       'text-slate-600  bg-slate-100 border-slate-200',
 };
 
+function ExchangeBadge({ label }: { label: string | undefined }) {
+  if (!label) return null;
+  const cls = EXCHANGE_STYLE[label] ?? 'text-slate-600 bg-slate-100 border-slate-200';
+  return (
+    <span className={`inline-flex shrink-0 items-center rounded border px-1 py-px text-[9px] font-semibold uppercase tracking-wide ${cls}`}>
+      {label}
+    </span>
+  );
+}
+
 export default function AssetMentions({ topTickers }: Props) {
+  const [exchangeMap, setExchangeMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!topTickers.length) return;
+    const query = topTickers.map((t) => `${t.ticker}:${t.asset_type}`).join(',');
+    fetch(`/api/tickers-info?tickers=${encodeURIComponent(query)}`)
+      .then((r) => r.json())
+      .then(setExchangeMap)
+      .catch(() => {});
+  }, [topTickers]);
+
   if (!topTickers || topTickers.length === 0) {
     return (
       <div className="flex h-32 items-center justify-center text-sm text-slate-400">
@@ -39,16 +77,16 @@ export default function AssetMentions({ topTickers }: Props) {
       {topTickers.map((t, i) => {
         const pct = (t.count / max) * 100;
         const c = COLORS[i % COLORS.length];
-        const hint = ASSET_HINT[t.ticker.toUpperCase()];
+        const exchange = exchangeMap[t.ticker];
         return (
           <div key={t.ticker} className="flex items-center gap-3">
             <span className="w-4 shrink-0 text-right text-[11px] font-medium text-slate-400 tabular-nums">
               {i + 1}
             </span>
 
-            <div className="w-24 shrink-0 flex items-center gap-1.5">
+            <div className="flex w-28 shrink-0 items-center gap-1.5 min-w-0">
               <span className="font-mono text-sm font-semibold text-slate-800">${t.ticker}</span>
-              {hint && <span className="text-[10px] text-slate-400">{hint}</span>}
+              <ExchangeBadge label={exchange} />
             </div>
 
             <div className="flex-1 overflow-hidden rounded-full bg-slate-100 h-6">

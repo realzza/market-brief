@@ -153,16 +153,19 @@ export function getStats(): Record<string, unknown> {
   const avgScore = (db.prepare('SELECT AVG(sentiment_score) as avg FROM tweet_analysis').get() as { avg: number | null }).avg;
 
   const allTickers = db.prepare("SELECT tickers FROM tweet_analysis WHERE tickers != '[]'").all() as Array<{ tickers: string }>;
-  const tickerCount: Record<string, number> = {};
+  const tickerData: Record<string, { count: number; asset_type: string }> = {};
   for (const row of allTickers) {
     try {
-      const tickers = JSON.parse(row.tickers) as Array<{ ticker: string }>;
-      for (const t of tickers) tickerCount[t.ticker] = (tickerCount[t.ticker] || 0) + 1;
+      const tickers = JSON.parse(row.tickers) as Array<{ ticker: string; asset_type?: string }>;
+      for (const t of tickers) {
+        if (!tickerData[t.ticker]) tickerData[t.ticker] = { count: 0, asset_type: t.asset_type ?? 'unknown' };
+        tickerData[t.ticker].count++;
+      }
     } catch {}
   }
-  const topTickers = Object.entries(tickerCount)
-    .sort((a, b) => b[1] - a[1]).slice(0, 10)
-    .map(([ticker, count]) => ({ ticker, count }));
+  const topTickers = Object.entries(tickerData)
+    .sort((a, b) => b[1].count - a[1].count).slice(0, 10)
+    .map(([ticker, { count, asset_type }]) => ({ ticker, count, asset_type }));
 
   const allDomains = db.prepare("SELECT domains FROM tweet_analysis WHERE domains != '[]'").all() as Array<{ domains: string }>;
   const domainCount: Record<string, number> = {};
