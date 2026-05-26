@@ -152,20 +152,33 @@ export function getStats(): Record<string, unknown> {
   const tradeCalls = (db.prepare('SELECT COUNT(*) as count FROM tweet_analysis WHERE is_trade_call = 1').get() as { count: number }).count;
   const avgScore = (db.prepare('SELECT AVG(sentiment_score) as avg FROM tweet_analysis').get() as { avg: number | null }).avg;
 
-  const allTickers = db.prepare("SELECT tickers FROM tweet_analysis WHERE tickers != '[]'").all() as Array<{ tickers: string }>;
-  const tickerData: Record<string, { count: number; asset_type: string }> = {};
-  for (const row of allTickers) {
+  // Build asset_type lookup from analysis results (for tickers Claude has classified)
+  const analyzedAssetTypes: Record<string, string> = {};
+  const analyzedRows = db.prepare("SELECT tickers FROM tweet_analysis WHERE tickers != '[]'").all() as Array<{ tickers: string }>;
+  for (const row of analyzedRows) {
     try {
       const tickers = JSON.parse(row.tickers) as Array<{ ticker: string; asset_type?: string }>;
       for (const t of tickers) {
-        if (!tickerData[t.ticker]) tickerData[t.ticker] = { count: 0, asset_type: t.asset_type ?? 'unknown' };
-        tickerData[t.ticker].count++;
+        if (!analyzedAssetTypes[t.ticker]) analyzedAssetTypes[t.ticker] = t.asset_type ?? 'unknown';
       }
     } catch {}
   }
-  const topTickers = Object.entries(tickerData)
-    .sort((a, b) => b[1].count - a[1].count).slice(0, 10)
-    .map(([ticker, { count, asset_type }]) => ({ ticker, count, asset_type }));
+
+  // Count tickers from raw tweet text — covers all tweets regardless of analysis status
+  const TICKER_RE = /\$([A-Z]{1,6}(?:[-][A-Z]{1,4})?)\b/g;
+  const allTexts = db.prepare('SELECT text FROM tweets').all() as Array<{ text: string }>;
+  const tickerCount: Record<string, number> = {};
+  for (const row of allTexts) {
+    TICKER_RE.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = TICKER_RE.exec(row.text)) !== null) {
+      const sym = m[1];
+      tickerCount[sym] = (tickerCount[sym] || 0) + 1;
+    }
+  }
+  const topTickers = Object.entries(tickerCount)
+    .sort((a, b) => b[1] - a[1]).slice(0, 10)
+    .map(([ticker, count]) => ({ ticker, count, asset_type: analyzedAssetTypes[ticker] ?? 'unknown' }));
 
   const allDomains = db.prepare("SELECT domains FROM tweet_analysis WHERE domains != '[]'").all() as Array<{ domains: string }>;
   const domainCount: Record<string, number> = {};
