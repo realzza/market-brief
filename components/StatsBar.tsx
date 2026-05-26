@@ -49,14 +49,30 @@ export default function StatsBar({ stats }: { stats: DashboardStats }) {
     {
       label: 'Avg Score',
       icon: <Activity className="h-3.5 w-3.5" />,
-      value: `${score >= 0 ? '+' : ''}${score.toFixed(3)}`,
-      sub: score > 0.15 ? 'Broadly bullish' : score < -0.15 ? 'Broadly bearish' : 'Balanced',
+      value: score > 0.5  ? 'Very Bullish'
+           : score > 0.15 ? 'Bullish'
+           : score < -0.5 ? 'Very Bearish'
+           : score < -0.15 ? 'Bearish'
+           : 'Neutral',
+      sub: `${score >= 0 ? '+' : ''}${score.toFixed(3)}  (scale: −1 to +1)`,
       bar: null, barColor: '',
-      accent: score > 0 ? 'text-emerald-700' : score < 0 ? 'text-red-600' : 'text-slate-600',
+      accent: score > 0.15 ? 'text-emerald-700' : score < -0.15 ? 'text-red-600' : 'text-slate-600',
       custom: (
-        <div className="mt-3 flex h-px w-full overflow-hidden rounded-full bg-slate-200">
-          <div className="h-px bg-red-400"     style={{ width: '50%', opacity: score < 0 ? 1 : 0.25 }} />
-          <div className="h-px bg-emerald-400" style={{ width: '50%', opacity: score > 0 ? 1 : 0.25 }} />
+        <div className="mt-3 space-y-1">
+          {/* Gradient gauge: red → slate → green */}
+          <div className="relative h-2 w-full rounded-full overflow-hidden"
+            style={{ background: 'linear-gradient(to right, #f87171, #e2e8f0 50%, #34d399)' }}>
+            {/* Marker line */}
+            <div
+              className="absolute top-0 bottom-0 w-[2px] rounded-full bg-slate-700 shadow"
+              style={{ left: `${Math.min(98, Math.max(2, ((score + 1) / 2) * 100))}%`, transform: 'translateX(-50%)' }}
+            />
+          </div>
+          <div className="flex justify-between text-[9px] text-slate-400 tabular-nums">
+            <span>−1</span>
+            <span>0</span>
+            <span>+1</span>
+          </div>
         </div>
       ),
     },

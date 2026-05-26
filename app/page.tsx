@@ -73,8 +73,6 @@ export default function Home() {
     setStatusType(type);
   };
 
-  const FETCH_COOLDOWN_SEC = 300; // 5 min — avoid Twitter syndication rate limits
-
   const handleFetch = async () => {
     setFetching(true);
     setStatus('Fetching tweets from X...');
@@ -83,11 +81,12 @@ export default function Home() {
       const data = await res.json();
       if (data.error) {
         setStatus(data.error, 'error');
-        if (res.status === 429 || data.error.includes('rate-limit')) setFetchCooldown(FETCH_COOLDOWN_SEC);
+        // Use server-provided retryAfter; fall back to 15 min if not supplied
+        if (res.status === 429) setFetchCooldown(data.retryAfter ?? 900);
         return;
       }
       setStatus(`Fetched ${data.fetched} tweets — ${data.saved} new saved.`, 'success');
-      setFetchCooldown(FETCH_COOLDOWN_SEC);
+      setFetchCooldown(data.retryAfter ?? 900);
       await loadData();
     } catch {
       setStatus('Failed to connect to X API.', 'error');
@@ -204,7 +203,9 @@ export default function Home() {
                 className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-40"
               >
                 <Download className={`h-3.5 w-3.5 ${fetching ? 'animate-pulse text-indigo-500' : ''}`} />
-                {fetching ? 'Fetching…' : fetchCooldown > 0 ? `Wait ${fetchCooldown}s` : 'Fetch Tweets'}
+                {fetching ? 'Fetching…' : fetchCooldown > 0
+                  ? `Wait ${Math.floor(fetchCooldown / 60)}:${String(fetchCooldown % 60).padStart(2, '0')}`
+                  : 'Fetch Tweets'}
               </button>
 
               {analyzing ? (
