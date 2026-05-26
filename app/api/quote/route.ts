@@ -1,65 +1,92 @@
 import { NextRequest, NextResponse } from 'next/server';
+import YahooFinance from 'yahoo-finance2';
 
-const YF_HEADERS = {
-  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-  Accept: 'application/json',
-};
+// Module-level singleton — reused across requests in the same worker.
+const yf = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
+
+async function hasPrice(sym: string): Promise<boolean> {
+  try {
+    const q = await yf.quote(sym, {}, { validateResult: false });
+    return q.regularMarketPrice != null;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Resolve a bare ticker to a Yahoo Finance symbol.
+ * Order: exact match → .L suffix (London) → search first equity hit.
+ */
+async function resolveSymbol(ticker: string): Promise<string> {
+  if (await hasPrice(ticker)) return ticker;
+
+  const lse = `${ticker}.L`;
+  if (await hasPrice(lse)) return lse;
+
+  const results = (await yf.search(ticker, {}, { validateResult: false })) as {
+    quotes?: Array<{ symbol?: string; quoteType?: string; isYahooFinance?: boolean }>;
+  };
+  const equities = results.quotes?.filter(
+    (q) => q.symbol && q.quoteType === 'EQUITY' && q.isYahooFinance,
+  );
+  const hit = equities?.[0];
+  if (hit?.symbol) return hit.symbol;
+
+  throw new Error(`No Yahoo Finance symbol found for ${ticker}`);
+}
 
 export async function GET(req: NextRequest) {
   const ticker = req.nextUrl.searchParams.get('ticker');
   if (!ticker) return NextResponse.json({ error: 'Missing ticker' }, { status: 400 });
 
   try {
-    const sym = encodeURIComponent(ticker.toUpperCase());
-    const [quoteRes, chartRes] = await Promise.all([
-      fetch(`https://query1.finance.yahoo.com/v10/finance/quoteSummary/${sym}?modules=price`, {
-        headers: YF_HEADERS,
-        next: { revalidate: 60 },
-      }),
-      fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1mo`, {
-        headers: YF_HEADERS,
-        next: { revalidate: 60 },
-      }),
+    const sym = await resolveSymbol(ticker.toUpperCase());
+
+    const [quote, chartResult] = await Promise.all([
+      yf.quote(sym, {}, { validateResult: false }),
+      yf
+        .chart(
+          sym,
+          {
+            period1: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000)
+              .toISOString()
+              .split('T')[0],
+            interval: '1d',
+          },
+          { validateResult: false },
+        )
+        .catch(() => null),
     ]);
 
-    if (!quoteRes.ok) {
-      return NextResponse.json(
-        { error: `Yahoo Finance returned ${quoteRes.status} for ${ticker}` },
-        { status: 502 },
-      );
-    }
+    const rawQuotes = (chartResult as { quotes?: Array<{ close?: number | null }> } | null)
+      ?.quotes ?? [];
+    const closes: number[] = rawQuotes
+      .map((q) => q.close)
+      .filter((v): v is number => v != null);
 
-    const quoteData = await quoteRes.json();
-    const price = quoteData?.quoteSummary?.result?.[0]?.price;
-    if (!price) return NextResponse.json({ error: `No quote data for ${ticker}` }, { status: 404 });
-
-    let closes: number[] = [];
-    if (chartRes.ok) {
-      const chartData = await chartRes.json();
-      const raw: (number | null)[] =
-        chartData?.chart?.result?.[0]?.indicators?.quote?.[0]?.close ?? [];
-      closes = raw.filter((v): v is number => v != null);
-    }
+    const change = quote.regularMarketChange ?? 0;
+    const changePct = quote.regularMarketChangePercent ?? 0;
 
     return NextResponse.json({
       ticker: ticker.toUpperCase(),
-      name: price.shortName ?? ticker,
-      currency: price.currency ?? 'USD',
-      exchange: price.exchangeName ?? '',
-      price: price.regularMarketPrice?.raw ?? 0,
-      change: price.regularMarketChange?.raw ?? 0,
-      changePct: (price.regularMarketChangePercent?.raw ?? 0) * 100,
-      volume: price.regularMarketVolume?.raw ?? 0,
-      marketCap: price.marketCap?.raw ?? 0,
-      dayHigh: price.regularMarketDayHigh?.raw ?? 0,
-      dayLow: price.regularMarketDayLow?.raw ?? 0,
-      week52High: price.fiftyTwoWeekHigh?.raw ?? 0,
-      week52Low: price.fiftyTwoWeekLow?.raw ?? 0,
-      open: price.regularMarketOpen?.raw ?? 0,
+      resolvedSymbol: sym,
+      name: quote.shortName ?? quote.longName ?? ticker,
+      currency: quote.currency ?? 'USD',
+      exchange: quote.fullExchangeName ?? quote.exchange ?? '',
+      price: quote.regularMarketPrice ?? 0,
+      change,
+      changePct,
+      volume: quote.regularMarketVolume ?? 0,
+      marketCap: quote.marketCap ?? 0,
+      dayHigh: quote.regularMarketDayHigh ?? 0,
+      dayLow: quote.regularMarketDayLow ?? 0,
+      week52High: quote.fiftyTwoWeekHigh ?? 0,
+      week52Low: quote.fiftyTwoWeekLow ?? 0,
+      open: quote.regularMarketOpen ?? 0,
       closes,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status: 502 });
   }
 }
