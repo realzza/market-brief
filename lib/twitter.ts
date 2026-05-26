@@ -1,57 +1,99 @@
-import { Scraper } from 'agent-twitter-client';
 import { RawTweet } from './types';
 
-// Module-level singleton — reuse the authenticated session across requests.
-let _scraper: Scraper | null = null;
+const SYNDICATION_URL = 'https://syndication.twitter.com/srv/timeline-profile/screen-name';
 
-async function getScraper(): Promise<Scraper> {
-  if (_scraper) return _scraper;
-
-  const scraper = new Scraper();
-  const username = process.env.SCRAPER_USERNAME;
-  const password = process.env.SCRAPER_PASSWORD;
-
-  if (username && password) {
-    await scraper.login(username, password);
-  }
-  // No explicit guest-auth call needed — Scraper acquires a guest token automatically
-
-  _scraper = scraper;
-  return scraper;
+// Twitter's date format: "Mon Feb 23 15:29:35 +0000 2026"
+function parseTweetDate(raw: string): string {
+  return new Date(raw).toISOString();
 }
 
-export async function fetchLatestTweets(handle: string, count = 100): Promise<RawTweet[]> {
-  const scraper = await getScraper();
-  const results: RawTweet[] = [];
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'");
+}
 
-  try {
-    for await (const tweet of scraper.getTweets(handle, count)) {
-      // Skip retweets and replies — only want original posts
-      if (tweet.isRetweet || tweet.isReply) continue;
-      if (!tweet.id || !tweet.text) continue;
+interface SyndicationTweet {
+  id_str: string;
+  full_text?: string;
+  text?: string;
+  created_at: string;
+  favorite_count?: number;
+  retweet_count?: number;
+  reply_count?: number;
+  retweeted?: boolean;
+  in_reply_to_status_id_str?: string;
+  extended_entities?: { media?: Array<{ media_url_https: string; type: string }> };
+  entities?: {
+    media?: Array<{ media_url_https: string; type: string }>;
+    urls?: Array<{ url: string; expanded_url: string; display_url: string }>;
+  };
+}
 
-      results.push({
-        id: tweet.id,
-        text: tweet.text,
-        created_at: tweet.timeParsed
-          ? tweet.timeParsed.toISOString()
-          : new Date((tweet.timestamp ?? 0) * 1000).toISOString(),
-        public_metrics: {
-          like_count: tweet.likes ?? 0,
-          retweet_count: tweet.retweets ?? 0,
-          reply_count: tweet.replies ?? 0,
-          impression_count: tweet.views ?? 0,
-        },
-        media_urls: tweet.photos.map((p) => p.url),
-      });
+function toRawTweet(t: SyndicationTweet): RawTweet {
+  const rawText = t.full_text ?? t.text ?? '';
 
-      if (results.length >= count) break;
-    }
-  } catch (err) {
-    // Reset so the next request gets a fresh session
-    _scraper = null;
-    throw err;
+  // Expand t.co short links using the entities url table
+  let text = rawText;
+  for (const u of t.entities?.urls ?? []) {
+    text = text.replace(u.url, u.expanded_url);
+  }
+  // Strip any remaining t.co links (media attachments etc.)
+  text = text.replace(/https:\/\/t\.co\/\S+/g, '').trim();
+  text = decodeHtmlEntities(text);
+
+  const media = (t.extended_entities?.media ?? t.entities?.media ?? [])
+    .filter((m) => m.type === 'photo')
+    .map((m) => m.media_url_https);
+
+  return {
+    id: t.id_str,
+    text,
+    created_at: parseTweetDate(t.created_at),
+    public_metrics: {
+      like_count: t.favorite_count ?? 0,
+      retweet_count: t.retweet_count ?? 0,
+      reply_count: t.reply_count ?? 0,
+      impression_count: 0, // not exposed by syndication API
+    },
+    media_urls: media,
+  };
+}
+
+export async function fetchLatestTweets(username: string, count = 100): Promise<RawTweet[]> {
+  const url = `${SYNDICATION_URL}/${encodeURIComponent(username)}?count=${count}&showReplies=false`;
+
+  const res = await fetch(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml',
+    },
+    next: { revalidate: 0 },
+  });
+
+  if (!res.ok) throw new Error(`Syndication fetch failed: ${res.status}`);
+
+  const html = await res.text();
+  const match = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+  if (!match) throw new Error('Could not find __NEXT_DATA__ in syndication response');
+
+  const data = JSON.parse(match[1]);
+  const entries: Array<{ type: string; content?: { tweet: SyndicationTweet } }> =
+    data?.props?.pageProps?.timeline?.entries ?? [];
+
+  const tweets: RawTweet[] = [];
+  for (const entry of entries) {
+    if (entry.type !== 'tweet' || !entry.content?.tweet) continue;
+    const t = entry.content.tweet;
+    // Skip retweets and replies
+    if (t.retweeted || t.in_reply_to_status_id_str) continue;
+    tweets.push(toRawTweet(t));
+    if (tweets.length >= count) break;
   }
 
-  return results;
+  return tweets;
 }
