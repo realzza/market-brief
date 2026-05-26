@@ -124,6 +124,13 @@ export function getTweets(limit = 50, offset = 0): Array<Record<string, unknown>
   `).all(limit, offset) as Array<Record<string, unknown>>;
 }
 
+export function getTweetForAnalysis(id: string): Record<string, unknown> | null {
+  const db = getDb();
+  return (db.prepare(
+    'SELECT id, text, created_at, media_urls FROM tweets WHERE id = ?'
+  ).get(id) as Record<string, unknown>) ?? null;
+}
+
 export function getUnanalyzedTweets(limit = 20): Array<Record<string, unknown>> {
   const db = getDb();
   return db.prepare(`

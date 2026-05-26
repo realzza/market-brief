@@ -323,7 +323,7 @@ export default function Home() {
             ) : (
               <div className="grid gap-3 lg:grid-cols-2">
                 {filteredTweets.map((tweet) => (
-                  <TweetCard key={tweet.id} tweet={tweet} />
+                  <TweetCard key={tweet.id} tweet={tweet} onAnalyzed={loadData} />
                 ))}
               </div>
             )}

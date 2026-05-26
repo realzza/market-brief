@@ -1,12 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { StoredTweet, TickerMention, TradeSignal } from '@/lib/types';
 import { getDomainConfig } from '@/lib/domainConfig';
 import SentimentBadge from './SentimentBadge';
 import { formatDistanceToNow } from 'date-fns';
-import { Heart, Repeat2, MessageCircle, Eye, TrendingUp, ShieldAlert, ExternalLink, ImageIcon } from 'lucide-react';
+import { Heart, Repeat2, MessageCircle, Eye, TrendingUp, ShieldAlert, ExternalLink, ImageIcon, Zap, Loader2 } from 'lucide-react';
 
-interface Props { tweet: StoredTweet }
+interface Props { tweet: StoredTweet; onAnalyzed?: () => void }
 
 function DomainBadge({ domain }: { domain: string }) {
   const cfg = getDomainConfig(domain);
@@ -74,9 +75,24 @@ const RISK_STYLE = {
   none:   '',
 };
 
-export default function TweetCard({ tweet }: Props) {
+export default function TweetCard({ tweet, onAnalyzed }: Props) {
+  const [analyzing, setAnalyzing] = useState(false);
   const a = tweet.analysis;
   const tweetUrl = `https://x.com/aleabitoreddit/status/${tweet.id}`;
+
+  async function handleAnalyze() {
+    setAnalyzing(true);
+    try {
+      await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tweet_id: tweet.id }),
+      });
+      onAnalyzed?.();
+    } finally {
+      setAnalyzing(false);
+    }
+  }
 
   return (
     <article className="group relative flex flex-col gap-3 rounded-2xl border border-slate-700/40 bg-slate-900/60 p-4 shadow-lg backdrop-blur transition-all duration-200 hover:border-slate-600/60 hover:bg-slate-900/80 hover:shadow-slate-900/50">
@@ -230,9 +246,15 @@ export default function TweetCard({ tweet }: Props) {
       </div>
 
       {!a && (
-        <div className="rounded-lg border border-dashed border-slate-700/50 py-1.5 text-center text-xs text-slate-600">
-          Pending analysis
-        </div>
+        <button
+          onClick={handleAnalyze}
+          disabled={analyzing}
+          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-700/50 py-1.5 text-xs text-slate-600 transition-colors hover:border-indigo-500/40 hover:text-indigo-400 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {analyzing
+            ? <><Loader2 className="h-3 w-3 animate-spin" /> Analyzing…</>
+            : <><Zap className="h-3 w-3" /> Analyze this tweet</>}
+        </button>
       )}
     </article>
   );
