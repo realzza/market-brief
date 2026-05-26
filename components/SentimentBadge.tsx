@@ -2,28 +2,30 @@
 
 import { Sentiment } from '@/lib/types';
 
-interface Props {
+const CONFIG: Record<Sentiment, { label: string; dot: string; text: string }> = {
+  bullish: { label: 'Bullish', dot: 'bg-emerald-500', text: 'text-emerald-700' },
+  bearish: { label: 'Bearish', dot: 'bg-red-500',     text: 'text-red-600'     },
+  neutral: { label: 'Neutral', dot: 'bg-slate-400',   text: 'text-slate-500'   },
+  mixed:   { label: 'Mixed',   dot: 'bg-amber-500',   text: 'text-amber-700'   },
+};
+
+export default function SentimentBadge({
+  sentiment,
+  score,
+}: {
   sentiment: Sentiment;
   score?: number;
   size?: 'sm' | 'md';
-}
-
-const CONFIG: Record<Sentiment, { label: string; classes: string; icon: string }> = {
-  bullish: { label: 'Bullish', classes: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', icon: '▲' },
-  bearish: { label: 'Bearish', classes: 'bg-red-500/15 text-red-400 border-red-500/30', icon: '▼' },
-  neutral: { label: 'Neutral', classes: 'bg-slate-500/15 text-slate-400 border-slate-500/30', icon: '—' },
-  mixed: { label: 'Mixed', classes: 'bg-amber-500/15 text-amber-400 border-amber-500/30', icon: '⇅' },
-};
-
-export default function SentimentBadge({ sentiment, score, size = 'md' }: Props) {
+}) {
   const cfg = CONFIG[sentiment] ?? CONFIG.neutral;
-  const sizeClass = size === 'sm' ? 'text-xs px-2 py-0.5' : 'text-sm px-2.5 py-1';
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border font-medium ${cfg.classes} ${sizeClass}`}>
-      <span>{cfg.icon}</span>
-      <span>{cfg.label}</span>
+    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${cfg.text}`}>
+      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${cfg.dot}`} />
+      {cfg.label}
       {score !== undefined && (
-        <span className="opacity-70">({score > 0 ? '+' : ''}{score.toFixed(2)})</span>
+        <span className="font-normal opacity-60 tabular-nums">
+          {score >= 0 ? '+' : ''}{score.toFixed(2)}
+        </span>
       )}
     </span>
   );

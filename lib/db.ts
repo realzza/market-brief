@@ -124,6 +124,13 @@ export function getTweets(limit = 50, offset = 0): Array<Record<string, unknown>
   `).all(limit, offset) as Array<Record<string, unknown>>;
 }
 
+export function getTweetForAnalysis(id: string): Record<string, unknown> | null {
+  const db = getDb();
+  return (db.prepare(
+    'SELECT id, text, created_at, media_urls FROM tweets WHERE id = ?'
+  ).get(id) as Record<string, unknown>) ?? null;
+}
+
 export function getUnanalyzedTweets(limit = 20): Array<Record<string, unknown>> {
   const db = getDb();
   return db.prepare(`
@@ -145,17 +152,20 @@ export function getStats(): Record<string, unknown> {
   const tradeCalls = (db.prepare('SELECT COUNT(*) as count FROM tweet_analysis WHERE is_trade_call = 1').get() as { count: number }).count;
   const avgScore = (db.prepare('SELECT AVG(sentiment_score) as avg FROM tweet_analysis').get() as { avg: number | null }).avg;
 
-  const allTickers = db.prepare("SELECT tickers FROM tweet_analysis WHERE tickers != '[]'").all() as Array<{ tickers: string }>;
+  // Count tickers purely from raw tweet text — no join with analysis results
+  const TICKER_RE = /\$([A-Z]{1,6}(?:[-][A-Z]{1,4})?)\b/g;
+  const allTexts = db.prepare('SELECT text FROM tweets').all() as Array<{ text: string }>;
   const tickerCount: Record<string, number> = {};
-  for (const row of allTickers) {
-    try {
-      const tickers = JSON.parse(row.tickers) as Array<{ ticker: string }>;
-      for (const t of tickers) tickerCount[t.ticker] = (tickerCount[t.ticker] || 0) + 1;
-    } catch {}
+  for (const row of allTexts) {
+    TICKER_RE.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = TICKER_RE.exec(row.text)) !== null) {
+      tickerCount[m[1]] = (tickerCount[m[1]] || 0) + 1;
+    }
   }
   const topTickers = Object.entries(tickerCount)
     .sort((a, b) => b[1] - a[1]).slice(0, 10)
-    .map(([ticker, count]) => ({ ticker, count }));
+    .map(([ticker, count]) => ({ ticker, count, asset_type: 'unknown' }));
 
   const allDomains = db.prepare("SELECT domains FROM tweet_analysis WHERE domains != '[]'").all() as Array<{ domains: string }>;
   const domainCount: Record<string, number> = {};

@@ -1,120 +1,175 @@
 'use client';
 
+import { useState } from 'react';
 import { StoredTweet, TickerMention, TradeSignal } from '@/lib/types';
 import { getDomainConfig } from '@/lib/domainConfig';
 import SentimentBadge from './SentimentBadge';
 import { formatDistanceToNow } from 'date-fns';
-import { Heart, Repeat2, MessageCircle, Eye, TrendingUp, ShieldAlert, ExternalLink, ImageIcon } from 'lucide-react';
+import {
+  Heart, Repeat2, MessageCircle, TrendingUp, ShieldAlert,
+  ExternalLink, ImageIcon, Zap, Loader2,
+} from 'lucide-react';
+import TickerModal from './TickerModal';
 
-interface Props { tweet: StoredTweet }
+interface Props { tweet: StoredTweet; onAnalyzed?: () => void; onTickerClick?: (ticker: string) => void }
+
+// Matches $KRUS, $RDDT, $BTC-USD — 1-6 uppercase letters optionally followed by -USD / .L etc.
+const TICKER_RE = /(\$[A-Z]{1,6}(?:[-\.][A-Z]{1,4})?)/g;
+
+function TweetText({ text, onTicker }: { text: string; onTicker: (t: string) => void }) {
+  const parts = text.split(TICKER_RE);
+  return (
+    <p className="whitespace-pre-wrap text-[14px] leading-[1.72] text-slate-700">
+      {parts.map((part, i) => {
+        if (TICKER_RE.test(part)) {
+          // reset lastIndex after test()
+          TICKER_RE.lastIndex = 0;
+          const sym = part.slice(1); // strip leading $
+          return (
+            <button
+              key={i}
+              onClick={() => onTicker(sym)}
+              className="font-mono font-semibold text-indigo-600 hover:text-indigo-800 hover:underline underline-offset-2 cursor-pointer"
+            >
+              {part}
+            </button>
+          );
+        }
+        TICKER_RE.lastIndex = 0;
+        return part;
+      })}
+    </p>
+  );
+}
 
 function DomainBadge({ domain }: { domain: string }) {
   const cfg = getDomainConfig(domain);
   return (
-    <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium ${cfg.bg} ${cfg.color}`}>
-      <span className="text-[10px] leading-none">{cfg.icon}</span>
+    <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] font-medium ${cfg.bg} ${cfg.color}`}>
+      <span className="text-[9px]">{cfg.icon}</span>
       {domain}
     </span>
   );
 }
 
-function TickerChip({ ticker }: { ticker: TickerMention }) {
-  const colors: Record<string, string> = {
-    crypto:    'bg-orange-500/10 text-orange-300 border-orange-500/25',
-    stock:     'bg-blue-500/10 text-blue-300 border-blue-500/25',
-    forex:     'bg-purple-500/10 text-purple-300 border-purple-500/25',
-    commodity: 'bg-yellow-500/10 text-yellow-300 border-yellow-500/25',
-    index:     'bg-cyan-500/10 text-cyan-300 border-cyan-500/25',
-    unknown:   'bg-slate-500/10 text-slate-400 border-slate-500/25',
+function TickerChip({ ticker, onClick }: { ticker: TickerMention; onClick: () => void }) {
+  const styles: Record<string, string> = {
+    crypto:    'text-orange-700 bg-orange-50   border-orange-200   hover:bg-orange-100',
+    stock:     'text-sky-700    bg-sky-50      border-sky-200      hover:bg-sky-100',
+    forex:     'text-purple-700 bg-purple-50   border-purple-200   hover:bg-purple-100',
+    commodity: 'text-amber-700  bg-amber-50    border-amber-200    hover:bg-amber-100',
+    index:     'text-cyan-700   bg-cyan-50     border-cyan-200     hover:bg-cyan-100',
+    unknown:   'text-slate-600  bg-slate-100   border-slate-200    hover:bg-slate-200',
   };
-  const dirIcon = ticker.direction === 'long' ? '↑' : ticker.direction === 'short' ? '↓' : '';
-  const dirColor = ticker.direction === 'long' ? 'text-emerald-400' : ticker.direction === 'short' ? 'text-red-400' : '';
+  const dirColor = ticker.direction === 'long' ? 'text-emerald-600' : ticker.direction === 'short' ? 'text-red-600' : 'text-slate-400';
+  const dirIcon  = ticker.direction === 'long' ? '↑' : ticker.direction === 'short' ? '↓' : '·';
   return (
-    <span className={`inline-flex items-center gap-0.5 rounded border px-1.5 py-0.5 text-xs font-mono font-semibold ${colors[ticker.asset_type] || colors.unknown}`}>
-      {dirIcon && <span className={`text-[10px] ${dirColor}`}>{dirIcon}</span>}
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-mono text-xs font-semibold transition-colors cursor-pointer ${styles[ticker.asset_type] ?? styles.unknown}`}
+    >
+      <span className={`text-[10px] ${dirColor}`}>{dirIcon}</span>
       ${ticker.ticker}
-    </span>
+    </button>
   );
 }
 
 function SignalPill({ signal }: { signal: TradeSignal }) {
-  const typeStyle: Record<string, string> = {
-    entry:     'bg-emerald-500/10 text-emerald-300 border-emerald-500/25',
-    exit:      'bg-red-500/10 text-red-300 border-red-500/25',
-    target:    'bg-blue-500/10 text-blue-300 border-blue-500/25',
-    stop_loss: 'bg-red-500/15 text-red-400 border-red-500/30',
-    alert:     'bg-amber-500/10 text-amber-300 border-amber-500/25',
-    analysis:  'bg-slate-500/10 text-slate-400 border-slate-500/25',
+  const styles: Record<string, { row: string; label: string }> = {
+    entry:     { row: 'border-emerald-200 bg-emerald-50', label: 'text-emerald-700' },
+    exit:      { row: 'border-red-200     bg-red-50',     label: 'text-red-700'     },
+    target:    { row: 'border-sky-200     bg-sky-50',     label: 'text-sky-700'     },
+    stop_loss: { row: 'border-red-200     bg-red-50',     label: 'text-red-700'     },
+    alert:     { row: 'border-amber-200   bg-amber-50',   label: 'text-amber-700'   },
+    analysis:  { row: 'border-slate-200   bg-slate-50',   label: 'text-slate-600'   },
   };
+  const s = styles[signal.type] ?? styles.analysis;
   const parts = [
-    signal.type.replace('_', ' ').toUpperCase(),
     signal.asset,
-    signal.price ? `@ $${signal.price.toLocaleString()}` : null,
-    signal.target ? `→ $${signal.target.toLocaleString()}` : null,
+    signal.price     ? `@ $${signal.price.toLocaleString()}`      : null,
+    signal.target    ? `→ $${signal.target.toLocaleString()}`     : null,
     signal.stop_loss ? `SL $${signal.stop_loss.toLocaleString()}` : null,
-    signal.leverage ?? null,
+    signal.leverage  ?? null,
   ].filter(Boolean);
 
   return (
-    <div className={`flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-md border px-2.5 py-1.5 text-xs ${typeStyle[signal.type] || typeStyle.analysis}`}>
+    <div className={`flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg border px-2.5 py-1.5 text-xs ${s.row}`}>
+      <span className={`font-semibold uppercase tracking-wider text-[10px] ${s.label}`}>
+        {signal.type.replace('_', ' ')}
+      </span>
       {parts.map((p, i) => (
-        <span key={i} className={i === 0 ? 'font-semibold tracking-wide' : 'opacity-80'}>{p}</span>
+        <span key={i} className="text-slate-500">{p}</span>
       ))}
-      <span className={`ml-auto pl-2 text-[10px] font-medium opacity-60 ${signal.confidence === 'high' ? 'text-emerald-400' : signal.confidence === 'low' ? 'text-red-400' : 'text-amber-400'}`}>
-        {signal.confidence} conf.
+      <span className={`ml-auto text-[10px] tabular-nums ${
+        signal.confidence === 'high' ? 'text-emerald-600' :
+        signal.confidence === 'low'  ? 'text-red-600'     : 'text-amber-600'
+      }`}>
+        {signal.confidence}
       </span>
     </div>
   );
 }
 
-const RISK_STYLE = {
-  high:   'bg-red-500/10 text-red-400 border-red-500/25',
-  medium: 'bg-amber-500/10 text-amber-400 border-amber-500/25',
-  low:    'bg-green-500/10 text-green-400 border-green-500/25',
-  none:   '',
+const SENTIMENT_BORDER: Record<string, string> = {
+  bullish: 'border-l-emerald-400',
+  bearish: 'border-l-red-400',
+  mixed:   'border-l-amber-400',
+  neutral: 'border-l-slate-300',
 };
 
-export default function TweetCard({ tweet }: Props) {
+const RISK_BADGE: Record<string, string> = {
+  high:   'text-red-700   bg-red-50   border-red-200',
+  medium: 'text-amber-700 bg-amber-50 border-amber-200',
+  low:    'text-green-700 bg-green-50 border-green-200',
+};
+
+export default function TweetCard({ tweet, onAnalyzed }: Props) {
+  const [analyzing, setAnalyzing] = useState(false);
+  const [activeTicker, setActiveTicker] = useState<string | null>(null);
   const a = tweet.analysis;
   const tweetUrl = `https://x.com/aleabitoreddit/status/${tweet.id}`;
+  const accent = a ? (SENTIMENT_BORDER[a.sentiment] ?? SENTIMENT_BORDER.neutral) : 'border-l-slate-200';
+
+  async function handleAnalyze() {
+    setAnalyzing(true);
+    try {
+      await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tweet_id: tweet.id }),
+      });
+      onAnalyzed?.();
+    } finally {
+      setAnalyzing(false);
+    }
+  }
 
   return (
-    <article className="group relative flex flex-col gap-3 rounded-2xl border border-slate-700/40 bg-slate-900/60 p-4 shadow-lg backdrop-blur transition-all duration-200 hover:border-slate-600/60 hover:bg-slate-900/80 hover:shadow-slate-900/50">
+    <article className={`group relative flex flex-col gap-3.5 rounded-xl border border-slate-200/80 border-l-2 bg-white p-5 shadow-sm transition-all duration-150 hover:shadow-md hover:border-slate-300/60 ${accent}`}>
 
-      {/* Glow accent based on sentiment */}
-      {a && (
-        <div className={`pointer-events-none absolute inset-x-0 top-0 h-px rounded-t-2xl ${
-          a.sentiment === 'bullish' ? 'bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent' :
-          a.sentiment === 'bearish' ? 'bg-gradient-to-r from-transparent via-red-500/40 to-transparent' :
-          a.sentiment === 'mixed'   ? 'bg-gradient-to-r from-transparent via-amber-500/30 to-transparent' :
-          'bg-gradient-to-r from-transparent via-slate-500/20 to-transparent'
-        }`} />
-      )}
-
-      {/* ── Header row ── */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white shadow">
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white shadow-sm">
             S
           </div>
-          <div className="min-w-0">
-            <span className="text-xs font-semibold text-slate-200">@aleabitoreddit</span>
-            <span className="mx-1.5 text-slate-600">·</span>
-            <time className="text-xs text-slate-500">
+          <div className="flex items-baseline gap-1.5 min-w-0">
+            <span className="text-xs font-semibold text-slate-700">@aleabitoreddit</span>
+            <time className="text-[11px] text-slate-400 shrink-0">
               {formatDistanceToNow(new Date(tweet.created_at), { addSuffix: true })}
             </time>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5">
+
+        <div className="flex shrink-0 items-center gap-2">
           {tweet.media_urls && tweet.media_urls.length > 0 && (
-            <span className="flex items-center gap-1 rounded-md border border-slate-700/50 bg-slate-800/60 px-1.5 py-0.5 text-xs text-slate-500">
+            <span className="flex items-center gap-1 text-[11px] text-slate-400">
               <ImageIcon className="h-3 w-3" />{tweet.media_urls.length}
             </span>
           )}
           {a?.risk_level && a.risk_level !== 'none' && (
-            <span className={`flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium ${RISK_STYLE[a.risk_level]}`}>
-              <ShieldAlert className="h-3 w-3" />
-              {a.risk_level}
+            <span className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-medium ${RISK_BADGE[a.risk_level]}`}>
+              <ShieldAlert className="h-2.5 w-2.5" />{a.risk_level}
             </span>
           )}
           {a && <SentimentBadge sentiment={a.sentiment} score={a.sentiment_score} />}
@@ -123,60 +178,87 @@ export default function TweetCard({ tweet }: Props) {
 
       {/* ── Domain labels ── */}
       {a?.domains && a.domains.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1">
           {a.domains.map((d) => <DomainBadge key={d} domain={d} />)}
         </div>
       )}
 
-      {/* ── Tweet text ── */}
-      <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-200">
-        {tweet.text}
-      </p>
+      {/* ── Tweet text — $TICKER mentions are clickable inline ── */}
+      <TweetText text={tweet.text} onTicker={setActiveTicker} />
 
-      {/* ── Media images ── */}
+      {/* ── Media ──
+          Single image: natural height so charts display fully, no letterboxing.
+          Multiple images: uniform 4:3 grid with object-cover for clean layout. */}
       {tweet.media_urls && tweet.media_urls.length > 0 && (
-        <div className={`grid gap-2 ${tweet.media_urls.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-          {tweet.media_urls.map((url, i) => (
-            <a
-              key={i}
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group/img relative block overflow-hidden rounded-xl border border-slate-700/40 bg-slate-950/60"
-            >
-              <div className={tweet.media_urls!.length === 1 ? 'aspect-video' : 'aspect-[4/3]'}>
+        tweet.media_urls.length === 1 ? (
+          <a
+            href={tweet.media_urls[0]}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group/img relative block overflow-hidden rounded-xl border border-slate-100 bg-slate-50"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={tweet.media_urls[0]}
+              alt="media"
+              className="w-full h-auto max-h-80 object-contain transition-transform duration-300 group-hover/img:scale-[1.01]"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-black/0 transition-colors group-hover/img:bg-black/8 rounded-xl" />
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover/img:opacity-100">
+              <span className="rounded-full bg-white/90 p-2 shadow-md">
+                <ExternalLink className="h-3.5 w-3.5 text-slate-600" />
+              </span>
+            </div>
+          </a>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            {tweet.media_urls.map((url, i) => (
+              <a
+                key={i}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group/img relative block aspect-[4/3] overflow-hidden rounded-xl border border-slate-100 bg-slate-50"
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={url}
-                  alt={`Tweet media ${i + 1}`}
-                  className="h-full w-full object-contain transition-transform duration-300 group-hover/img:scale-[1.03]"
+                  alt={`media ${i + 1}`}
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover/img:scale-[1.04]"
                   loading="lazy"
                 />
-              </div>
-              <div className="absolute inset-0 bg-black/0 transition-all duration-200 group-hover/img:bg-black/30 rounded-xl" />
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover/img:opacity-100">
-                <span className="rounded-full border border-white/20 bg-black/60 p-2 backdrop-blur-sm">
-                  <ExternalLink className="h-4 w-4 text-white" />
-                </span>
-              </div>
-            </a>
-          ))}
-        </div>
+                <div className="absolute inset-0 bg-black/0 transition-colors group-hover/img:bg-black/10 rounded-xl" />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover/img:opacity-100">
+                  <span className="rounded-full bg-white/90 p-2 shadow-md">
+                    <ExternalLink className="h-3.5 w-3.5 text-slate-600" />
+                  </span>
+                </div>
+              </a>
+            ))}
+          </div>
+        )
       )}
 
       {/* ── Tickers ── */}
       {a?.tickers && a.tickers.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {a.tickers.map((t, i) => <TickerChip key={i} ticker={t} />)}
+          {a.tickers.map((t, i) => (
+            <TickerChip key={i} ticker={t} onClick={() => setActiveTicker(t.ticker)} />
+          ))}
         </div>
+      )}
+
+      {activeTicker && (
+        <TickerModal ticker={activeTicker} onClose={() => setActiveTicker(null)} />
       )}
 
       {/* ── Signals ── */}
       {a?.signals && a.signals.length > 0 && (
         <div className="space-y-1.5">
-          <div className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-slate-500 uppercase">
+          <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-slate-400">
             <TrendingUp className="h-3 w-3" /> Signals
-          </div>
+          </p>
           <div className="space-y-1">
             {a.signals.map((s, i) => <SignalPill key={i} signal={s} />)}
           </div>
@@ -185,16 +267,16 @@ export default function TweetCard({ tweet }: Props) {
 
       {/* ── AI Summary ── */}
       {a?.summary && (
-        <p className="rounded-xl border border-indigo-500/15 bg-indigo-500/5 px-3 py-2 text-xs leading-relaxed text-slate-400 italic">
+        <p className="rounded-lg border-l-2 border-indigo-300 bg-indigo-50/60 pl-3 pr-2 py-2 text-[12px] leading-relaxed text-slate-500 italic">
           {a.summary}
         </p>
       )}
 
-      {/* ── Themes ── */}
+      {/* ── Key themes ── */}
       {a?.key_themes && a.key_themes.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {a.key_themes.map((theme, i) => (
-            <span key={i} className="rounded-full bg-slate-800 px-2.5 py-0.5 text-xs text-slate-500">
+            <span key={i} className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] text-slate-500">
               {theme}
             </span>
           ))}
@@ -202,37 +284,39 @@ export default function TweetCard({ tweet }: Props) {
       )}
 
       {/* ── Footer ── */}
-      <div className="flex items-center justify-between border-t border-slate-800/80 pt-2.5">
-        <div className="flex items-center gap-3 text-xs text-slate-600">
-          <span className="flex items-center gap-1 hover:text-rose-400 transition-colors">
+      <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+        <div className="flex items-center gap-3.5 text-[11px] text-slate-400">
+          <span className="flex items-center gap-1 transition-colors hover:text-rose-500 cursor-default">
             <Heart className="h-3 w-3" />{tweet.like_count.toLocaleString()}
           </span>
-          <span className="flex items-center gap-1 hover:text-green-400 transition-colors">
+          <span className="flex items-center gap-1 transition-colors hover:text-emerald-600 cursor-default">
             <Repeat2 className="h-3 w-3" />{tweet.retweet_count.toLocaleString()}
           </span>
           <span className="flex items-center gap-1">
             <MessageCircle className="h-3 w-3" />{tweet.reply_count.toLocaleString()}
           </span>
-          {tweet.impression_count > 0 && (
-            <span className="flex items-center gap-1">
-              <Eye className="h-3 w-3" />{(tweet.impression_count / 1000).toFixed(1)}k
-            </span>
-          )}
         </div>
         <a
           href={tweetUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1 text-xs text-slate-600 transition-colors hover:text-slate-300"
+          className="flex items-center gap-1 text-[11px] text-slate-400 transition-colors hover:text-slate-700"
         >
-          <ExternalLink className="h-3 w-3" /> X
+          <ExternalLink className="h-3 w-3" /> View on X
         </a>
       </div>
 
+      {/* ── Pending analyze CTA ── */}
       {!a && (
-        <div className="rounded-lg border border-dashed border-slate-700/50 py-1.5 text-center text-xs text-slate-600">
-          Pending analysis
-        </div>
+        <button
+          onClick={handleAnalyze}
+          disabled={analyzing}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-slate-200 py-2 text-xs text-slate-400 transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {analyzing
+            ? <><Loader2 className="h-3 w-3 animate-spin" /> Analyzing…</>
+            : <><Zap className="h-3 w-3" /> Analyze this tweet</>}
+        </button>
       )}
     </article>
   );

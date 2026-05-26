@@ -120,7 +120,7 @@ export async function analyzeTweet(tweet: {
   });
 
   if (process.env.NODE_ENV === 'development') {
-    const u = response.usage as Record<string, number>;
+    const u = response.usage as unknown as Record<string, number>;
     console.log(
       `[claude] cache_read=${u.cache_read_input_tokens ?? 0} cache_write=${u.cache_creation_input_tokens ?? 0} input=${u.input_tokens} output=${u.output_tokens}`
     );

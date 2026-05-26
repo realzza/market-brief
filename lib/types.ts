@@ -8,6 +8,7 @@ export interface RawTweet {
     reply_count: number;
     impression_count: number;
   };
+  media_urls?: string[];
 }
 
 export type Sentiment = 'bullish' | 'bearish' | 'neutral' | 'mixed';
@@ -89,7 +90,7 @@ export interface DashboardStats {
   bearish_count: number;
   neutral_count: number;
   trade_calls: number;
-  top_tickers: Array<{ ticker: string; count: number }>;
+  top_tickers: Array<{ ticker: string; count: number; asset_type: string }>;
   top_domains: Array<{ domain: string; count: number }>;
   avg_sentiment_score: number;
   win_rate?: number;

@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { fetchLatestTweets } from '@/lib/twitter';
 import { saveTweets, getTweets } from '@/lib/db';
 
+// Server-side gate: prevents hammering Twitter regardless of client state.
+const RATE_LIMIT_MS = 15 * 60 * 1000; // 15 minutes
+let lastFetchAt: number | null = null;
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const limit = parseInt(searchParams.get('limit') || '50');
@@ -41,7 +45,20 @@ export async function GET(request: Request) {
 }
 
 export async function POST() {
+  // Enforce server-side cooldown before touching Twitter
+  if (lastFetchAt !== null) {
+    const elapsed = Date.now() - lastFetchAt;
+    if (elapsed < RATE_LIMIT_MS) {
+      const retryAfter = Math.ceil((RATE_LIMIT_MS - elapsed) / 1000);
+      return NextResponse.json(
+        { error: `X syndication API allows one fetch per 15 minutes. Try again in ${Math.ceil(retryAfter / 60)} min.`, retryAfter },
+        { status: 429 },
+      );
+    }
+  }
+
   try {
+    lastFetchAt = Date.now(); // stamp before the request so retries don't pile up
     const username = process.env.TWITTER_USERNAME || 'aleabitoreddit';
     const raw = await fetchLatestTweets(username, 100);
 
