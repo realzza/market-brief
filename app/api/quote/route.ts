@@ -35,23 +35,28 @@ export async function GET(req: NextRequest) {
   try {
     const sym = await resolveSymbol(ticker.toUpperCase());
 
-    // Fetch 1 year so we have enough history for all periods
+    // Fetch 1 year of daily data + today's intraday (5-min) for the 1D view
     const yearAgo = new Date(Date.now() - 366 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-    const [quote, chartResult] = await Promise.all([
-      yf.quote(sym, {}, { validateResult: false }),
-      yf.chart(sym, { period1: yearAgo, interval: '1d' }, { validateResult: false }).catch(() => null),
-    ]);
+    const todayStr = new Date().toISOString().split('T')[0];
 
     type ChartQuote = { date: Date; close?: number | null };
-    const rawQuotes = (
-      chartResult as { quotes?: ChartQuote[] } | null
-    )?.quotes ?? [];
 
-    // Stamped closes — only keep rows with a valid close price
-    const closes: { t: string; c: number }[] = rawQuotes
-      .filter((q): q is ChartQuote & { close: number } => q.close != null)
-      .map((q) => ({ t: q.date.toISOString().split('T')[0], c: q.close }));
+    const [quote, chartResult, intradayResult] = await Promise.all([
+      yf.quote(sym, {}, { validateResult: false }),
+      yf.chart(sym, { period1: yearAgo, interval: '1d' }, { validateResult: false }).catch(() => null),
+      yf.chart(sym, { period1: todayStr, interval: '5m' }, { validateResult: false }).catch(() => null),
+    ]);
+
+    function toPoints(raw: ChartQuote[], iso = false): { t: string; c: number }[] {
+      return raw
+        .filter((q): q is ChartQuote & { close: number } => q.close != null)
+        .map((q) => ({ t: iso ? q.date.toISOString() : q.date.toISOString().split('T')[0], c: q.close }));
+    }
+
+    const rawQuotes = (chartResult as { quotes?: ChartQuote[] } | null)?.quotes ?? [];
+    const closes = toPoints(rawQuotes);
+    const intradayRaw = (intradayResult as { quotes?: ChartQuote[] } | null)?.quotes ?? [];
+    const intraday = toPoints(intradayRaw, true);
 
     const latest = closes.at(-1)?.c ?? (quote.regularMarketPrice ?? 0);
 
@@ -94,6 +99,7 @@ export async function GET(req: NextRequest) {
       week52Low: quote.fiftyTwoWeekLow ?? 0,
       open: quote.regularMarketOpen ?? 0,
       closes,
+      intraday,
       performance,
     });
   } catch (err) {
