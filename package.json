@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.98.0",
+    "@roamhq/wrtc-darwin-arm64": "^0.10.0",
     "agent-twitter-client": "^0.0.18",
     "better-sqlite3": "^12.10.0",
     "date-fns": "^4.3.0",
