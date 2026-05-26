@@ -9,8 +9,9 @@ import {
   Heart, Repeat2, MessageCircle, TrendingUp, ShieldAlert,
   ExternalLink, ImageIcon, Zap, Loader2,
 } from 'lucide-react';
+import TickerModal from './TickerModal';
 
-interface Props { tweet: StoredTweet; onAnalyzed?: () => void }
+interface Props { tweet: StoredTweet; onAnalyzed?: () => void; onTickerClick?: (ticker: string) => void }
 
 function DomainBadge({ domain }: { domain: string }) {
   const cfg = getDomainConfig(domain);
@@ -22,22 +23,25 @@ function DomainBadge({ domain }: { domain: string }) {
   );
 }
 
-function TickerChip({ ticker }: { ticker: TickerMention }) {
+function TickerChip({ ticker, onClick }: { ticker: TickerMention; onClick: () => void }) {
   const styles: Record<string, string> = {
-    crypto:    'text-orange-700 bg-orange-50   border-orange-200',
-    stock:     'text-sky-700    bg-sky-50      border-sky-200',
-    forex:     'text-purple-700 bg-purple-50   border-purple-200',
-    commodity: 'text-amber-700  bg-amber-50    border-amber-200',
-    index:     'text-cyan-700   bg-cyan-50     border-cyan-200',
-    unknown:   'text-slate-600  bg-slate-100   border-slate-200',
+    crypto:    'text-orange-700 bg-orange-50   border-orange-200   hover:bg-orange-100',
+    stock:     'text-sky-700    bg-sky-50      border-sky-200      hover:bg-sky-100',
+    forex:     'text-purple-700 bg-purple-50   border-purple-200   hover:bg-purple-100',
+    commodity: 'text-amber-700  bg-amber-50    border-amber-200    hover:bg-amber-100',
+    index:     'text-cyan-700   bg-cyan-50     border-cyan-200     hover:bg-cyan-100',
+    unknown:   'text-slate-600  bg-slate-100   border-slate-200    hover:bg-slate-200',
   };
   const dirColor = ticker.direction === 'long' ? 'text-emerald-600' : ticker.direction === 'short' ? 'text-red-600' : 'text-slate-400';
   const dirIcon  = ticker.direction === 'long' ? '↑' : ticker.direction === 'short' ? '↓' : '·';
   return (
-    <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-mono text-xs font-semibold ${styles[ticker.asset_type] ?? styles.unknown}`}>
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 font-mono text-xs font-semibold transition-colors cursor-pointer ${styles[ticker.asset_type] ?? styles.unknown}`}
+    >
       <span className={`text-[10px] ${dirColor}`}>{dirIcon}</span>
       ${ticker.ticker}
-    </span>
+    </button>
   );
 }
 
@@ -92,6 +96,7 @@ const RISK_BADGE: Record<string, string> = {
 
 export default function TweetCard({ tweet, onAnalyzed }: Props) {
   const [analyzing, setAnalyzing] = useState(false);
+  const [activeTicker, setActiveTicker] = useState<string | null>(null);
   const a = tweet.analysis;
   const tweetUrl = `https://x.com/aleabitoreddit/status/${tweet.id}`;
   const accent = a ? (SENTIMENT_BORDER[a.sentiment] ?? SENTIMENT_BORDER.neutral) : 'border-l-slate-200';
@@ -211,8 +216,14 @@ export default function TweetCard({ tweet, onAnalyzed }: Props) {
       {/* ── Tickers ── */}
       {a?.tickers && a.tickers.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {a.tickers.map((t, i) => <TickerChip key={i} ticker={t} />)}
+          {a.tickers.map((t, i) => (
+            <TickerChip key={i} ticker={t} onClick={() => setActiveTicker(t.ticker)} />
+          ))}
         </div>
+      )}
+
+      {activeTicker && (
+        <TickerModal ticker={activeTicker} onClose={() => setActiveTicker(null)} />
       )}
 
       {/* ── Signals ── */}
