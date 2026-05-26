@@ -1,74 +1,57 @@
+import { Scraper } from 'agent-twitter-client';
 import { RawTweet } from './types';
 
-const BEARER_TOKEN = process.env.TWITTER_BEARER_TOKEN!;
-const BASE_URL = 'https://api.twitter.com/2';
+// Module-level singleton — reuse the authenticated session across requests.
+let _scraper: Scraper | null = null;
 
-async function twitterFetch(url: string) {
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${BEARER_TOKEN}` },
-    next: { revalidate: 0 },
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Twitter API ${res.status}: ${err}`);
+async function getScraper(): Promise<Scraper> {
+  if (_scraper) return _scraper;
+
+  const scraper = new Scraper();
+  const username = process.env.SCRAPER_USERNAME;
+  const password = process.env.SCRAPER_PASSWORD;
+
+  if (username && password) {
+    await scraper.login(username, password);
   }
-  return res.json();
+  // No explicit guest-auth call needed — Scraper acquires a guest token automatically
+
+  _scraper = scraper;
+  return scraper;
 }
 
-export async function resolveUserId(username: string): Promise<string> {
-  const data = await twitterFetch(
-    `${BASE_URL}/users/by/username/${username}?user.fields=id,name,username`
-  );
-  return data.data.id as string;
-}
+export async function fetchLatestTweets(handle: string, count = 100): Promise<RawTweet[]> {
+  const scraper = await getScraper();
+  const results: RawTweet[] = [];
 
-export async function fetchUserTweets(
-  userId: string,
-  maxResults = 100,
-  paginationToken?: string
-): Promise<{ tweets: RawTweet[]; next_token?: string }> {
-  const params = new URLSearchParams({
-    max_results: Math.max(5, Math.min(maxResults, 100)).toString(),
-    'tweet.fields': 'created_at,public_metrics,text,attachments',
-    'media.fields': 'url,preview_image_url,type,alt_text',
-    expansions: 'attachments.media_keys',
-    exclude: 'retweets,replies',
-  });
-  if (paginationToken) params.set('pagination_token', paginationToken);
+  try {
+    for await (const tweet of scraper.getTweets(handle, count)) {
+      // Skip retweets and replies — only want original posts
+      if (tweet.isRetweet || tweet.isReply) continue;
+      if (!tweet.id || !tweet.text) continue;
 
-  const data = await twitterFetch(`${BASE_URL}/users/${userId}/tweets?${params}`);
+      results.push({
+        id: tweet.id,
+        text: tweet.text,
+        created_at: tweet.timeParsed
+          ? tweet.timeParsed.toISOString()
+          : new Date((tweet.timestamp ?? 0) * 1000).toISOString(),
+        public_metrics: {
+          like_count: tweet.likes ?? 0,
+          retweet_count: tweet.retweets ?? 0,
+          reply_count: tweet.replies ?? 0,
+          impression_count: tweet.views ?? 0,
+        },
+        media_urls: tweet.photos.map((p) => p.url),
+      });
 
-  // Build a media_key → url lookup from the includes
-  const mediaMap: Record<string, string> = {};
-  for (const m of data.includes?.media ?? []) {
-    const url = m.url ?? m.preview_image_url;
-    if (url) mediaMap[m.media_key] = url;
+      if (results.length >= count) break;
+    }
+  } catch (err) {
+    // Reset so the next request gets a fresh session
+    _scraper = null;
+    throw err;
   }
 
-  const tweets: RawTweet[] = (data.data ?? []).map((t: any) => ({
-    ...t,
-    media_urls: (t.attachments?.media_keys ?? [])
-      .map((k: string) => mediaMap[k])
-      .filter(Boolean),
-  }));
-
-  return { tweets, next_token: data.meta?.next_token };
-}
-
-export async function fetchLatestTweets(username: string, count = 100): Promise<RawTweet[]> {
-  const userId = await resolveUserId(username);
-  const all: RawTweet[] = [];
-  let nextToken: string | undefined;
-
-  do {
-    const { tweets, next_token } = await fetchUserTweets(
-      userId,
-      Math.min(count - all.length, 100),
-      nextToken
-    );
-    all.push(...tweets);
-    nextToken = next_token;
-  } while (nextToken && all.length < count);
-
-  return all.slice(0, count);
+  return results;
 }

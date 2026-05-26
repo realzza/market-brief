@@ -8,6 +8,7 @@ export interface RawTweet {
     reply_count: number;
     impression_count: number;
   };
+  media_urls?: string[];
 }
 
 export type Sentiment = 'bullish' | 'bearish' | 'neutral' | 'mixed';
