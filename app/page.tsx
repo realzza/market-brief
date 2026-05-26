@@ -384,41 +384,52 @@ export default function Home() {
   );
 }
 
-// Inline domain frequency chart (no extra file needed)
+// Inline domain frequency chart
 function DomainChart({ domains }: { domains: Array<{ domain: string; count: number }> }) {
   if (domains.length === 0) {
     return (
-      <div className="flex h-32 items-center justify-center text-sm text-slate-500">
+      <div className="flex h-32 items-center justify-center text-sm text-slate-400">
         No domain data yet.
       </div>
     );
   }
   const max = domains[0]?.count || 1;
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-2">
       {domains.map((d, i) => {
         const cfg = getDomainConfig(d.domain);
         const pct = (d.count / max) * 100;
         return (
           <div key={d.domain} className="flex items-center gap-3">
-            <span className="w-5 shrink-0 text-right text-xs text-slate-600">{i + 1}</span>
-            <span className="text-sm">{cfg.icon}</span>
-            <div className="min-w-0 flex-1">
-              <div className="mb-1 flex items-center justify-between">
-                <span className={`text-xs font-medium ${cfg.color}`}>{d.domain}</span>
-                <span className="text-xs text-slate-500">{d.count}</span>
-              </div>
-              <div className="h-1 w-full rounded-full bg-slate-800">
-                <div
-                  className="h-1 rounded-full transition-all duration-500"
-                  style={{
-                    width: `${Math.max(pct, 3)}%`,
-                    background: cfg.color.replace('text-', '').replace('-300', ''),
-                    backgroundColor: 'currentColor',
-                  }}
-                />
+            {/* Rank */}
+            <span className="w-4 shrink-0 text-right text-[11px] font-medium text-slate-400 tabular-nums">
+              {i + 1}
+            </span>
+
+            {/* Icon + label */}
+            <div className="flex w-36 shrink-0 items-center gap-1.5 min-w-0">
+              <span className="text-base leading-none">{cfg.icon}</span>
+              <span className={`truncate text-xs font-medium ${cfg.color}`}>{d.domain}</span>
+            </div>
+
+            {/* Bar */}
+            <div className="flex-1 overflow-hidden rounded-full bg-slate-100 h-6">
+              <div
+                className="h-6 rounded-full flex items-center px-2 transition-all duration-500"
+                style={{
+                  width: `${Math.max(pct, 6)}%`,
+                  backgroundColor: cfg.hexBg,
+                  borderRight: `2px solid ${cfg.hex}40`,
+                }}
+              >
+                <div className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: cfg.hex }} />
               </div>
             </div>
+
+            {/* Count */}
+            <span className="w-6 shrink-0 text-right text-sm font-semibold text-slate-700 tabular-nums">
+              {d.count}
+            </span>
           </div>
         );
       })}
