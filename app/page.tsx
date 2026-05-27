@@ -65,6 +65,7 @@ export default function Home() {
   const [statusMsg,  setStatusMsg]  = useState('');
   const [statusType, setStatusType] = useState<'info' | 'error' | 'success'>('info');
   const cancelRef = useRef(false);
+  const [displayCount, setDisplayCount] = useState(20);
 
   const setStatus = (msg: string, type: 'info' | 'error' | 'success' = 'info') => {
     setStatusMsg(msg);
@@ -75,7 +76,7 @@ export default function Home() {
     setLoading(true);
     try {
       const [tweetsRes, statsRes, perfRes] = await Promise.all([
-        fetch('/api/tweets?limit=100'),
+        fetch('/api/tweets?limit=5000'),
         fetch('/api/refresh'),
         fetch('/api/performance'),
       ]);
@@ -243,7 +244,7 @@ export default function Home() {
                 <button
                   key={f.id}
                   className={`chip ${sentimentFilter === f.id ? 'is-active' : ''}`}
-                  onClick={() => setSentimentFilter(f.id)}
+                  onClick={() => { setSentimentFilter(f.id); setDisplayCount(20); }}
                 >
                   <span className={`dot ${f.dot}`} />{f.label}
                 </button>
@@ -251,7 +252,7 @@ export default function Home() {
 
               {allDomains.length > 0 && (
                 <span className="select" style={{ marginLeft: 6 }}>
-                  <select value={domainFilter} onChange={(e) => setDomainFilter(e.target.value)}>
+                  <select value={domainFilter} onChange={(e) => { setDomainFilter(e.target.value); setDisplayCount(20); }}>
                     <option value="">All sectors</option>
                     {allDomains.map((d) => (
                       <option key={d} value={d}>{d}</option>
@@ -263,14 +264,17 @@ export default function Home() {
               {domainFilter && (
                 <button
                   className="chip has-border"
-                  onClick={() => setDomainFilter('')}
+                  onClick={() => { setDomainFilter(''); setDisplayCount(20); }}
                   style={{ color: 'var(--ink-2)' }}
                 >
                   {domainFilter} ×
                 </button>
               )}
 
-              <span className="filters-count">{filteredTweets.length} of {tweets.length}</span>
+              <span className="filters-count">
+                {Math.min(displayCount, filteredTweets.length)} of {filteredTweets.length}
+                {filteredTweets.length !== tweets.length && ` (${tweets.length} total)`}
+              </span>
             </div>
 
             {loading && tweets.length === 0 ? (
@@ -285,16 +289,38 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              <div className="feed">
-                {filteredTweets.map((tweet, i) => (
-                  <TweetCard
-                    key={tweet.id}
-                    tweet={tweet}
-                    serial={tweets.length - i}
-                    onAnalyzed={loadData}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="feed">
+                  {filteredTweets.slice(0, displayCount).map((tweet, i) => (
+                    <TweetCard
+                      key={tweet.id}
+                      tweet={tweet}
+                      serial={tweets.length - i}
+                      onAnalyzed={loadData}
+                    />
+                  ))}
+                </div>
+
+                {filteredTweets.length > displayCount && (
+                  <div className="feed-expand">
+                    <button
+                      className="btn"
+                      onClick={() => setDisplayCount((c) => c + 20)}
+                    >
+                      Load 20 more
+                      <span className="num" style={{ marginLeft: 6, color: 'var(--ink-4)' }}>
+                        {filteredTweets.length - displayCount} remaining
+                      </span>
+                    </button>
+                    <button
+                      className="btn"
+                      onClick={() => setDisplayCount(filteredTweets.length)}
+                    >
+                      Expand all {filteredTweets.length}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

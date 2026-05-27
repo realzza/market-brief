@@ -80,6 +80,7 @@ export async function GET(req: NextRequest) {
       m1: perfSinceDays(30),
       m3: perfSinceDays(90),
       ytd: ytdPerf(),
+      y1: perfSinceDays(365),
     };
 
     return NextResponse.json({

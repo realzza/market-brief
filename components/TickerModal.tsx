@@ -200,9 +200,16 @@ export default function TickerModal({ ticker, onClose }: Props) {
 
   const periodMeta = PERIODS.find((p) => p.key === activePeriod) ?? PERIODS[2];
 
+  const marketClosed = periodMeta.intraday && (data?.intraday?.length ?? 0) === 0;
+
   const chartPoints = useMemo(() => {
     if (!data) return [];
-    if (periodMeta.intraday) return data.intraday ?? [];
+    if (periodMeta.intraday) {
+      const intra = data.intraday ?? [];
+      // Market closed / pre-market: fall back to last 2 trading days of daily data
+      if (intra.length === 0) return filterByPeriod(data.closes ?? [], 2);
+      return intra;
+    }
     return filterByPeriod(data.closes ?? [], periodMeta.days);
   }, [data, periodMeta]);
 
@@ -298,7 +305,10 @@ export default function TickerModal({ ticker, onClose }: Props) {
             </div>
             <PriceChart points={chartPoints} intraday={!!periodMeta.intraday} />
             <div className="price-chart-foot">
-              {periodMeta.label} · {chartPoints.length} {periodMeta.intraday ? 'intraday points' : 'trading days'} · hover for price
+              {periodMeta.label} · {chartPoints.length} {
+                marketClosed ? 'daily closes · market closed' :
+                periodMeta.intraday ? 'intraday points' : 'trading days'
+              } · hover for price
             </div>
           </div>
         )}
