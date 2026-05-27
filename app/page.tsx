@@ -108,8 +108,10 @@ export default function Home() {
       }
       const newCount = data.inserted ?? 0;
       const msg = newCount === 0
-        ? `Fetched ${data.fetched} tweets — no new ones since last fetch.`
-        : `Fetched ${data.fetched} tweets — ${newCount} new (${data.updated} already known).`;
+        ? 'No new tweets.'
+        : newCount === 1
+        ? '1 new tweet.'
+        : `${newCount} new tweets.`;
       setStatus(msg, 'success');
       await loadData();
     } catch {
