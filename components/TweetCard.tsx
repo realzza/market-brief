@@ -34,18 +34,55 @@ function Icon({ name, size = 14 }: { name: string; size?: number }) {
 const TICKER_SPLIT = /(\$[A-Z]{1,6}(?:[-.][A-Z]{1,4})?)/g;
 const TICKER_TEST  = /^\$[A-Z]{1,6}(?:[-.][A-Z]{1,4})?$/;
 
+// Tweets longer than this are collapsed by default with a "Show more" toggle
+// to keep the feed scannable. Most regular tweets are <= 280 chars, so this
+// only affects long-form (X Premium) posts.
+const LONG_TWEET_CHARS = 480;
+const COLLAPSED_CHARS  = 320;
+
+// Cut at the last word boundary at or before `target`, never mid-word/ticker.
+function truncateAtWord(text: string, target: number): string {
+  if (text.length <= target) return text;
+  const slice = text.slice(0, target);
+  const lastSpace = slice.lastIndexOf(' ');
+  // Only honor the boundary if it's reasonably close to target; otherwise
+  // (e.g. one massive word) just cut hard so we don't over-shorten.
+  const cut = lastSpace > target * 0.6 ? lastSpace : target;
+  return slice.slice(0, cut).trimEnd() + '…';
+}
+
+function renderWithTickers(text: string, onTicker: (t: string) => void) {
+  return text.split(TICKER_SPLIT).map((part, i) =>
+    TICKER_TEST.test(part) ? (
+      <button key={i} className="ticker" onClick={() => onTicker(part.slice(1))}>
+        {part}
+      </button>
+    ) : (
+      <span key={i}>{part}</span>
+    )
+  );
+}
+
 function TweetText({ text, onTicker }: { text: string; onTicker: (t: string) => void }) {
-  const parts = text.split(TICKER_SPLIT);
+  const [expanded, setExpanded] = useState(false);
+  const isLong = text.length > LONG_TWEET_CHARS;
+  const shown = !isLong || expanded ? text : truncateAtWord(text, COLLAPSED_CHARS);
+
   return (
     <p className="article-text">
-      {parts.map((part, i) =>
-        TICKER_TEST.test(part) ? (
-          <button key={i} className="ticker" onClick={() => onTicker(part.slice(1))}>
-            {part}
+      {renderWithTickers(shown, onTicker)}
+      {isLong && (
+        <>
+          {' '}
+          <button
+            type="button"
+            className="text-expand"
+            onClick={() => setExpanded((e) => !e)}
+            aria-expanded={expanded}
+          >
+            {expanded ? 'Show less' : `Show more · ${text.length.toLocaleString()} chars`}
           </button>
-        ) : (
-          <span key={i}>{part}</span>
-        )
+        </>
       )}
     </p>
   );

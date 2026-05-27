@@ -427,6 +427,20 @@ button:disabled { cursor: not-allowed; }
   background: transparent; border-top: 0; border-left: 0; border-right: 0;
 }
 .article-text .ticker:hover { color: var(--accent); }
+.article-text .text-expand {
+  display: inline; background: transparent; border: 0; padding: 0 0 1px;
+  margin-left: 4px; cursor: pointer;
+  font-family: var(--font-sans); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent);
+  border-bottom: 1px solid color-mix(in oklab, var(--accent) 40%, transparent);
+  transition: color 120ms, border-color 120ms;
+  vertical-align: 2px;
+}
+.article-text .text-expand:hover {
+  color: var(--accent-ink);
+  border-bottom-color: var(--accent);
+}
 .article-media { margin-top: 18px; display: grid; grid-template-columns: 1fr; gap: 8px; }
 .article-media.is-single { grid-template-columns: 1fr; max-width: 60%; }
 .article-media.is-multi  { grid-template-columns: 1fr 1fr; }
