@@ -1,20 +1,24 @@
 import { NextResponse } from 'next/server';
 import { getUnanalyzedTweets, getTweetForAnalysis, saveAnalysis } from '@/lib/db';
 import { analyzeBatch } from '@/lib/claude';
+import { validateAnalyzeBody } from '@/lib/validate';
 
 export async function POST(request: Request) {
+  let raw: unknown;
   try {
-    const body = await request.json().catch(() => ({}));
-    const limit = body.limit ?? 10;
-    const tweetId: string | undefined = body.tweet_id;
-    // Free-form user question. Only honored on single-tweet analyze (batch
-    // mode would apply the same question to every tweet — almost never what
-    // you want), so we silently ignore it when `tweetId` isn't set.
-    const userQuestion: string | undefined =
-      typeof body.user_question === 'string' && body.user_question.trim().length > 0
-        ? body.user_question.trim()
-        : undefined;
+    raw = await request.json();
+  } catch {
+    // Empty body is allowed (defaults to a batch run with limit=10).
+    raw = {};
+  }
 
+  const parsed = validateAnalyzeBody(raw);
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
+  }
+  const { limit, tweet_id: tweetId, user_question: userQuestion } = parsed.value;
+
+  try {
     let unanalyzed: Array<{ id: string; text: string; created_at: string; media_urls: string }>;
 
     if (tweetId) {

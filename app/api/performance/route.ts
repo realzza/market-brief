@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getPerformance, upsertPerformance } from '@/lib/db';
+import { validatePerformanceBody } from '@/lib/validate';
 
 export async function GET() {
   const entries = getPerformance();
@@ -7,10 +8,21 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  let raw: unknown;
   try {
-    const body = await request.json();
+    raw = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'invalid JSON body' }, { status: 400 });
+  }
+
+  const parsed = validatePerformanceBody(raw);
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
+  }
+
+  try {
     upsertPerformance({
-      ...body,
+      ...parsed.value,
       updated_at: new Date().toISOString(),
     });
     return NextResponse.json({ ok: true });
