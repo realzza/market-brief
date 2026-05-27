@@ -68,36 +68,38 @@ export default function Masthead({
 
           {/* Right — actions */}
           <div className="masthead-actions">
-            {statusMsg && (
-              <span className={`status-pill ${pillCls}`}>{statusMsg}</span>
-            )}
+            <div className="masthead-buttons">
+              {statusMsg && (
+                <span className={`status-pill ${pillCls}`}>{statusMsg}</span>
+              )}
 
-            <button
-              className="btn"
-              onClick={onFetch}
-              disabled={fetching || analyzing}
-            >
-              <Icon name="download" size={13} />
-              {fetching ? 'Fetching…' : 'Fetch'}
-            </button>
-
-            {analyzing ? (
-              <button className="btn btn-danger" onClick={onCancel}>
-                <Icon name="close" size={13} />Cancel
+              <button
+                className="btn"
+                onClick={onFetch}
+                disabled={fetching || analyzing}
+              >
+                <Icon name="download" size={13} />
+                {fetching ? 'Fetching…' : 'Fetch'}
               </button>
-            ) : (
-              <button className="btn btn-primary" onClick={onAnalyze} disabled={fetching}>
-                <Icon name="zap" size={13} />Analyze
+
+              {analyzing ? (
+                <button className="btn btn-danger" onClick={onCancel}>
+                  <Icon name="close" size={13} />Cancel
+                </button>
+              ) : (
+                <button className="btn btn-primary" onClick={onAnalyze} disabled={fetching}>
+                  <Icon name="zap" size={13} />Analyze
+                </button>
+              )}
+
+              <button className="btn btn-icon" onClick={onRefresh} title="Refresh" disabled={loading}>
+                <Icon name="refresh" size={13} />
               </button>
-            )}
 
-            <button className="btn btn-icon" onClick={onRefresh} title="Refresh" disabled={loading}>
-              <Icon name="refresh" size={13} />
-            </button>
-
-            <button className="btn btn-icon" onClick={onToggleTheme} title="Toggle theme">
-              <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={13} />
-            </button>
+              <button className="btn btn-icon" onClick={onToggleTheme} title="Toggle theme">
+                <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={13} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
