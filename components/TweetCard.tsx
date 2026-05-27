@@ -51,6 +51,66 @@ function TweetText({ text, onTicker }: { text: string; onTicker: (t: string) => 
   );
 }
 
+// ─── Media gallery ───────────────────────────────────────────────────────────
+function MediaGallery({ urls }: { urls: string[] }) {
+  const [idx, setIdx] = useState(0);
+  const n = urls.length;
+  if (n === 0) return null;
+
+  // 1 image — half the body width
+  if (n === 1) {
+    return (
+      <div className="article-media is-single">
+        <a href={urls[0]} target="_blank" rel="noopener noreferrer" className="media-slot">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={urls[0]} alt="media" loading="lazy" />
+        </a>
+      </div>
+    );
+  }
+
+  // 2 images — side-by-side, full width
+  if (n === 2) {
+    return (
+      <div className="article-media is-multi">
+        {urls.map((url, i) => (
+          <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="media-slot">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt={`media ${i + 1}`} loading="lazy" />
+          </a>
+        ))}
+      </div>
+    );
+  }
+
+  // 3+ — carousel showing one image at a time
+  const go = (delta: number) => setIdx((i) => (i + delta + n) % n);
+  return (
+    <div className="article-media is-carousel">
+      <div className="carousel-track">
+        <a href={urls[idx]} target="_blank" rel="noopener noreferrer" className="media-slot">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={urls[idx]} alt={`media ${idx + 1} of ${n}`} loading="lazy" />
+        </a>
+        <button type="button" className="carousel-btn prev" onClick={() => go(-1)} aria-label="Previous image">‹</button>
+        <button type="button" className="carousel-btn next" onClick={() => go(1)} aria-label="Next image">›</button>
+      </div>
+      <div className="carousel-dots">
+        {urls.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            className={`carousel-pip ${i === idx ? 'is-active' : ''}`}
+            onClick={() => setIdx(i)}
+            aria-label={`Image ${i + 1}`}
+          />
+        ))}
+        <span className="carousel-count num">{idx + 1} / {n}</span>
+      </div>
+    </div>
+  );
+}
+
 // ─── Signal row ──────────────────────────────────────────────────────────────
 function SignalRow({ signal }: { signal: TradeSignal }) {
   return (
@@ -149,22 +209,7 @@ export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
           <TweetText text={tweet.text} onTicker={setActiveTicker} />
 
           {/* Media */}
-          {mediaUrls.length > 0 && (
-            <div className={`article-media ${mediaUrls.length > 1 ? 'is-multi' : ''}`}>
-              {mediaUrls.map((url, i) => (
-                <a
-                  key={i}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="media-slot"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt={`media ${i + 1}`} loading="lazy" />
-                </a>
-              ))}
-            </div>
-          )}
+          <MediaGallery urls={mediaUrls} />
 
           {/* Analyst note */}
           {a?.summary && <div className="article-summary">{a.summary}</div>}
