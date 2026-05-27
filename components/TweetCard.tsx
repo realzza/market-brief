@@ -52,12 +52,12 @@ function TweetText({ text, onTicker }: { text: string; onTicker: (t: string) => 
 }
 
 // ─── Media gallery ───────────────────────────────────────────────────────────
+// 1 → narrow solo · 2 → paired side-by-side · 3+ → horizontally scrollable
+// filmstrip with edge-fade gradients so the user can see content extends.
 function MediaGallery({ urls }: { urls: string[] }) {
-  const [idx, setIdx] = useState(0);
   const n = urls.length;
   if (n === 0) return null;
 
-  // 1 image — half the body width
   if (n === 1) {
     return (
       <div className="article-media is-single">
@@ -69,7 +69,6 @@ function MediaGallery({ urls }: { urls: string[] }) {
     );
   }
 
-  // 2 images — side-by-side, full width
   if (n === 2) {
     return (
       <div className="article-media is-multi">
@@ -83,29 +82,24 @@ function MediaGallery({ urls }: { urls: string[] }) {
     );
   }
 
-  // 3+ — carousel showing one image at a time
-  const go = (delta: number) => setIdx((i) => (i + delta + n) % n);
+  // 3+ — horizontal scroll strip. Native scroll (trackpad / shift-wheel /
+  // touch swipe) handles paging. The edge gradients are pure CSS via the
+  // .strip-track mask in globals.css.
   return (
-    <div className="article-media is-carousel">
-      <div className="carousel-track">
-        <a href={urls[idx]} target="_blank" rel="noopener noreferrer" className="media-slot">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={urls[idx]} alt={`media ${idx + 1} of ${n}`} loading="lazy" />
-        </a>
-        <button type="button" className="carousel-btn prev" onClick={() => go(-1)} aria-label="Previous image">‹</button>
-        <button type="button" className="carousel-btn next" onClick={() => go(1)} aria-label="Next image">›</button>
-      </div>
-      <div className="carousel-dots">
-        {urls.map((_, i) => (
-          <button
+    <div className="article-media is-strip">
+      <div className="strip-track" role="region" aria-label={`${n} images, scroll horizontally`}>
+        {urls.map((url, i) => (
+          <a
             key={i}
-            type="button"
-            className={`carousel-pip ${i === idx ? 'is-active' : ''}`}
-            onClick={() => setIdx(i)}
-            aria-label={`Image ${i + 1}`}
-          />
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="media-slot strip-slot"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt={`media ${i + 1} of ${n}`} loading="lazy" />
+          </a>
         ))}
-        <span className="carousel-count num">{idx + 1} / {n}</span>
       </div>
     </div>
   );
