@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { StoredTweet, TickerMention, TradeSignal } from '@/lib/types';
 import { domainColor } from '@/lib/domainConfig';
 import { fmtCompact, fmtDate, fmtPrice } from '@/lib/format';
+import { renderWithTickers, renderRichSummary } from '@/lib/richText';
 import { formatDistanceToNow } from 'date-fns';
 import TickerModal from './TickerModal';
 
@@ -30,10 +31,6 @@ function Icon({ name, size = 14 }: { name: string; size?: number }) {
   }
 }
 
-// ─── Ticker-highlighted tweet text ───────────────────────────────────────────
-const TICKER_SPLIT = /(\$[A-Z]{1,6}(?:[-.][A-Z]{1,4})?)/g;
-const TICKER_TEST  = /^\$[A-Z]{1,6}(?:[-.][A-Z]{1,4})?$/;
-
 // Tweets longer than this are collapsed by default with a "Show more" toggle
 // to keep the feed scannable. Most regular tweets are <= 280 chars, so this
 // only affects long-form (X Premium) posts.
@@ -49,39 +46,6 @@ function truncateAtWord(text: string, target: number): string {
   // (e.g. one massive word) just cut hard so we don't over-shorten.
   const cut = lastSpace > target * 0.6 ? lastSpace : target;
   return slice.slice(0, cut).trimEnd() + '…';
-}
-
-function renderWithTickers(text: string, onTicker: (t: string) => void) {
-  return text.split(TICKER_SPLIT).map((part, i) =>
-    TICKER_TEST.test(part) ? (
-      <button key={i} className="ticker" onClick={() => onTicker(part.slice(1))}>
-        {part}
-      </button>
-    ) : (
-      <span key={i}>{part}</span>
-    )
-  );
-}
-
-// Render a Claude-generated summary with both **bold** markdown AND $TICKER
-// recognition. Used for the Analyst Note where Claude often emphasizes its
-// final picks with bold and references several tickers we want clickable.
-function renderRichSummary(text: string, onTicker: (t: string) => void) {
-  // Splitting with a capture group alternates [plain, bold, plain, bold, ...]
-  const segments = text.split(/\*\*([\s\S]+?)\*\*/g);
-  return segments.map((seg, segIdx) => {
-    const isBold = segIdx % 2 === 1;
-    const inner = seg.split(TICKER_SPLIT).map((tok, tokIdx) =>
-      TICKER_TEST.test(tok) ? (
-        <button key={tokIdx} className="ticker" onClick={() => onTicker(tok.slice(1))}>
-          {tok}
-        </button>
-      ) : (
-        <span key={tokIdx}>{tok}</span>
-      )
-    );
-    return isBold ? <strong key={segIdx}>{inner}</strong> : <span key={segIdx}>{inner}</span>;
-  });
 }
 
 function TweetText({ text, onTicker }: { text: string; onTicker: (t: string) => void }) {

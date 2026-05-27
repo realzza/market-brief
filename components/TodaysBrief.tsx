@@ -2,6 +2,7 @@
 
 import { StoredTweet, DashboardStats } from '@/lib/types';
 import { fmtDate, fmtTime, fmtSigned, sentimentLabel, headlineFromTweet } from '@/lib/format';
+import { renderRichSummary } from '@/lib/richText';
 
 const SENTIMENT_TEXT: Record<string, string> = {
   bullish: 'text-bull', bearish: 'text-bear', neutral: 'text-neutral', mixed: 'text-mixed',
@@ -47,7 +48,7 @@ export default function TodaysBrief({ brief, stats, onTicker }: Props) {
             </div>
 
             <h2 className="brief-headline">{headlineFromTweet(brief)}</h2>
-            <p className="brief-dek">{a.summary}</p>
+            <p className="brief-dek">{renderRichSummary(a.summary, onTicker)}</p>
 
             <div className="brief-signal-row">
               {primaryTicker && (
