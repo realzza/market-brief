@@ -65,13 +65,20 @@ function toRawTweet(t: SyndicationTweet): RawTweet {
 }
 
 export async function fetchLatestTweets(username: string, count = 100): Promise<RawTweet[]> {
-  const url = `${SYNDICATION_URL}/${encodeURIComponent(username)}?count=${count}&showReplies=false`;
+  // Cache-buster nudges the upstream CDN. Limited upside (server-side cache
+  // is shared across all callers) but zero downside.
+  const bust = Date.now();
+  const url = `${SYNDICATION_URL}/${encodeURIComponent(username)}?count=${count}&showReplies=false&dnt=true&_=${bust}`;
 
   const res = await fetch(url, {
     headers: {
       'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       'Accept': 'text/html,application/xhtml+xml',
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache',
+      'Referer': 'https://platform.twitter.com/',
     },
+    cache: 'no-store',
     next: { revalidate: 0 },
   });
 
@@ -88,15 +95,28 @@ export async function fetchLatestTweets(username: string, count = 100): Promise<
   const entries: Array<{ type: string; content?: { tweet: SyndicationTweet } }> =
     data?.props?.pageProps?.timeline?.entries ?? [];
 
-  const tweets: RawTweet[] = [];
+  // Collect everything that's a real tweet (no retweets / replies). The API
+  // returns entries in a curated order (pinned first, then a mix that's NOT
+  // chronological), so we must sort ourselves before taking the top N.
+  const all: RawTweet[] = [];
   for (const entry of entries) {
     if (entry.type !== 'tweet' || !entry.content?.tweet) continue;
     const t = entry.content.tweet;
-    // Skip retweets and replies
     if (t.retweeted || t.in_reply_to_status_id_str) continue;
-    tweets.push(toRawTweet(t));
-    if (tweets.length >= count) break;
+    all.push(toRawTweet(t));
   }
 
-  return tweets;
+  all.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  // Visibility on upstream freshness — surfaces "endpoint serving stale data"
+  // in the scheduler logs without having to dump rows from sqlite.
+  if (all.length > 0) {
+    const newest = all[0].created_at;
+    const ageDays = (Date.now() - new Date(newest).getTime()) / 86_400_000;
+    console.log(
+      `[twitter] fetched ${all.length} tweets · newest=${newest} (${ageDays.toFixed(1)}d ago)`,
+    );
+  }
+
+  return all.slice(0, count);
 }
