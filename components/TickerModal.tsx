@@ -206,8 +206,9 @@ export default function TickerModal({ ticker, onClose }: Props) {
     if (!data) return [];
     if (periodMeta.intraday) {
       const intra = data.intraday ?? [];
-      // Market closed / pre-market: fall back to last 2 trading days of daily data
-      if (intra.length === 0) return filterByPeriod(data.closes ?? [], 2);
+      // Market closed / pre-market: show last 5 trading days by index
+      // (date-range filter fails over weekends/holidays when gaps > 2 days)
+      if (intra.length === 0) return (data.closes ?? []).slice(-5);
       return intra;
     }
     return filterByPeriod(data.closes ?? [], periodMeta.days);
