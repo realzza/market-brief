@@ -106,7 +106,11 @@ export default function Home() {
         setStatus(data.error, 'error');
         return;
       }
-      setStatus(`Fetched ${data.fetched} tweets — ${data.saved} new saved.`, 'success');
+      const newCount = data.inserted ?? 0;
+      const msg = newCount === 0
+        ? `Fetched ${data.fetched} tweets — no new ones since last fetch.`
+        : `Fetched ${data.fetched} tweets — ${newCount} new (${data.updated} already known).`;
+      setStatus(msg, 'success');
       await loadData();
     } catch {
       setStatus('Failed to connect to X API.', 'error');

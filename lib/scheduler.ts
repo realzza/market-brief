@@ -27,7 +27,11 @@ export function getLastFetchAt(): number | null {
  * Throws if a fetch is already in flight (concurrent calls would
  * just double-hit the upstream API for no benefit).
  */
-export async function runFetch(): Promise<{ fetched: number; saved: number }> {
+export async function runFetch(): Promise<{
+  fetched: number;
+  inserted: number;
+  updated: number;
+}> {
   if (inFlight) {
     throw new Error('A fetch is already in progress — please wait a moment.');
   }
@@ -50,8 +54,8 @@ export async function runFetch(): Promise<{ fetched: number; saved: number }> {
       fetched_at: now,
       media_urls: JSON.stringify(t.media_urls ?? []),
     }));
-    saveTweets(toSave);
-    return { fetched: raw.length, saved: toSave.length };
+    const { inserted, updated } = saveTweets(toSave);
+    return { fetched: raw.length, inserted, updated };
   } finally {
     inFlight = false;
   }
@@ -60,9 +64,9 @@ export async function runFetch(): Promise<{ fetched: number; saved: number }> {
 async function tick() {
   const t0 = Date.now();
   try {
-    const { fetched, saved } = await runFetch();
+    const { fetched, inserted, updated } = await runFetch();
     console.log(
-      `[scheduler] ok · ${new Date(t0).toISOString()} · fetched=${fetched} saved=${saved} took=${Date.now() - t0}ms`,
+      `[scheduler] ok · ${new Date(t0).toISOString()} · fetched=${fetched} new=${inserted} updated=${updated} took=${Date.now() - t0}ms`,
     );
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
