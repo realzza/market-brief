@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Design prototype source — not production code
+    "serenity-redesign-src/**",
   ]),
 ]);
 

@@ -1,128 +1,117 @@
 'use client';
 
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { formatDistanceToNow } from 'date-fns';
-import { CheckCircle, XCircle, Clock, TrendingUp } from 'lucide-react';
+import { fmtDate, fmtPrice, fmtPct } from '@/lib/format';
 
 interface PerformanceEntry {
   id: number;
   tweet_id: string;
-  tweet_text: string;
-  tweet_date: string;
   asset: string;
   direction: 'long' | 'short';
   entry_price?: number;
   target_price?: number;
   stop_loss_price?: number;
   signal_date: string;
-  outcome: 'win' | 'loss' | 'breakeven' | 'pending';
+  outcome?: 'win' | 'loss' | 'breakeven' | 'pending';
   actual_return_pct?: number;
   notes?: string;
 }
 
-interface Props {
-  entries: PerformanceEntry[];
-}
-
-const OUTCOME_COLORS = { win: '#10b981', loss: '#ef4444', breakeven: '#6b7280', pending: '#f59e0b' };
-
-const OutcomeIcon = ({ outcome }: { outcome: string }) => {
-  if (outcome === 'win') return <CheckCircle className="h-4 w-4 text-emerald-400" />;
-  if (outcome === 'loss') return <XCircle className="h-4 w-4 text-red-400" />;
-  if (outcome === 'pending') return <Clock className="h-4 w-4 text-amber-400" />;
-  return <TrendingUp className="h-4 w-4 text-slate-400" />;
-};
+interface Props { entries: PerformanceEntry[] }
 
 export default function PerformanceDashboard({ entries }: Props) {
-  const settled = entries.filter((e) => e.outcome !== 'pending');
-  const wins = settled.filter((e) => e.outcome === 'win').length;
-  const losses = settled.filter((e) => e.outcome === 'loss').length;
-  const winRate = settled.length > 0 ? ((wins / settled.length) * 100).toFixed(1) : '—';
+  const wins      = entries.filter((e) => e.outcome === 'win').length;
+  const losses    = entries.filter((e) => e.outcome === 'loss').length;
+  const breakeven = entries.filter((e) => e.outcome === 'breakeven').length;
+  const pending   = entries.filter((e) => e.outcome === 'pending').length;
+  const closed    = wins + losses + breakeven;
+  const winRate   = closed > 0 ? Math.round((wins / closed) * 100) : 0;
+  const returns   = entries.filter((e) => e.actual_return_pct != null).map((e) => e.actual_return_pct!);
+  const avgRet    = returns.length > 0 ? returns.reduce((a, b) => a + b, 0) / returns.length : 0;
 
-  const avgReturn = settled.length > 0
-    ? (settled.reduce((s, e) => s + (e.actual_return_pct ?? 0), 0) / settled.length).toFixed(2)
-    : null;
+  const cells = [
+    { label: 'Total signals', v: entries.length,       sub: `${pending} open · ${closed} closed`,  bar: 100,                              trend: 'accent'                       },
+    { label: 'Win rate',      v: winRate + '%',         sub: `${wins} wins · ${losses} losses`,     bar: winRate,                          trend: 'bull'                         },
+    { label: 'Avg return',    v: fmtPct(avgRet, 2),    sub: 'Across closed trades',                bar: Math.min(100, Math.abs(avgRet)*8), trend: avgRet >= 0 ? 'bull' : 'bear' },
+    { label: 'Open',          v: pending,               sub: 'Pending outcome',                     bar: entries.length ? (pending/entries.length)*100 : 0, trend: 'neutral'     },
+  ];
 
-  const pieCounts = [
-    { name: 'Win', value: wins, color: OUTCOME_COLORS.win },
-    { name: 'Loss', value: losses, color: OUTCOME_COLORS.loss },
-    { name: 'Breakeven', value: settled.filter((e) => e.outcome === 'breakeven').length, color: OUTCOME_COLORS.breakeven },
-    { name: 'Pending', value: entries.filter((e) => e.outcome === 'pending').length, color: OUTCOME_COLORS.pending },
-  ].filter((d) => d.value > 0);
-
-  if (entries.length === 0) {
-    return (
-      <div className="flex h-32 items-center justify-center text-sm text-slate-500">
-        No trade signals logged yet. Analyze tweets to auto-detect signals, then track their outcomes here.
-      </div>
-    );
-  }
+  const outcomeColor = (o?: string) => {
+    switch (o) {
+      case 'win':       return 'var(--bull)';
+      case 'loss':      return 'var(--bear)';
+      case 'breakeven': return 'var(--ink-3)';
+      default:          return 'var(--mixed)';
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Summary metrics */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-lg border border-slate-700/50 bg-slate-800/40 p-3 text-center">
-          <div className="text-2xl font-bold text-slate-200">{entries.length}</div>
-          <div className="text-xs text-slate-500">Total Signals</div>
-        </div>
-        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-center">
-          <div className="text-2xl font-bold text-emerald-400">{winRate}%</div>
-          <div className="text-xs text-slate-500">Win Rate</div>
-        </div>
-        <div className={`rounded-lg border p-3 text-center ${Number(avgReturn) >= 0 ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-red-500/20 bg-red-500/5'}`}>
-          <div className={`text-2xl font-bold ${Number(avgReturn) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-            {avgReturn !== null ? `${Number(avgReturn) >= 0 ? '+' : ''}${avgReturn}%` : '—'}
-          </div>
-          <div className="text-xs text-slate-500">Avg Return</div>
-        </div>
+    <div>
+      <div className="panel-head">
+        <h3 className="panel-title">Signal performance</h3>
+        <span className="panel-sub">Tracked trade calls · realised P&amp;L</span>
       </div>
 
-      {/* Pie chart */}
-      {pieCounts.length > 0 && (
-        <ResponsiveContainer width="100%" height={160}>
-          <PieChart>
-            <Pie data={pieCounts} cx="50%" cy="50%" innerRadius={40} outerRadius={65} dataKey="value" paddingAngle={3}>
-              {pieCounts.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-            </Pie>
-            <Tooltip
-              formatter={(v, n) => [v, n]}
-              contentStyle={{ background: '#0f172a', border: '1px solid #334155', borderRadius: 8 }}
-              labelStyle={{ color: '#94a3b8' }}
-            />
-            <Legend wrapperStyle={{ fontSize: 11, color: '#94a3b8' }} />
-          </PieChart>
-        </ResponsiveContainer>
-      )}
-
-      {/* Signal list */}
-      <div className="space-y-2">
-        {entries.slice(0, 10).map((entry) => (
-          <div key={entry.id} className="flex items-start gap-3 rounded-lg border border-slate-700/50 bg-slate-800/30 p-3">
-            <OutcomeIcon outcome={entry.outcome} />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-mono text-sm font-semibold text-slate-200">{entry.asset}</span>
-                <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${entry.direction === 'long' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-red-500/15 text-red-400'}`}>
-                  {entry.direction.toUpperCase()}
-                </span>
-                {entry.entry_price && <span className="text-xs text-slate-400">@ ${entry.entry_price.toLocaleString()}</span>}
-                {entry.target_price && <span className="text-xs text-emerald-400">TP ${entry.target_price.toLocaleString()}</span>}
-                {entry.stop_loss_price && <span className="text-xs text-red-400">SL ${entry.stop_loss_price.toLocaleString()}</span>}
-                {entry.actual_return_pct != null && (
-                  <span className={`ml-auto text-sm font-semibold ${entry.actual_return_pct >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    {entry.actual_return_pct >= 0 ? '+' : ''}{entry.actual_return_pct.toFixed(2)}%
-                  </span>
-                )}
-              </div>
-              <p className="mt-1 line-clamp-1 text-xs text-slate-500">{entry.tweet_text}</p>
-              <p className="mt-0.5 text-xs text-slate-600">
-                {formatDistanceToNow(new Date(entry.signal_date), { addSuffix: true })}
-              </p>
+      <div className="perf-summary stats">
+        {cells.map((c) => (
+          <div className="stat" key={c.label}>
+            <div className="label"><span className="eyebrow">{c.label}</span></div>
+            <div>
+              <div className="v num">{c.v}</div>
+              <div className="sub">{c.sub}</div>
+            </div>
+            <div className={`trend ${c.trend}`}>
+              <i style={{ width: `${Math.max(c.bar, 2)}%` }} />
             </div>
           </div>
         ))}
       </div>
+
+      {entries.length === 0 ? (
+        <div className="empty">
+          <div className="title">No signals tracked</div>
+          <div className="desc">Signals from analyzed trade-call tweets will appear here.</div>
+        </div>
+      ) : (
+        <table className="perf-table">
+          <thead>
+            <tr>
+              <th>Asset</th>
+              <th>Dir</th>
+              <th>Date</th>
+              <th className="num-cell">Entry</th>
+              <th className="num-cell">Target</th>
+              <th className="num-cell">Stop</th>
+              <th>Outcome</th>
+              <th className="num-cell">Return</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {entries.map((e) => (
+              <tr key={e.id}>
+                <td className="asset">${e.asset}</td>
+                <td>
+                  <span className={`dir ${e.direction}`}>{e.direction}</span>
+                </td>
+                <td className="date-cell">{fmtDate(e.signal_date)}</td>
+                <td className="num-cell">{e.entry_price ? '$' + fmtPrice(e.entry_price) : '—'}</td>
+                <td className="num-cell">{e.target_price ? '$' + fmtPrice(e.target_price) : '—'}</td>
+                <td className="num-cell">{e.stop_loss_price ? '$' + fmtPrice(e.stop_loss_price) : '—'}</td>
+                <td>
+                  <span className={`outcome ${e.outcome ?? 'pending'}`}>
+                    <span className="dot" style={{ background: outcomeColor(e.outcome) }} />
+                    {e.outcome ?? 'pending'}
+                  </span>
+                </td>
+                <td className={`num-cell ret ${e.actual_return_pct == null ? '' : e.actual_return_pct >= 0 ? 'pos' : 'neg'}`}>
+                  {e.actual_return_pct != null ? fmtPct(e.actual_return_pct, 1) : '—'}
+                </td>
+                <td style={{ color: 'var(--ink-3)', fontSize: 12 }}>{e.notes ?? ''}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

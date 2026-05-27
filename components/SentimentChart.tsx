@@ -1,10 +1,6 @@
 'use client';
 
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, BarChart, Bar, Legend
-} from 'recharts';
-import { format, parseISO } from 'date-fns';
+import { fmtDate } from '@/lib/format';
 
 interface TimelinePoint {
   date: string;
@@ -15,90 +11,147 @@ interface TimelinePoint {
   neutral: number;
 }
 
-interface Props {
-  timeline: TimelinePoint[];
-}
-
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="rounded-lg border border-slate-700 bg-slate-900 p-3 shadow-xl">
-      <p className="mb-2 text-xs font-semibold text-slate-300">{label}</p>
-      {payload.map((p: any) => (
-        <div key={p.name} className="flex items-center gap-2 text-xs">
-          <span className="h-2 w-2 rounded-full" style={{ background: p.color }} />
-          <span className="text-slate-400">{p.name}:</span>
-          <span className="font-medium text-slate-200">
-            {typeof p.value === 'number' && p.name === 'Sentiment Score'
-              ? p.value.toFixed(3)
-              : p.value}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-};
+interface Props { timeline: TimelinePoint[] }
 
 export default function SentimentChart({ timeline }: Props) {
-  const data = timeline.map((d) => ({
-    ...d,
-    date: format(parseISO(d.date), 'MMM d'),
-    avg_score: Number(d.avg_score?.toFixed(3) ?? 0),
-  }));
-
-  if (data.length === 0) {
+  if (!timeline || timeline.length === 0) {
     return (
-      <div className="flex h-48 items-center justify-center text-sm text-slate-500">
-        No data yet — fetch and analyze tweets to see the timeline.
+      <div className="empty">
+        <div className="title">No timeline data</div>
+        <div className="desc">Analyze some tweets to see the sentiment trend.</div>
       </div>
     );
   }
 
+  const W = 920, H = 280;
+  const padL = 44, padR = 16, padT = 24, padB = 36;
+  const innerW = W - padL - padR;
+  const innerH = H - padT - padB;
+  const n = timeline.length;
+  const xStep = innerW / Math.max(1, n - 1);
+  const yFor = (v: number) => padT + innerH * (1 - (v + 1) / 2);
+  const xFor = (i: number) => padL + i * xStep;
+
+  // Line path
+  let line = '';
+  timeline.forEach((p, i) => {
+    line += (i === 0 ? 'M' : 'L') + xFor(i).toFixed(1) + ' ' + yFor(p.avg_score).toFixed(1);
+  });
+
+  // Bull / bear area paths from zero line
+  const zeroY = yFor(0);
+  let bullArea = `M ${xFor(0).toFixed(1)} ${zeroY.toFixed(1)} `;
+  let bearArea = `M ${xFor(0).toFixed(1)} ${zeroY.toFixed(1)} `;
+  timeline.forEach((p, i) => {
+    const x = xFor(i).toFixed(1);
+    const y = yFor(p.avg_score).toFixed(1);
+    if (p.avg_score >= 0) bullArea += `L ${x} ${y} `;
+    else bullArea += `L ${x} ${zeroY.toFixed(1)} `;
+    if (p.avg_score < 0) bearArea += `L ${x} ${y} `;
+    else bearArea += `L ${x} ${zeroY.toFixed(1)} `;
+  });
+  bullArea += `L ${xFor(n - 1).toFixed(1)} ${zeroY.toFixed(1)} Z`;
+  bearArea += `L ${xFor(n - 1).toFixed(1)} ${zeroY.toFixed(1)} Z`;
+
+  // X-axis labels
+  const labels: number[] = [];
+  for (let i = 0; i < n; i += Math.ceil(n / 5)) labels.push(i);
+  if (labels[labels.length - 1] !== n - 1) labels.push(n - 1);
+
+  const yTicks = [-1, -0.5, 0, 0.5, 1];
+
+  // Volume bars
+  const maxCount = Math.max(...timeline.map((p) => p.tweet_count), 1);
+
   return (
-    <div className="space-y-6">
-      {/* Sentiment score over time */}
-      <div>
-        <h3 className="mb-3 text-sm font-semibold text-slate-300">Sentiment Score Over Time</h3>
-        <ResponsiveContainer width="100%" height={180}>
-          <AreaChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-            <defs>
-              <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-            <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 11 }} />
-            <YAxis domain={[-1, 1]} tick={{ fill: '#64748b', fontSize: 11 }} />
-            <Tooltip content={<CustomTooltip />} />
-            <Area
-              type="monotone"
-              dataKey="avg_score"
-              name="Sentiment Score"
-              stroke="#10b981"
-              fill="url(#scoreGrad)"
-              strokeWidth={2}
-              dot={{ r: 3, fill: '#10b981' }}
+    <div>
+      <div className="chart-host">
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          width="100%"
+          preserveAspectRatio="xMinYMid meet"
+          style={{ display: 'block' }}
+        >
+          <g className="chart-grid">
+            {yTicks.map((t) => (
+              <line key={t} x1={padL} x2={W - padR} y1={yFor(t)} y2={yFor(t)} />
+            ))}
+          </g>
+          <g className="chart-zero">
+            <line x1={padL} x2={W - padR} y1={zeroY} y2={zeroY} />
+          </g>
+          <g className="chart-axis-l">
+            {yTicks.map((t) => (
+              <text key={t} x={padL - 8} y={yFor(t) + 3} textAnchor="end">
+                {t > 0 ? '+' + t.toFixed(1) : t.toFixed(1)}
+              </text>
+            ))}
+          </g>
+          <path d={bullArea} className="chart-area-bull" />
+          <path d={bearArea} className="chart-area-bear" />
+          <path d={line} className="chart-line" />
+          {timeline.map((p, i) =>
+            (i % 5 === 0 || i === n - 1) ? (
+              <circle
+                key={i}
+                cx={xFor(i)}
+                cy={yFor(p.avg_score)}
+                r="2"
+                className="chart-dot"
+              />
+            ) : null
+          )}
+          <g className="chart-axis-x">
+            {labels.map((i) => (
+              <text key={i} x={xFor(i)} y={H - padB + 18} textAnchor="middle">
+                {fmtDate(timeline[i].date)}
+              </text>
+            ))}
+          </g>
+        </svg>
+
+        <div className="chart-legend">
+          <span>
+            <span
+              className="swatch"
+              style={{ background: 'color-mix(in oklab, var(--bull) 18%, transparent)' }}
             />
-          </AreaChart>
-        </ResponsiveContainer>
+            Bullish days
+          </span>
+          <span>
+            <span
+              className="swatch"
+              style={{ background: 'color-mix(in oklab, var(--bear) 18%, transparent)' }}
+            />
+            Bearish days
+          </span>
+          <span style={{ marginLeft: 'auto', color: 'var(--ink-4)' }}>
+            {timeline.length} days · scale −1 to +1
+          </span>
+        </div>
       </div>
 
-      {/* Bullish/Bearish/Neutral breakdown */}
-      <div>
-        <h3 className="mb-3 text-sm font-semibold text-slate-300">Daily Sentiment Breakdown</h3>
-        <ResponsiveContainer width="100%" height={160}>
-          <BarChart data={data} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-            <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 11 }} />
-            <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend wrapperStyle={{ fontSize: 11, color: '#94a3b8' }} />
-            <Bar dataKey="bullish" name="Bullish" stackId="a" fill="#10b981" radius={[0, 0, 0, 0]} />
-            <Bar dataKey="neutral" name="Neutral" stackId="a" fill="#475569" />
-            <Bar dataKey="bearish" name="Bearish" stackId="a" fill="#ef4444" radius={[2, 2, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+      {/* Volume bars */}
+      <div style={{ marginTop: 56 }}>
+        <div className="eyebrow" style={{ marginBottom: 6 }}>Tweet volume · daily</div>
+        <div className="vol-bars">
+          {timeline.map((p, i) => {
+            const cls = p.avg_score > 0.15 ? 'bull' : p.avg_score < -0.15 ? 'bear' : '';
+            const h = Math.max(2, (p.tweet_count / maxCount) * 100);
+            return (
+              <div
+                key={i}
+                className={`vbar ${cls}`}
+                style={{ height: h + '%' }}
+                title={`${p.date} · ${p.tweet_count} tweets`}
+              />
+            );
+          })}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 10, color: 'var(--ink-4)', fontFamily: 'var(--font-mono)' }}>
+          <span>{fmtDate(timeline[0].date)}</span>
+          <span>{fmtDate(timeline[timeline.length - 1].date)}</span>
+        </div>
       </div>
     </div>
   );

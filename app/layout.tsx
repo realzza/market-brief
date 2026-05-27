@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,9 +12,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+});
+
 export const metadata: Metadata = {
-  title: "Serenity Tracker — @aleabitoreddit Analysis",
-  description: "AI-powered financial analysis of @aleabitoreddit tweets",
+  title: "The Serenity Brief — @aleabitoreddit Analysis",
+  description: "Editorial AI analysis of @aleabitoreddit's market commentary",
 };
 
 export default function RootLayout({
@@ -25,9 +32,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('serenity-theme')||'light';document.documentElement.setAttribute('data-theme',t);document.documentElement.setAttribute('data-density','standard');}catch(e){}`,
+          }}
+        />
+      </head>
+      <body className="min-h-full">{children}</body>
     </html>
   );
 }

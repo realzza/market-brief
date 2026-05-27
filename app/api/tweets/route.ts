@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchLatestTweets } from '@/lib/twitter';
 import { saveTweets, getTweets } from '@/lib/db';
+import { RawTweet } from '@/lib/types';
 
 // Server-side gate: prevents hammering Twitter regardless of client state.
 const RATE_LIMIT_MS = 15 * 60 * 1000; // 15 minutes
@@ -63,7 +64,7 @@ export async function POST() {
     const raw = await fetchLatestTweets(username, 100);
 
     const now = new Date().toISOString();
-    const toSave = raw.map((t: any) => ({
+    const toSave = raw.map((t: RawTweet) => ({
       id: t.id,
       text: t.text,
       created_at: t.created_at,
