@@ -68,11 +68,11 @@ export default function Masthead({
 
           {/* Right — actions */}
           <div className="masthead-actions">
-            {statusMsg && (
-              <span className={`status-pill ${pillCls}`}>{statusMsg}</span>
-            )}
-
             <div className="masthead-buttons">
+              {statusMsg && (
+                <span className={`status-pill ${pillCls}`}>{statusMsg}</span>
+              )}
+
               <button
                 className="btn"
                 onClick={onFetch}
