@@ -63,6 +63,27 @@ function renderWithTickers(text: string, onTicker: (t: string) => void) {
   );
 }
 
+// Render a Claude-generated summary with both **bold** markdown AND $TICKER
+// recognition. Used for the Analyst Note where Claude often emphasizes its
+// final picks with bold and references several tickers we want clickable.
+function renderRichSummary(text: string, onTicker: (t: string) => void) {
+  // Splitting with a capture group alternates [plain, bold, plain, bold, ...]
+  const segments = text.split(/\*\*([\s\S]+?)\*\*/g);
+  return segments.map((seg, segIdx) => {
+    const isBold = segIdx % 2 === 1;
+    const inner = seg.split(TICKER_SPLIT).map((tok, tokIdx) =>
+      TICKER_TEST.test(tok) ? (
+        <button key={tokIdx} className="ticker" onClick={() => onTicker(tok.slice(1))}>
+          {tok}
+        </button>
+      ) : (
+        <span key={tokIdx}>{tok}</span>
+      )
+    );
+    return isBold ? <strong key={segIdx}>{inner}</strong> : <span key={segIdx}>{inner}</span>;
+  });
+}
+
 function TweetText({ text, onTicker }: { text: string; onTicker: (t: string) => void }) {
   const [expanded, setExpanded] = useState(false);
   const isLong = text.length > LONG_TWEET_CHARS;
@@ -255,7 +276,11 @@ export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
           <MediaGallery urls={mediaUrls} />
 
           {/* Analyst note */}
-          {a?.summary && <div className="article-summary">{a.summary}</div>}
+          {a?.summary && (
+            <div className="article-summary">
+              {renderRichSummary(a.summary, setActiveTicker)}
+            </div>
+          )}
 
           {/* Signals */}
           {a?.signals && a.signals.length > 0 && (
