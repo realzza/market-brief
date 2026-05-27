@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getTweets } from '@/lib/db';
-import { runFetch, manualCooldownRemaining } from '@/lib/scheduler';
+import { runFetch } from '@/lib/scheduler';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -41,24 +41,16 @@ export async function GET(request: Request) {
 }
 
 export async function POST() {
-  // Manual button is a "force a fresh fetch now" override on top of the
-  // background scheduler. Short cooldown just prevents button-mashing.
-  const remaining = manualCooldownRemaining();
-  if (remaining > 0) {
-    return NextResponse.json(
-      {
-        error: `Cooldown — ${Math.ceil(remaining / 60)}m ${remaining % 60}s until next manual fetch. (Auto-fetch runs every 15 min in the background.)`,
-        retryAfter: remaining,
-      },
-      { status: 429 },
-    );
-  }
-
+  // Manual button: forces a fresh fetch now. The in-flight gate inside
+  // runFetch() prevents concurrent hits; RSSHub's own 10-min cache absorbs
+  // rapid clicks so we don't actually re-hit Twitter every time.
   try {
     const { fetched, saved } = await runFetch();
     return NextResponse.json({ saved, fetched });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    // 409 conveys "already in progress" more accurately than 500
+    const status = msg.includes('already in progress') ? 409 : 500;
+    return NextResponse.json({ error: msg }, { status });
   }
 }

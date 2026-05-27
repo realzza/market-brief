@@ -5,7 +5,6 @@ interface Props {
   edition: number;
   fetching: boolean;
   analyzing: boolean;
-  fetchCooldown: number;
   loading: boolean;
   onFetch: () => void;
   onAnalyze: () => void;
@@ -34,13 +33,9 @@ function Icon({ name, size = 14 }: { name: string; size?: number }) {
   }
 }
 
-function fmtCool(s: number): string {
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-}
-
 export default function Masthead({
   dateStr, edition,
-  fetching, analyzing, fetchCooldown,
+  fetching, analyzing,
   loading, onFetch, onAnalyze, onCancel, onRefresh,
   statusMsg, statusType,
   theme, onToggleTheme,
@@ -80,14 +75,10 @@ export default function Masthead({
             <button
               className="btn"
               onClick={onFetch}
-              disabled={fetching || analyzing || fetchCooldown > 0}
+              disabled={fetching || analyzing}
             >
               <Icon name="download" size={13} />
-              {fetching
-                ? 'Fetching…'
-                : fetchCooldown > 0
-                ? `Wait ${fmtCool(fetchCooldown)}`
-                : 'Fetch'}
+              {fetching ? 'Fetching…' : 'Fetch'}
             </button>
 
             {analyzing ? (

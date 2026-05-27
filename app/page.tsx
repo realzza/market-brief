@@ -61,7 +61,6 @@ export default function Home() {
   const [loading,    setLoading]    = useState(false);
   const [analyzing,  setAnalyzing]  = useState(false);
   const [fetching,   setFetching]   = useState(false);
-  const [fetchCooldown, setFetchCooldown] = useState(0);
   const [statusMsg,  setStatusMsg]  = useState('');
   const [statusType, setStatusType] = useState<'info' | 'error' | 'success'>('info');
   const cancelRef = useRef(false);
@@ -97,12 +96,6 @@ export default function Home() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadData(); }, [loadData]);
 
-  useEffect(() => {
-    if (fetchCooldown <= 0) return;
-    const t = setTimeout(() => setFetchCooldown((s) => s - 1), 1000);
-    return () => clearTimeout(t);
-  }, [fetchCooldown]);
-
   const handleFetch = async () => {
     setFetching(true);
     setStatus('Fetching tweets from X…');
@@ -111,11 +104,9 @@ export default function Home() {
       const data = await res.json();
       if (data.error) {
         setStatus(data.error, 'error');
-        if (res.status === 429) setFetchCooldown(data.retryAfter ?? 900);
         return;
       }
       setStatus(`Fetched ${data.fetched} tweets — ${data.saved} new saved.`, 'success');
-      setFetchCooldown(data.retryAfter ?? 900);
       await loadData();
     } catch {
       setStatus('Failed to connect to X API.', 'error');
@@ -191,7 +182,6 @@ export default function Home() {
         dateStr={dateStr}
         fetching={fetching}
         analyzing={analyzing}
-        fetchCooldown={fetchCooldown}
         loading={loading}
         onFetch={handleFetch}
         onAnalyze={handleAnalyze}

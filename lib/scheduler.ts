@@ -3,16 +3,13 @@
 // Runs once per Node server boot (wired up via instrumentation.ts).
 // Owns the shared `lastFetchAt` state and the `runFetch()` primitive
 // so both the cron tick and the manual POST /api/tweets handler hit
-// the same in-flight gate and cooldown clock.
+// the same in-flight gate.
 
 import { fetchLatestTweets } from './twitter';
 import { saveTweets } from './db';
 
 // How often the background loop hits X (also our effective fetch rate).
 const CRON_INTERVAL_MS = 15 * 60 * 1000;        // 15 min
-// Minimum gap between *manual* button presses. Auto-fetch handles steady
-// state; this just stops button-mashing from piling up upstream requests.
-const MANUAL_COOLDOWN_MS = 3 * 60 * 1000;       // 3 min
 // Delay before the first background tick so we don't block server boot.
 const FIRST_TICK_DELAY_MS = 5_000;
 
@@ -22,13 +19,6 @@ let started = false;
 
 export function getLastFetchAt(): number | null {
   return lastFetchAt;
-}
-
-/** Seconds remaining before the manual button is allowed to fire again. */
-export function manualCooldownRemaining(): number {
-  if (lastFetchAt === null) return 0;
-  const remaining = MANUAL_COOLDOWN_MS - (Date.now() - lastFetchAt);
-  return Math.max(0, Math.ceil(remaining / 1000));
 }
 
 /**

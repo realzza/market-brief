@@ -177,11 +177,42 @@ button:disabled { cursor: not-allowed; }
 .masthead-rule { height: 1px; background: var(--ink); opacity: 0.85; }
 .masthead-rule-thin { height: 1px; background: var(--rule); margin: 2px 0 0; }
 .masthead-byline {
-  display: flex; justify-content: space-between;
+  display: flex; justify-content: space-between; gap: 16px;
   font-size: 10px; color: var(--ink-3); margin-top: 6px;
   font-family: var(--font-mono); letter-spacing: 0.05em;
+  flex-wrap: wrap;
 }
-.masthead-actions { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.masthead-actions { display: flex; align-items: center; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* Mobile pass — narrow screens (typical phones in portrait) */
+@media (max-width: 760px) {
+  :root { --gutter: 20px; }
+  /* Masthead — stack columns, let actions wrap */
+  .masthead-inner { grid-template-columns: 1fr; gap: 12px; padding: 12px 0 10px; }
+  .masthead-title { font-size: 19px; }
+  .masthead-meta  { flex-direction: row; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+  .masthead-byline { font-size: 9.5px; gap: 8px 16px; }
+  .masthead-actions { justify-content: flex-start; }
+  .status-pill { order: 99; flex-basis: 100%; max-width: 100%; }
+  /* Tabs — less aggressive padding, smaller font */
+  .tab { padding: 10px 12px 12px; font-size: 12px; }
+  .tab:first-child { padding-left: 0; }
+  /* Filters — count drops below to its own line so chips have room */
+  .filters { gap: 6px 8px; padding-top: 16px; }
+  .filters-count { margin-left: 0; flex-basis: 100%; padding-top: 4px; }
+  /* Ticker modal — tighter padding so the chart isn't squished */
+  .modal-scrim { padding: 10px; }
+  .modal { padding: 20px 16px 22px; border-radius: var(--radius); }
+  .modal-head { padding-bottom: 14px; margin-bottom: 14px; }
+  .modal-price { font-size: 22px; }
+  .period-tabs { gap: 4px; }
+  .period-tab { padding: 8px 6px; min-width: 52px; }
+  /* TodaysBrief headline scales down */
+  .brief-headline { font-size: 26px; }
+  .mood-score { font-size: 38px; }
+  /* Article padding tightened */
+  .article { padding: 22px 0 26px; }
+}
 
 /* ── Buttons ── */
 .btn {

@@ -133,7 +133,10 @@ export async function analyzeTweet(
 
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 1200,
+    // 1200 truncated long analyses (4-image tweets with many tickers) — the
+    // model would emit a partial JSON object that failed to parse. 4096 gives
+    // comfortable headroom; current observed worst-case is ~2000 output tokens.
+    max_tokens: 4096,
     system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content }],
   });
@@ -145,11 +148,30 @@ export async function analyzeTweet(
     );
   }
 
+  if (response.stop_reason === 'max_tokens') {
+    console.warn(`[claude] tweet ${tweet.id} hit max_tokens — output may be truncated`);
+  }
+
   const text = response.content[0].type === 'text' ? response.content[0].text : '';
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('No JSON in Claude response');
 
-  const parsed = JSON.parse(jsonMatch[0]);
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonMatch[0]);
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    // Show ±120 chars around the failure so we can see what's malformed
+    const posMatch = errMsg.match(/position (\d+)/);
+    if (posMatch) {
+      const pos = parseInt(posMatch[1], 10);
+      const snippet = jsonMatch[0].slice(Math.max(0, pos - 120), pos + 120);
+      console.error(`[claude] tweet ${tweet.id} JSON parse failed: ${errMsg}\nSnippet around error:\n${snippet}`);
+    } else {
+      console.error(`[claude] tweet ${tweet.id} JSON parse failed: ${errMsg}`);
+    }
+    throw err;
+  }
   return {
     tweet_id: tweet.id,
     ...parsed,
