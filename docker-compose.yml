@@ -2,6 +2,13 @@
 # docker compose logs -f        → tail logs (watch for [scheduler] ticks)
 # docker compose down           → stop & remove (data volume survives)
 # docker compose down -v        → stop & wipe the SQLite volume too
+#
+# Fresh-tweet path:
+#   The `rsshub` service can scrape live tweets, but only if you provide
+#   real Twitter login credentials in .env (see .env.example). Without
+#   credentials, rsshub still runs but its Twitter route returns 503, and
+#   the app silently falls back to the (stale-for-some-accounts) free
+#   syndication endpoint. Adding credentials is opt-in.
 
 services:
   serenity:
@@ -11,6 +18,8 @@ services:
     image: serenity-tracker:latest
     container_name: serenity-tracker
     restart: unless-stopped
+    depends_on:
+      - rsshub
 
     # Host:container — change PORT_HOST in .env (or export it) if 3737 is
     # taken. The container always listens on 3000 internally.
@@ -30,6 +39,10 @@ services:
     environment:
       - NODE_ENV=production
       - TZ=${TZ:-UTC}
+      # Internal DNS — Compose makes rsshub resolvable by service name.
+      # If empty, lib/twitter.ts skips the RSSHub path and goes straight to
+      # syndication. Set to "" in .env to disable RSSHub even if it's running.
+      - RSSHUB_URL=${RSSHUB_URL-http://rsshub:1200}
 
     healthcheck:
       test:
@@ -49,6 +62,30 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
+
+  # RSSHub — scrapes Twitter/X (and other sources) into RSS/JSON feeds.
+  # Internal-only; not exposed to the host. To inspect manually, run
+  # `docker compose exec rsshub wget -qO- http://localhost:1200/twitter/user/USER`.
+  rsshub:
+    image: diygod/rsshub:latest
+    container_name: serenity-rsshub
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      # In-memory cache; RSSHub starts fine without Redis for single-instance use.
+      - CACHE_TYPE=memory
+      - CACHE_EXPIRE=600          # cache feeds for 10 min
+      # Twitter scraping requires a real Twitter account login. Set these
+      # in .env to activate fresh-tweet fetching; leave empty to fall back.
+      - TWITTER_USERNAME=${TWITTER_LOGIN_USERNAME:-}
+      - TWITTER_PASSWORD=${TWITTER_LOGIN_PASSWORD:-}
+      - TWITTER_PHONE_OR_EMAIL=${TWITTER_LOGIN_PHONE_OR_EMAIL:-}
+      - TWITTER_AUTHENTICATION_SECRET=${TWITTER_LOGIN_2FA_SECRET:-}
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
 
 volumes:
   serenity-data:
