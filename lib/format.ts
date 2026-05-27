@@ -2,8 +2,11 @@ import { StoredTweet } from './types';
 
 export function fmtCompact(n: number | null | undefined): string {
   if (n == null) return '—';
-  if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
-  if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+  const abs = Math.abs(n);
+  if (abs >= 1e12) return (n / 1e12).toFixed(2).replace(/\.?0+$/, '') + 'T';
+  if (abs >= 1e9)  return (n / 1e9).toFixed(2).replace(/\.?0+$/, '') + 'B';
+  if (abs >= 1e6)  return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+  if (abs >= 1e3)  return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
   return n.toLocaleString();
 }
 

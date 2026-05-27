@@ -200,19 +200,25 @@ export default function TickerModal({ ticker, onClose }: Props) {
 
   const periodMeta = PERIODS.find((p) => p.key === activePeriod) ?? PERIODS[2];
 
-  const marketClosed = periodMeta.intraday && (data?.intraday?.length ?? 0) === 0;
+  // intraday from the API is already filtered to the most recent session.
+  // marketClosed only triggers if the API returned no intraday at all
+  // (extremely rare — e.g. brand-new ticker or API failure).
+  const marketClosed = !!periodMeta.intraday && (data?.intraday?.length ?? 0) === 0;
 
   const chartPoints = useMemo(() => {
     if (!data) return [];
     if (periodMeta.intraday) {
       const intra = data.intraday ?? [];
-      // Market closed / pre-market: show last 5 trading days by index
-      // (date-range filter fails over weekends/holidays when gaps > 2 days)
       if (intra.length === 0) return (data.closes ?? []).slice(-5);
       return intra;
     }
     return filterByPeriod(data.closes ?? [], periodMeta.days);
   }, [data, periodMeta]);
+
+  // Date of the trading session being shown for 1D — null for other tabs
+  const sessionDate = periodMeta.intraday && !marketClosed && chartPoints.length > 0
+    ? new Date(chartPoints[0].t).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    : null;
 
   const perfMap: Record<string, number | undefined> = useMemo(() => {
     if (!data) return {};
@@ -307,8 +313,8 @@ export default function TickerModal({ ticker, onClose }: Props) {
             <PriceChart points={chartPoints} intraday={!!periodMeta.intraday && !marketClosed} />
             <div className="price-chart-foot">
               {periodMeta.label} · {chartPoints.length} {
-                marketClosed ? 'daily closes · market closed' :
-                periodMeta.intraday ? 'intraday points' : 'trading days'
+                marketClosed ? 'daily closes · no intraday' :
+                periodMeta.intraday ? `intraday points · session ${sessionDate}` : 'trading days'
               } · hover for price
             </div>
           </div>
