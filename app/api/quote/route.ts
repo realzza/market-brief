@@ -35,16 +35,18 @@ export async function GET(req: NextRequest) {
   try {
     const sym = await resolveSymbol(ticker.toUpperCase());
 
-    // Fetch 1 year of daily data + today's intraday (5-min) for the 1D view
+    // Fetch 1 year of daily data + a 5-day intraday window. The wider intraday
+    // window guarantees we get the last trading session even over weekends or
+    // holidays; we then filter to just that most-recent day below.
     const yearAgo = new Date(Date.now() - 366 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const todayStr = new Date().toISOString().split('T')[0];
+    const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     type ChartQuote = { date: Date; close?: number | null };
 
     const [quote, chartResult, intradayResult] = await Promise.all([
       yf.quote(sym, {}, { validateResult: false }),
       yf.chart(sym, { period1: yearAgo, interval: '1d' }, { validateResult: false }).catch(() => null),
-      yf.chart(sym, { period1: todayStr, interval: '5m' }, { validateResult: false }).catch(() => null),
+      yf.chart(sym, { period1: fiveDaysAgo, interval: '5m' }, { validateResult: false }).catch(() => null),
     ]);
 
     function toPoints(raw: ChartQuote[], iso = false): { t: string; c: number }[] {
@@ -56,7 +58,19 @@ export async function GET(req: NextRequest) {
     const rawQuotes = (chartResult as { quotes?: ChartQuote[] } | null)?.quotes ?? [];
     const closes = toPoints(rawQuotes);
     const intradayRaw = (intradayResult as { quotes?: ChartQuote[] } | null)?.quotes ?? [];
-    const intraday = toPoints(intradayRaw, true);
+    const intradayAll = toPoints(intradayRaw, true);
+
+    // Keep only the most recent trading session's points (group by local date
+    // of the timestamp, then take the last group). This means the 1D tab will
+    // show today's session when the market is open and Friday's session over
+    // the weekend — always intraday, never a multi-day fallback.
+    let intraday = intradayAll;
+    if (intradayAll.length > 0) {
+      // ISO timestamps are UTC; compare UTC date prefix so the filter is
+      // independent of server timezone. US trading sessions don't cross midnight UTC.
+      const lastDate = intradayAll[intradayAll.length - 1].t.slice(0, 10);
+      intraday = intradayAll.filter((p) => p.t.slice(0, 10) === lastDate);
+    }
 
     const latest = closes.at(-1)?.c ?? (quote.regularMarketPrice ?? 0);
 
@@ -80,6 +94,7 @@ export async function GET(req: NextRequest) {
       m1: perfSinceDays(30),
       m3: perfSinceDays(90),
       ytd: ytdPerf(),
+      y1: perfSinceDays(365),
     };
 
     return NextResponse.json({

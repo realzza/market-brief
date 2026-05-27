@@ -80,12 +80,15 @@ async function fetchImageAsBase64(
   }
 }
 
-export async function analyzeTweet(tweet: {
-  id: string;
-  text: string;
-  created_at: string;
-  media_urls?: string[];
-}): Promise<TweetAnalysis> {
+export async function analyzeTweet(
+  tweet: {
+    id: string;
+    text: string;
+    created_at: string;
+    media_urls?: string[];
+  },
+  options: { userQuestion?: string } = {},
+): Promise<TweetAnalysis> {
   const imageResults = await Promise.all(
     (tweet.media_urls ?? []).map(fetchImageAsBase64)
   );
@@ -96,9 +99,24 @@ export async function analyzeTweet(tweet: {
       source: { type: 'base64' as const, media_type: img.mediaType, data: img.base64 },
     }));
 
-  // Content order: cached schema instruction → dynamic images → dynamic tweet text.
-  // The cache_control marker on SCHEMA_INSTRUCTION establishes the stable prefix;
-  // per-tweet images and text come after and are never cached.
+  // User question (if any) is inserted AFTER the cached schema block so the
+  // prompt-cache prefix stays stable across requests — different questions
+  // don't bust the cache for other tweets.
+  const question = options.userQuestion?.trim();
+  const questionBlock: Anthropic.TextBlockParam | null = question
+    ? {
+        type: 'text',
+        text:
+          `The user has asked a specific question about this tweet:\n"${question}"\n\n` +
+          `Still return the full JSON schema as instructed, but make the "summary" ` +
+          `field directly answer this question (1-3 sentences). The other fields ` +
+          `(sentiment, tickers, signals, etc.) should still be populated from your ` +
+          `objective analysis of the tweet, not influenced by the question.`,
+      }
+    : null;
+
+  // Content order: cached schema instruction → dynamic images → optional user
+  // question → dynamic tweet text. Cache breakpoint at SCHEMA_INSTRUCTION only.
   const content: Anthropic.MessageParam['content'] = [
     {
       type: 'text',
@@ -106,15 +124,24 @@ export async function analyzeTweet(tweet: {
       cache_control: { type: 'ephemeral' },
     },
     ...imageBlocks,
+    ...(questionBlock ? [questionBlock] : []),
     {
       type: 'text',
       text: `Tweet (posted ${tweet.created_at}):\n"${tweet.text}"`,
     },
   ];
 
+  // Budget two different ceilings:
+  //  - default analyses are mostly under 2k tokens, 4096 is plenty
+  //  - custom-question analyses (especially in non-English) can run long.
+  //    A Chinese research paragraph eats ~2 tokens/char, so a thorough
+  //    answer + the rest of the schema easily blows past 4096. Give those
+  //    requests 8192 — we still pay nothing extra unless the model uses it.
+  const maxTokens = question ? 8192 : 4096;
+
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 1200,
+    max_tokens: maxTokens,
     system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content }],
   });
@@ -126,11 +153,30 @@ export async function analyzeTweet(tweet: {
     );
   }
 
+  if (response.stop_reason === 'max_tokens') {
+    console.warn(`[claude] tweet ${tweet.id} hit max_tokens — output may be truncated`);
+  }
+
   const text = response.content[0].type === 'text' ? response.content[0].text : '';
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('No JSON in Claude response');
 
-  const parsed = JSON.parse(jsonMatch[0]);
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonMatch[0]);
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    // Show ±120 chars around the failure so we can see what's malformed
+    const posMatch = errMsg.match(/position (\d+)/);
+    if (posMatch) {
+      const pos = parseInt(posMatch[1], 10);
+      const snippet = jsonMatch[0].slice(Math.max(0, pos - 120), pos + 120);
+      console.error(`[claude] tweet ${tweet.id} JSON parse failed: ${errMsg}\nSnippet around error:\n${snippet}`);
+    } else {
+      console.error(`[claude] tweet ${tweet.id} JSON parse failed: ${errMsg}`);
+    }
+    throw err;
+  }
   return {
     tweet_id: tweet.id,
     ...parsed,
@@ -140,12 +186,13 @@ export async function analyzeTweet(tweet: {
 }
 
 export async function analyzeBatch(
-  tweets: Array<{ id: string; text: string; created_at: string; media_urls?: string[] }>
+  tweets: Array<{ id: string; text: string; created_at: string; media_urls?: string[] }>,
+  options: { userQuestion?: string } = {},
 ): Promise<TweetAnalysis[]> {
   const results: TweetAnalysis[] = [];
   for (const tweet of tweets) {
     try {
-      results.push(await analyzeTweet(tweet));
+      results.push(await analyzeTweet(tweet, options));
     } catch (err) {
       console.error(`Failed to analyze tweet ${tweet.id}:`, err);
     }
