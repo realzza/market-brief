@@ -69,8 +69,13 @@ function toRawTweet(t: SyndicationTweet): RawTweet {
 
 // ─── RSSHub path ─────────────────────────────────────────────────────────────
 // RSSHub returns a JSON Feed (https://jsonfeed.org). We pull the items array
-// and convert each to our RawTweet shape. Engagement metrics aren't part of
-// the RSS payload, so likes/RTs/replies/impressions come back as 0.
+// and convert each to our RawTweet shape.
+//
+// Known limitation: JSON Feed has no field for engagement metrics, and
+// RSSHub doesn't include them as extensions either. So tweets fetched via
+// RSSHub will have like/RT/reply/impression counts of 0 — the schema can't
+// distinguish "0 engagement" from "engagement unknown". Tweets fetched via
+// syndication still come back with real counts.
 
 interface JsonFeedItem {
   id?: string;
@@ -102,11 +107,16 @@ function stripHtml(html: string): string {
 function extractImages(item: JsonFeedItem): string[] {
   const urls = new Set<string>();
   for (const a of item.attachments ?? []) {
-    if (a.url && (!a.mime_type || a.mime_type.startsWith('image/'))) urls.add(a.url);
+    if (a.url && (!a.mime_type || a.mime_type.startsWith('image/'))) {
+      urls.add(decodeHtmlEntities(a.url));
+    }
   }
   if (item.content_html) {
     for (const m of item.content_html.matchAll(/<img[^>]+src="([^"]+)"/g)) {
-      urls.add(m[1]);
+      // CRITICAL: RSSHub's HTML keeps URLs HTML-encoded (& → &amp;). Twitter
+      // image URLs always have a query string with at least one &, so a raw
+      // copy of the src attribute yields a 404. Decode entities to recover.
+      urls.add(decodeHtmlEntities(m[1]));
     }
   }
   return [...urls];
