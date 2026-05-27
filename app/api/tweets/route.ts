@@ -45,8 +45,8 @@ export async function POST() {
   // runFetch() prevents concurrent hits; RSSHub's own 10-min cache absorbs
   // rapid clicks so we don't actually re-hit Twitter every time.
   try {
-    const { fetched, saved } = await runFetch();
-    return NextResponse.json({ saved, fetched });
+    const { fetched, inserted, updated } = await runFetch();
+    return NextResponse.json({ fetched, inserted, updated });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     // 409 conveys "already in progress" more accurately than 500

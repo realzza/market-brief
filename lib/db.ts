@@ -85,8 +85,21 @@ export function saveTweets(tweets: Array<{
   id: string; text: string; created_at: string;
   like_count: number; retweet_count: number; reply_count: number;
   impression_count: number; fetched_at: string; media_urls: string;
-}>) {
+}>): { inserted: number; updated: number } {
   const db = getDb();
+  if (tweets.length === 0) return { inserted: 0, updated: 0 };
+
+  // Count how many of the incoming IDs already exist so we can report
+  // accurate "new" vs "updated" counts. INSERT OR REPLACE alone can't tell
+  // these apart because it always returns changes=1 per row.
+  const ids = tweets.map((t) => t.id);
+  const placeholders = ids.map(() => '?').join(',');
+  const existing = (
+    db.prepare(`SELECT COUNT(*) AS n FROM tweets WHERE id IN (${placeholders})`).get(...ids) as { n: number }
+  ).n;
+  const inserted = tweets.length - existing;
+  const updated = existing;
+
   const insert = db.prepare(`
     INSERT OR REPLACE INTO tweets (id, text, created_at, like_count, retweet_count, reply_count, impression_count, fetched_at, media_urls)
     VALUES (@id, @text, @created_at, @like_count, @retweet_count, @reply_count, @impression_count, @fetched_at, @media_urls)
@@ -95,6 +108,8 @@ export function saveTweets(tweets: Array<{
     for (const row of rows) insert.run(row);
   });
   insertMany(tweets);
+
+  return { inserted, updated };
 }
 
 export function saveAnalysis(analysis: {
