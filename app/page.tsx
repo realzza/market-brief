@@ -64,11 +64,20 @@ export default function Home() {
   const [statusMsg,  setStatusMsg]  = useState('');
   const [statusType, setStatusType] = useState<'info' | 'error' | 'success'>('info');
   const cancelRef = useRef(false);
+  const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [displayCount, setDisplayCount] = useState(20);
 
   const setStatus = (msg: string, type: 'info' | 'error' | 'success' = 'info') => {
     setStatusMsg(msg);
     setStatusType(type);
+    if (statusTimerRef.current) {
+      clearTimeout(statusTimerRef.current);
+      statusTimerRef.current = null;
+    }
+    if (msg && type !== 'info') {
+      const dwell = type === 'error' ? 6000 : 4000;
+      statusTimerRef.current = setTimeout(() => setStatusMsg(''), dwell);
+    }
   };
 
   const loadData = useCallback(async () => {

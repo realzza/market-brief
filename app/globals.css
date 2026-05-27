@@ -182,8 +182,17 @@ button:disabled { cursor: not-allowed; }
   font-family: var(--font-mono); letter-spacing: 0.05em;
   flex-wrap: wrap;
 }
-.masthead-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-.masthead-buttons { display: flex; align-items: center; gap: 8px; }
+.masthead-actions { position: relative; display: flex; align-items: center; justify-content: flex-end; }
+.masthead-buttons { display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+.masthead-actions .status-pill {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 5;
+  box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.18);
+  animation: status-pill-in 160ms ease-out;
+}
+@keyframes status-pill-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 /* Mobile pass — narrow screens (typical phones in portrait) */
 @media (max-width: 760px) {
@@ -193,7 +202,8 @@ button:disabled { cursor: not-allowed; }
   .masthead-title { font-size: 19px; }
   .masthead-meta  { flex-direction: row; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
   .masthead-byline { font-size: 9.5px; gap: 8px 16px; }
-  .masthead-actions { align-items: flex-start; }
+  .masthead-actions { justify-content: flex-start; }
+  .masthead-actions .status-pill { right: auto; left: 0; }
   /* Tabs — less aggressive padding, smaller font */
   .tab { padding: 10px 12px 12px; font-size: 12px; }
   .tab:first-child { padding-left: 0; }
