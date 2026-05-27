@@ -1,0 +1,93 @@
+// Background tweet-fetch scheduler.
+//
+// Runs once per Node server boot (wired up via instrumentation.ts).
+// Owns the shared `lastFetchAt` state and the `runFetch()` primitive
+// so both the cron tick and the manual POST /api/tweets handler hit
+// the same in-flight gate and cooldown clock.
+
+import { fetchLatestTweets } from './twitter';
+import { saveTweets } from './db';
+
+// How often the background loop hits X (also our effective fetch rate).
+const CRON_INTERVAL_MS = 15 * 60 * 1000;        // 15 min
+// Minimum gap between *manual* button presses. Auto-fetch handles steady
+// state; this just stops button-mashing from piling up upstream requests.
+const MANUAL_COOLDOWN_MS = 3 * 60 * 1000;       // 3 min
+// Delay before the first background tick so we don't block server boot.
+const FIRST_TICK_DELAY_MS = 5_000;
+
+let lastFetchAt: number | null = null;
+let inFlight = false;
+let started = false;
+
+export function getLastFetchAt(): number | null {
+  return lastFetchAt;
+}
+
+/** Seconds remaining before the manual button is allowed to fire again. */
+export function manualCooldownRemaining(): number {
+  if (lastFetchAt === null) return 0;
+  const remaining = MANUAL_COOLDOWN_MS - (Date.now() - lastFetchAt);
+  return Math.max(0, Math.ceil(remaining / 1000));
+}
+
+/**
+ * Fetch latest tweets from syndication and upsert into the DB.
+ *
+ * Throws if a fetch is already in flight (concurrent calls would
+ * just double-hit the upstream API for no benefit).
+ */
+export async function runFetch(): Promise<{ fetched: number; saved: number }> {
+  if (inFlight) {
+    throw new Error('A fetch is already in progress — please wait a moment.');
+  }
+  inFlight = true;
+  // Stamp before the network call so a retry loop can't pile up while
+  // the request is still hanging.
+  lastFetchAt = Date.now();
+  try {
+    const username = process.env.TWITTER_USERNAME || 'aleabitoreddit';
+    const raw = await fetchLatestTweets(username, 100);
+    const now = new Date().toISOString();
+    const toSave = raw.map((t) => ({
+      id: t.id,
+      text: t.text,
+      created_at: t.created_at,
+      like_count: t.public_metrics?.like_count ?? 0,
+      retweet_count: t.public_metrics?.retweet_count ?? 0,
+      reply_count: t.public_metrics?.reply_count ?? 0,
+      impression_count: t.public_metrics?.impression_count ?? 0,
+      fetched_at: now,
+      media_urls: JSON.stringify(t.media_urls ?? []),
+    }));
+    saveTweets(toSave);
+    return { fetched: raw.length, saved: toSave.length };
+  } finally {
+    inFlight = false;
+  }
+}
+
+async function tick() {
+  const t0 = Date.now();
+  try {
+    const { fetched, saved } = await runFetch();
+    console.log(
+      `[scheduler] ok · ${new Date(t0).toISOString()} · fetched=${fetched} saved=${saved} took=${Date.now() - t0}ms`,
+    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[scheduler] fail · ${new Date(t0).toISOString()} · ${msg}`);
+  }
+}
+
+/**
+ * Idempotent — safe to call multiple times. Only the first call wins.
+ * Called from instrumentation.ts on Node server boot.
+ */
+export function startScheduler(): void {
+  if (started) return;
+  started = true;
+  console.log(`[scheduler] started · interval=${CRON_INTERVAL_MS / 1000}s · first tick in ${FIRST_TICK_DELAY_MS}ms`);
+  setTimeout(tick, FIRST_TICK_DELAY_MS);
+  setInterval(tick, CRON_INTERVAL_MS);
+}

@@ -1,11 +1,6 @@
 import { NextResponse } from 'next/server';
-import { fetchLatestTweets } from '@/lib/twitter';
-import { saveTweets, getTweets } from '@/lib/db';
-import { RawTweet } from '@/lib/types';
-
-// Server-side gate: prevents hammering Twitter regardless of client state.
-const RATE_LIMIT_MS = 15 * 60 * 1000; // 15 minutes
-let lastFetchAt: number | null = null;
+import { getTweets } from '@/lib/db';
+import { runFetch, manualCooldownRemaining } from '@/lib/scheduler';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -46,38 +41,22 @@ export async function GET(request: Request) {
 }
 
 export async function POST() {
-  // Enforce server-side cooldown before touching Twitter
-  if (lastFetchAt !== null) {
-    const elapsed = Date.now() - lastFetchAt;
-    if (elapsed < RATE_LIMIT_MS) {
-      const retryAfter = Math.ceil((RATE_LIMIT_MS - elapsed) / 1000);
-      return NextResponse.json(
-        { error: `X syndication API allows one fetch per 15 minutes. Try again in ${Math.ceil(retryAfter / 60)} min.`, retryAfter },
-        { status: 429 },
-      );
-    }
+  // Manual button is a "force a fresh fetch now" override on top of the
+  // background scheduler. Short cooldown just prevents button-mashing.
+  const remaining = manualCooldownRemaining();
+  if (remaining > 0) {
+    return NextResponse.json(
+      {
+        error: `Cooldown — ${Math.ceil(remaining / 60)}m ${remaining % 60}s until next manual fetch. (Auto-fetch runs every 15 min in the background.)`,
+        retryAfter: remaining,
+      },
+      { status: 429 },
+    );
   }
 
   try {
-    lastFetchAt = Date.now(); // stamp before the request so retries don't pile up
-    const username = process.env.TWITTER_USERNAME || 'aleabitoreddit';
-    const raw = await fetchLatestTweets(username, 100);
-
-    const now = new Date().toISOString();
-    const toSave = raw.map((t: RawTweet) => ({
-      id: t.id,
-      text: t.text,
-      created_at: t.created_at,
-      like_count: t.public_metrics?.like_count ?? 0,
-      retweet_count: t.public_metrics?.retweet_count ?? 0,
-      reply_count: t.public_metrics?.reply_count ?? 0,
-      impression_count: t.public_metrics?.impression_count ?? 0,
-      fetched_at: now,
-      media_urls: JSON.stringify(t.media_urls ?? []),
-    }));
-
-    saveTweets(toSave);
-    return NextResponse.json({ saved: toSave.length, fetched: raw.length });
+    const { fetched, saved } = await runFetch();
+    return NextResponse.json({ saved, fetched });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: msg }, { status: 500 });
