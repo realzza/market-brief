@@ -51,6 +51,14 @@ function capitalize(s: string | undefined): string {
   return s[0].toUpperCase() + s.slice(1);
 }
 
+// Custom-question analyses sometimes lead with a "[Images: …]" block that
+// describes attached media. It belongs in the per-tweet card (full context),
+// but in the hero brief it bloats the lede and unbalances the layout — strip
+// it there only.
+export function stripImageDescription(summary: string): string {
+  return summary.replace(/^\s*\[Images?:[\s\S]*?\]\s*/i, '');
+}
+
 export function headlineFromTweet(t: StoredTweet): string {
   const a = t.analysis;
   if (!a) return 'Untitled note';
@@ -61,5 +69,5 @@ export function headlineFromTweet(t: StoredTweet): string {
   if (a.sentiment === 'bearish' && ticker)
     return `${capitalize(theme || 'Risk')} — exiting $${ticker} as case breaks`;
   if (theme) return capitalize(theme);
-  return a.summary.split('.')[0];
+  return stripImageDescription(a.summary).split('.')[0];
 }
