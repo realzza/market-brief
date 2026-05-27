@@ -304,7 +304,7 @@ export default function TickerModal({ ticker, onClose }: Props) {
                 );
               })}
             </div>
-            <PriceChart points={chartPoints} intraday={!!periodMeta.intraday} />
+            <PriceChart points={chartPoints} intraday={!!periodMeta.intraday && !marketClosed} />
             <div className="price-chart-foot">
               {periodMeta.label} · {chartPoints.length} {
                 marketClosed ? 'daily closes · market closed' :
