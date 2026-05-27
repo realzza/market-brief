@@ -12,8 +12,10 @@ services:
     container_name: serenity-tracker
     restart: unless-stopped
 
+    # Host:container — change PORT_HOST in .env (or export it) if 3737 is
+    # taken. The container always listens on 3000 internally.
     ports:
-      - "3000:3000"
+      - "${PORT_HOST:-3737}:3000"
 
     # Named volume for SQLite. Swap for a bind mount like `./data:/app/data`
     # if you'd rather have the .db file sit in the repo root for backup.
