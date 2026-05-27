@@ -1,0 +1,53 @@
+# docker compose up -d         → build (if needed) + run detached
+# docker compose logs -f        → tail logs (watch for [scheduler] ticks)
+# docker compose down           → stop & remove (data volume survives)
+# docker compose down -v        → stop & wipe the SQLite volume too
+
+services:
+  serenity:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: serenity-tracker:latest
+    container_name: serenity-tracker
+    restart: unless-stopped
+
+    ports:
+      - "3000:3000"
+
+    # Named volume for SQLite. Swap for a bind mount like `./data:/app/data`
+    # if you'd rather have the .db file sit in the repo root for backup.
+    volumes:
+      - serenity-data:/app/data
+
+    # Load secrets from .env at the project root (NOT committed).
+    # ANTHROPIC_API_KEY is required; TWITTER_USERNAME defaults to aleabitoreddit.
+    env_file:
+      - .env
+
+    environment:
+      - NODE_ENV=production
+      - TZ=${TZ:-UTC}
+
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.status < 500 ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+
+    # Keep a sensible log footprint so the container doesn't fill the disk
+    # over weeks of running.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  serenity-data:
+    name: serenity-tracker-data

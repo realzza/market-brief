@@ -1,0 +1,48 @@
+# Build artifacts & deps — re-installed/built in the image
+node_modules
+.next
+out
+build
+dist
+
+# Local state we never want in the image
+data
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# VCS / editor / OS junk
+.git
+.gitignore
+.gitattributes
+.vscode
+.idea
+.DS_Store
+*.swp
+
+# Secrets & local-only env
+.env
+.env.local
+.env.*.local
+
+# Design-prototype source (not part of the app)
+serenity-redesign-src
+"Serenity Redesign.html"
+"Serenity Tracker.zip"
+CLAUDE_HANDOFF.md
+
+# Docs the runtime doesn't need
+*.md
+!package.json
+
+# Logs & coverage
+*.log
+coverage
+.nyc_output
+
+# CI / local tooling
+.github
+Dockerfile
+.dockerignore
+docker-compose*.yml
