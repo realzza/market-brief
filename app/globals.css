@@ -258,10 +258,6 @@ button:disabled { cursor: not-allowed; }
   font-family: var(--font-serif); font-weight: 500; font-size: 48px;
   line-height: 1; letter-spacing: -0.02em; color: var(--ink);
 }
-.mood-score sup {
-  font-size: 16px; font-weight: 400; color: var(--ink-3);
-  margin-left: 4px; vertical-align: top; font-family: var(--font-mono);
-}
 .mood-gauge {
   position: relative; height: 6px; margin-top: 14px;
   background: linear-gradient(to right,

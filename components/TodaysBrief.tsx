@@ -105,7 +105,7 @@ export default function TodaysBrief({ brief, stats, onTicker }: Props) {
             <div className="mood-block">
               <div className="eyebrow label">Market mood · 30-day avg</div>
               <div className="mood-score">
-                {fmtSigned(score, 2)}<sup>/1.00</sup>
+                {fmtSigned(score, 2)}
               </div>
               <div className="text-ink-3" style={{ fontSize: 13, fontFamily: 'var(--font-serif)', fontStyle: 'italic', marginTop: 8 }}>
                 {lbl} · {stats.analyzed_tweets} of {stats.total_tweets} tweets analyzed
