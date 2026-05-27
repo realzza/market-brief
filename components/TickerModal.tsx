@@ -90,7 +90,9 @@ function PriceChart({ points, intraday }: { points: ClosePoint[]; intraday: bool
   const min = Math.min(...vals);
   const max = Math.max(...vals);
   const rng = max - min || 1;
-  const yMin = min - rng * 0.04;
+  // Clamp lower bound to 0 when all data is positive — stock prices can't
+  // be negative, so a padded yMin like -$4 makes no sense on the axis.
+  const yMin = min >= 0 ? Math.max(0, min - rng * 0.04) : min - rng * 0.04;
   const yMax = max + rng * 0.04;
   const yRng = yMax - yMin;
 
