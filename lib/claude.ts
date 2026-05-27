@@ -131,12 +131,17 @@ export async function analyzeTweet(
     },
   ];
 
+  // Budget two different ceilings:
+  //  - default analyses are mostly under 2k tokens, 4096 is plenty
+  //  - custom-question analyses (especially in non-English) can run long.
+  //    A Chinese research paragraph eats ~2 tokens/char, so a thorough
+  //    answer + the rest of the schema easily blows past 4096. Give those
+  //    requests 8192 — we still pay nothing extra unless the model uses it.
+  const maxTokens = question ? 8192 : 4096;
+
   const response = await client.messages.create({
     model: 'claude-sonnet-4-6',
-    // 1200 truncated long analyses (4-image tweets with many tickers) — the
-    // model would emit a partial JSON object that failed to parse. 4096 gives
-    // comfortable headroom; current observed worst-case is ~2000 output tokens.
-    max_tokens: 4096,
+    max_tokens: maxTokens,
     system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content }],
   });
