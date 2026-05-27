@@ -75,12 +75,12 @@ services:
       # In-memory cache; RSSHub starts fine without Redis for single-instance use.
       - CACHE_TYPE=memory
       - CACHE_EXPIRE=600          # cache feeds for 10 min
-      # Twitter scraping requires a real Twitter account login. Set these
-      # in .env to activate fresh-tweet fetching; leave empty to fall back.
-      - TWITTER_USERNAME=${TWITTER_LOGIN_USERNAME:-}
-      - TWITTER_PASSWORD=${TWITTER_LOGIN_PASSWORD:-}
-      - TWITTER_PHONE_OR_EMAIL=${TWITTER_LOGIN_PHONE_OR_EMAIL:-}
-      - TWITTER_AUTHENTICATION_SECRET=${TWITTER_LOGIN_2FA_SECRET:-}
+      # Twitter user-timeline scraping requires THREE values (see .env.example
+      # for how to obtain each). Leave empty → RSSHub returns 503 and the app
+      # silently falls back to syndication.
+      - TWITTER_AUTH_TOKEN=${TWITTER_AUTH_TOKEN:-}
+      - TWITTER_CONSUMER_KEY=${TWITTER_CONSUMER_KEY:-}
+      - TWITTER_CONSUMER_SECRET=${TWITTER_CONSUMER_SECRET:-}
     logging:
       driver: json-file
       options:
