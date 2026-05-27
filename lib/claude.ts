@@ -80,12 +80,15 @@ async function fetchImageAsBase64(
   }
 }
 
-export async function analyzeTweet(tweet: {
-  id: string;
-  text: string;
-  created_at: string;
-  media_urls?: string[];
-}): Promise<TweetAnalysis> {
+export async function analyzeTweet(
+  tweet: {
+    id: string;
+    text: string;
+    created_at: string;
+    media_urls?: string[];
+  },
+  options: { userQuestion?: string } = {},
+): Promise<TweetAnalysis> {
   const imageResults = await Promise.all(
     (tweet.media_urls ?? []).map(fetchImageAsBase64)
   );
@@ -96,9 +99,24 @@ export async function analyzeTweet(tweet: {
       source: { type: 'base64' as const, media_type: img.mediaType, data: img.base64 },
     }));
 
-  // Content order: cached schema instruction → dynamic images → dynamic tweet text.
-  // The cache_control marker on SCHEMA_INSTRUCTION establishes the stable prefix;
-  // per-tweet images and text come after and are never cached.
+  // User question (if any) is inserted AFTER the cached schema block so the
+  // prompt-cache prefix stays stable across requests — different questions
+  // don't bust the cache for other tweets.
+  const question = options.userQuestion?.trim();
+  const questionBlock: Anthropic.TextBlockParam | null = question
+    ? {
+        type: 'text',
+        text:
+          `The user has asked a specific question about this tweet:\n"${question}"\n\n` +
+          `Still return the full JSON schema as instructed, but make the "summary" ` +
+          `field directly answer this question (1-3 sentences). The other fields ` +
+          `(sentiment, tickers, signals, etc.) should still be populated from your ` +
+          `objective analysis of the tweet, not influenced by the question.`,
+      }
+    : null;
+
+  // Content order: cached schema instruction → dynamic images → optional user
+  // question → dynamic tweet text. Cache breakpoint at SCHEMA_INSTRUCTION only.
   const content: Anthropic.MessageParam['content'] = [
     {
       type: 'text',
@@ -106,6 +124,7 @@ export async function analyzeTweet(tweet: {
       cache_control: { type: 'ephemeral' },
     },
     ...imageBlocks,
+    ...(questionBlock ? [questionBlock] : []),
     {
       type: 'text',
       text: `Tweet (posted ${tweet.created_at}):\n"${tweet.text}"`,
@@ -140,12 +159,13 @@ export async function analyzeTweet(tweet: {
 }
 
 export async function analyzeBatch(
-  tweets: Array<{ id: string; text: string; created_at: string; media_urls?: string[] }>
+  tweets: Array<{ id: string; text: string; created_at: string; media_urls?: string[] }>,
+  options: { userQuestion?: string } = {},
 ): Promise<TweetAnalysis[]> {
   const results: TweetAnalysis[] = [];
   for (const tweet of tweets) {
     try {
-      results.push(await analyzeTweet(tweet));
+      results.push(await analyzeTweet(tweet, options));
     } catch (err) {
       console.error(`Failed to analyze tweet ${tweet.id}:`, err);
     }

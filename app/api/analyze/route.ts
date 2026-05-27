@@ -7,6 +7,13 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const limit = body.limit ?? 10;
     const tweetId: string | undefined = body.tweet_id;
+    // Free-form user question. Only honored on single-tweet analyze (batch
+    // mode would apply the same question to every tweet — almost never what
+    // you want), so we silently ignore it when `tweetId` isn't set.
+    const userQuestion: string | undefined =
+      typeof body.user_question === 'string' && body.user_question.trim().length > 0
+        ? body.user_question.trim()
+        : undefined;
 
     let unanalyzed: Array<{ id: string; text: string; created_at: string; media_urls: string }>;
 
@@ -30,7 +37,7 @@ export async function POST(request: Request) {
       media_urls: t.media_urls ? JSON.parse(t.media_urls) : [],
     }));
 
-    const results = await analyzeBatch(toAnalyze);
+    const results = await analyzeBatch(toAnalyze, tweetId ? { userQuestion } : undefined);
 
     for (const analysis of results) {
       saveAnalysis({

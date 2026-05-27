@@ -175,21 +175,33 @@ const SENTIMENT_TEXT: Record<string, string> = {
 export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
   const [busy, setBusy] = useState(false);
   const [activeTicker, setActiveTicker] = useState<string | null>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [question, setQuestion] = useState('');
   const a = tweet.analysis;
   const tweetUrl = `https://x.com/aleabitoreddit/status/${tweet.id}`;
 
-  async function handleAnalyze() {
+  async function runAnalysis() {
     setBusy(true);
+    setShowPrompt(false);
     try {
       await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tweet_id: tweet.id }),
+        body: JSON.stringify({
+          tweet_id: tweet.id,
+          user_question: question.trim() || undefined,
+        }),
       });
       onAnalyzed?.();
+      setQuestion('');
     } finally {
       setBusy(false);
     }
+  }
+
+  function cancelPrompt() {
+    setShowPrompt(false);
+    setQuestion('');
   }
 
   const mediaUrls: string[] = tweet.media_urls ?? [];
@@ -282,14 +294,48 @@ export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
             </div>
           )}
 
-          {/* Analyze CTA (unanalyzed only) */}
-          {!a && (
-            <button className="analyze-cta" onClick={handleAnalyze} disabled={busy}>
-              {busy
-                ? <><span className="spinner-inline" />Analyzing…</>
-                : <><Icon name="zap" size={12} />Analyze this tweet</>
-              }
+          {/* Analyze CTA (unanalyzed only, when form is closed) */}
+          {!a && !showPrompt && !busy && (
+            <button className="analyze-cta" onClick={() => setShowPrompt(true)}>
+              <Icon name="zap" size={12} />Analyze this tweet
             </button>
+          )}
+
+          {/* Busy indicator (replaces button while a request is in flight) */}
+          {busy && (
+            <div className="analyze-cta is-busy">
+              <span className="spinner-inline" />Analyzing…
+            </div>
+          )}
+
+          {/* Custom-prompt form — opens when user clicks Analyze or Re-analyze */}
+          {showPrompt && !busy && (
+            <div className="analyze-form">
+              <label className="eyebrow" htmlFor={`prompt-${tweet.id}`}>
+                Ask a specific question (optional)
+              </label>
+              <textarea
+                id={`prompt-${tweet.id}`}
+                className="analyze-prompt"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) runAnalysis();
+                  if (e.key === 'Escape') cancelPrompt();
+                }}
+                placeholder='e.g. "Research and figure out which ticker is being hinted at." Leave blank for the default extraction.'
+                rows={3}
+                autoFocus
+              />
+              <div className="analyze-actions">
+                <button className="btn btn-primary" onClick={runAnalysis}>
+                  <Icon name="zap" size={12} />
+                  {question.trim() ? 'Answer + analyze' : 'Run default analysis'}
+                </button>
+                <button className="btn" onClick={cancelPrompt}>Cancel</button>
+                <span className="analyze-hint">⌘+Enter to submit · Esc to cancel</span>
+              </div>
+            </div>
           )}
 
           {/* Footer */}
@@ -299,17 +345,13 @@ export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
             <span className="metric"><Icon name="reply" size={11} />{fmtCompact(tweet.reply_count)}</span>
             <span className="metric num">{fmtCompact(tweet.impression_count)} views</span>
 
-            {a && (
+            {a && !showPrompt && !busy && (
               <button
                 className="reanalyze"
-                onClick={handleAnalyze}
-                disabled={busy}
-                title="Re-run AI analysis"
+                onClick={() => setShowPrompt(true)}
+                title="Re-run AI analysis (optionally with a custom question)"
               >
-                {busy
-                  ? <><span className="spinner-inline" />Analyzing…</>
-                  : <><Icon name="zap" size={11} />Re-analyze</>
-                }
+                <Icon name="zap" size={11} />Re-analyze
               </button>
             )}
 

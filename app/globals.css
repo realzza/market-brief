@@ -594,6 +594,39 @@ button:disabled { cursor: not-allowed; }
   color: var(--accent); border-color: var(--accent-rule); background: var(--accent-soft);
 }
 .analyze-cta:disabled { opacity: 0.7; cursor: progress; }
+.analyze-cta.is-busy {
+  margin-top: 18px; width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  height: 36px; border: 1px dashed var(--accent-rule); background: var(--accent-soft);
+  color: var(--accent); font-size: 12px; font-weight: 500;
+  border-radius: var(--radius); cursor: progress;
+}
+
+/* Custom-prompt form revealed when user clicks Analyze / Re-analyze */
+.analyze-form {
+  margin-top: 18px; padding: 16px 18px 14px;
+  border: 1px dashed var(--accent-rule); border-radius: var(--radius);
+  background: color-mix(in oklab, var(--accent-soft) 35%, transparent);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.analyze-form > .eyebrow { color: var(--accent); }
+.analyze-prompt {
+  width: 100%; resize: vertical; min-height: 64px;
+  padding: 10px 12px; border: 1px solid var(--rule); border-radius: var(--radius-sm);
+  background: var(--paper); color: var(--ink);
+  font-family: var(--font-serif); font-size: 14px; line-height: 1.5;
+  outline: none; transition: border-color 120ms;
+}
+.analyze-prompt:focus { border-color: var(--accent); }
+.analyze-prompt::placeholder { color: var(--ink-4); font-style: italic; }
+.analyze-actions {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.analyze-hint {
+  margin-left: auto;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--ink-4); letter-spacing: 0.04em;
+}
 .spinner-inline {
   display: inline-block; width: 12px; height: 12px; border-radius: 50%;
   border: 1.5px solid var(--rule); border-top-color: var(--accent);
