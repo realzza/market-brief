@@ -560,6 +560,23 @@ button:disabled { cursor: not-allowed; }
   font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--accent); margin-right: 8px;
 }
+/* Image-insights block — sits between the media strip and the analyst
+   note. Lighter weight than the analyst note so the eye still lands on
+   the take, but still a distinct section so the reader knows this prose
+   describes the attached image(s). */
+.article-image-insights {
+  margin-top: 18px; padding: 12px 0 12px 20px;
+  border-left: 2px solid var(--rule-soft);
+  color: var(--ink-3);
+}
+.article-image-insights .eyebrow {
+  display: block; margin-bottom: 4px; color: var(--ink-4);
+}
+.article-image-insights p {
+  margin: 0;
+  font-family: var(--font-sans); font-size: 13.5px; line-height: 1.55;
+  color: var(--ink-2); text-wrap: pretty;
+}
 .signals-block { margin-top: 22px; }
 .signals-block .eyebrow { margin-bottom: 10px; }
 .signal-row {

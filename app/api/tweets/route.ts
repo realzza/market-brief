@@ -32,6 +32,7 @@ export async function GET(request: Request) {
         risk_level: row.risk_level,
         is_trade_call: row.is_trade_call === 1,
         summary: row.summary,
+        image_insights: row.image_insights ?? null,
         analyzed_at: row.analyzed_at,
       } : undefined,
     };
