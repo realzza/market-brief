@@ -115,6 +115,12 @@ export async function GET(req: NextRequest) {
       open: quote.regularMarketOpen ?? 0,
       closes,
       intraday,
+      // Full 5-day window of 5-minute intraday bars. Same data the API
+      // already fetched to build `intraday`, just before the "last session
+      // only" filter. The performance position chart uses this so recent
+      // signals (where today's daily close may not exist yet) still render
+      // a meaningful curve. Adds ~30KB to the payload, which is fine.
+      intradayAll,
       performance,
     });
   } catch (err) {
