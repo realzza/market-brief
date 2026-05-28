@@ -105,8 +105,15 @@ function groupPositions(entries: PerformanceEntry[]): Position[] {
 
 interface QuoteShape {
   closes?: Array<{ t: string; c: number }>;
+  intradayAll?: Array<{ t: string; c: number }>;
   error?: string;
 }
+
+// Days of intraday history Yahoo gives us via the quote endpoint. Signals
+// within this window get the 5-minute granularity series (which includes
+// in-progress sessions before today's daily close prints); older signals
+// fall back to the 1-year daily series.
+const INTRADAY_DAYS = 5;
 
 function PositionChart({ position }: { position: Position }) {
   const [data, setData] = useState<QuoteShape | null>(null);
@@ -125,11 +132,24 @@ function PositionChart({ position }: { position: Position }) {
   if (!data)     return <div className="perf-chart-status"><span className="spinner-inline" /> Loading chart…</div>;
   if (data.error) return <div className="perf-chart-status">{data.error}</div>;
 
+  // Pick the highest-resolution data source that covers the signal. For
+  // recent signals the daily series often has < 2 points after filtering
+  // (today's close hasn't printed yet), which is what was producing the
+  // "Not enough data" empty state. Intraday handles that case.
   const startTime = new Date(position.first_signal_date).getTime();
-  const points = (data.closes ?? []).filter((p) => new Date(p.t).getTime() >= startTime);
+  const ageDays = (Date.now() - startTime) / 86_400_000;
+  const useIntraday = ageDays <= INTRADAY_DAYS && (data.intradayAll?.length ?? 0) > 0;
+  const sourcePoints = useIntraday ? (data.intradayAll ?? []) : (data.closes ?? []);
+  const points = sourcePoints.filter((p) => new Date(p.t).getTime() >= startTime);
 
   if (points.length < 2) {
-    return <div className="perf-chart-status">Not enough price data since the first signal.</div>;
+    return (
+      <div className="perf-chart-status">
+        {useIntraday
+          ? 'Price data should populate within the next 5 minutes — Yahoo intraday has a small lag.'
+          : 'Not enough price data since the first signal yet.'}
+      </div>
+    );
   }
 
   const W = 920, H = 180;
@@ -162,9 +182,9 @@ function PositionChart({ position }: { position: Position }) {
   const ret = position.actual_return_pct;
   const dirCls = ret == null ? 'flat' : ret >= 0 ? 'up' : 'down';
 
-  // Map each signal's timestamp to the closest daily point index. Closes are
-  // sparse (one per trading day); intraday signals snap to the day they
-  // fired. Markers stack visually when multiple signals land on the same day.
+  // Map each signal's timestamp to the closest point in the chosen series.
+  // Intraday data lands within 5 minutes; daily data snaps to the same-day
+  // close. Markers stack visually when multiple signals collide on one bar.
   const markers = position.signals.map((s) => {
     const t = new Date(s.signal_date).getTime();
     let best = 0;
@@ -175,6 +195,15 @@ function PositionChart({ position }: { position: Position }) {
     }
     return { idx: best, signal: s };
   });
+
+  // Marker label — for intraday data, multiple signals on the same day would
+  // all show "May 27" and overlap. Show HH:mm instead when we're in intraday
+  // mode so each marker remains distinguishable.
+  function markerLabel(iso: string): string {
+    if (!useIntraday) return fmtDate(iso);
+    const d = new Date(iso);
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  }
 
   // Sparse y-axis: 4 ticks across the visible range.
   const yTicks = [yMin, yMin + yRng * 0.33, yMin + yRng * 0.66, yMax];
@@ -204,14 +233,14 @@ function PositionChart({ position }: { position: Position }) {
               <line x1={x} y1={padT} x2={x} y2={padT + innerH} />
               <circle cx={x} cy={y} r="4.5" />
               <text x={x} y={padT - 4} textAnchor="middle">
-                {fmtDate(m.signal.signal_date)}
+                {markerLabel(m.signal.signal_date)}
               </text>
             </g>
           );
         })}
       </svg>
       <div className="perf-chart-foot">
-        {n} trading days since {fmtDate(position.first_signal_date)} ·
+        {n} {useIntraday ? '5-min bars' : 'trading days'} since {fmtDate(position.first_signal_date)} ·
         {' '}{position.signals.length} {position.signals.length === 1 ? 'signal' : 'signals'} ·
         {' '}{ret != null ? fmtPct(ret, 1) + ' from earliest entry' : 'running P&L not yet available'}
       </div>
