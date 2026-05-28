@@ -812,37 +812,120 @@ button:disabled { cursor: not-allowed; }
   font-feature-settings: "tnum";
 }
 
-/* ── Assets table ── */
-.assets-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.assets-table th {
-  text-align: left; font-family: var(--font-sans); font-size: 10px;
+/* ── Trending assets (Assets tab) ─────────────────────────────────────
+   Shared toolbar above the two-panel grid: editorial sub-caption on the
+   left (e.g., "Last 30 days · compared to prior 30"), segmented window
+   selector on the right. The selector controls both panels so the reader
+   reads one time window across the section, not two unrelated frames. */
+.assets-toolbar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin: -8px 0 24px; padding-bottom: 14px;
+  border-bottom: 1px solid var(--rule);
+}
+.assets-period {
+  font-family: var(--font-mono); font-size: 11px;
+  color: var(--ink-3); letter-spacing: 0.04em;
+}
+
+/* Segmented window selector — small mono pills with a rule between
+   options. Active state inverts to ink-on-paper so the choice is
+   unmistakable without color. */
+.window-selector {
+  display: inline-flex; align-items: stretch;
+  border: 1px solid var(--rule); border-radius: var(--radius-sm);
+  background: var(--surface); overflow: hidden;
+}
+.window-opt {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.06em;
+  padding: 5px 12px;
+  color: var(--ink-3); background: transparent;
+  border: 0; border-left: 1px solid var(--rule);
+  cursor: pointer;
+  transition: color 120ms ease, background 120ms ease;
+}
+.window-opt:first-child { border-left: 0; }
+.window-opt:hover { color: var(--ink); }
+.window-opt.active {
+  color: var(--paper); background: var(--ink);
+}
+
+/* ── Trending table (both Assets and Sectors panels) ────────────────── */
+.trending-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.trending-table th {
+  text-align: left;
+  font-family: var(--font-sans); font-size: 10px;
   font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--ink-3); padding: 8px 0; border-bottom: 1px solid var(--rule);
+  color: var(--ink-3);
+  padding: 8px 0 10px; border-bottom: 1px solid var(--rule);
 }
-.assets-table td { padding: 12px 0; border-bottom: 1px solid var(--rule-soft); }
-.assets-table tr:last-child td { border-bottom: 0; }
-.assets-table tr { cursor: pointer; }
-.assets-table tr:hover td { background: var(--surface-2); }
-.assets-table .rank { font-family: var(--font-mono); font-size: 11px; color: var(--ink-4); width: 32px; }
-.assets-table .symbol { font-family: var(--font-mono); font-size: 14px; font-weight: 500; color: var(--ink); letter-spacing: 0.005em; }
-.assets-table .typ { font-family: var(--font-sans); font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-4); }
-.assets-table .bar-cell { width: 50%; padding-right: 24px; }
-.assets-table .bar { height: 4px; background: var(--rule-soft); border-radius: 999px; overflow: hidden; }
-.assets-table .bar > i { display: block; height: 100%; background: var(--ink); }
-.assets-table .count { font-family: var(--font-mono); font-size: 13px; color: var(--ink); text-align: right; width: 56px; font-feature-settings: "tnum"; }
-.domain-list { display: flex; flex-direction: column; }
-.domain-row {
-  display: grid; grid-template-columns: 28px 1fr 90px auto;
-  align-items: center; gap: 16px; padding: 11px 0;
-  border-bottom: 1px solid var(--rule-soft); font-size: 13px;
+.trending-table td {
+  padding: 12px 0; border-bottom: 1px solid var(--rule-soft);
+  vertical-align: middle;
 }
-.domain-row:last-child { border-bottom: 0; }
-.domain-row .rank { font-family: var(--font-mono); font-size: 11px; color: var(--ink-4); }
-.domain-row .name { display: flex; align-items: center; gap: 10px; color: var(--ink); }
-.domain-row .name .dot { width: 6px; height: 6px; }
-.domain-row .bar { height: 3px; background: var(--rule-soft); border-radius: 999px; overflow: hidden; }
-.domain-row .bar > i { display: block; height: 100%; background: currentColor; }
-.domain-row .count { font-family: var(--font-mono); font-size: 13px; color: var(--ink); font-feature-settings: "tnum"; }
+.trending-table tr:last-child td { border-bottom: 0; }
+.trending-table tr.is-clickable { cursor: pointer; }
+.trending-table tr.is-clickable:hover td { background: var(--surface-2); }
+
+/* Columns — sized so the row never reflows when delta digits change. */
+.trending-table .col-rank   { width: 28px; font-family: var(--font-mono); font-size: 11px; color: var(--ink-4); }
+.trending-table .col-delta  { width: 38px; padding-right: 4px; }
+.trending-table .col-name   { font-family: var(--font-mono); font-size: 14px; font-weight: 500; color: var(--ink); }
+.trending-table .col-meta   { width: 84px; font-family: var(--font-sans); font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-4); }
+.trending-table .col-spark  { width: 80px; padding: 0 8px; }
+.trending-table .col-count  { width: 44px; text-align: right; font-family: var(--font-mono); font-feature-settings: "tnum"; font-size: 13px; color: var(--ink); }
+.trending-table .col-shift  { width: 68px; text-align: right; }
+
+.trending-table th.col-spark,
+.trending-table th.col-count,
+.trending-table th.col-shift { text-align: right; }
+.trending-table th.col-name  { text-align: left; }
+.trending-table th.col-spark { text-align: left; }
+
+/* Ticker / sector name styling. Sector dot pulls its color from the row
+   inline-style; sector name itself stays in ink so the dot does the
+   coloring without the text fighting for attention. */
+.trending-table .ticker-name { letter-spacing: 0.005em; }
+.trending-table .sector-name { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font-family: var(--font-sans); font-weight: 400; font-size: 13px; letter-spacing: 0; }
+.trending-table .sector-name .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* Rank-change chip — fixed 3-char-wide layout (mono) keeps the column
+   from shifting when a 2-digit delta appears. Green/red on direction
+   only; "—" and "NEW" don't get an arrow. */
+.rank-delta {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.04em; font-feature-settings: "tnum";
+  display: inline-block; min-width: 32px;
+}
+.rank-delta.hold { color: var(--ink-4); }
+.rank-delta.up   { color: var(--bull); }
+.rank-delta.down { color: var(--bear); }
+.rank-delta.new  { color: var(--accent); font-weight: 600; font-size: 10px; letter-spacing: 0.08em; }
+
+/* Period-over-period Δ%. Signed, colored on direction. "new" label
+   borrows the accent rather than green so the row reads as "first
+   appearance" rather than just "+inf%". */
+.delta-pct {
+  font-family: var(--font-mono); font-size: 11px;
+  font-feature-settings: "tnum"; color: var(--ink-4);
+}
+.delta-pct.pos { color: var(--bull); }
+.delta-pct.neg { color: var(--bear); }
+.delta-pct.new { color: var(--accent); font-style: italic; }
+
+/* Sparkline — single 1.25px stroke, end-anchor dot. Inherits ink-2 by
+   default; sectors pass their own color via inline style. */
+.spark { display: block; overflow: visible; }
+.spark path   { fill: none; stroke: var(--ink-2); stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
+.spark circle { fill: var(--ink-2); }
+
+/* Loading + status — same family as the chart status so the panel
+   doesn't have two competing micro-states. */
+.trending-status {
+  display: flex; align-items: center; gap: 10px;
+  padding: 24px 0; color: var(--ink-3); font-size: 12px;
+  font-family: var(--font-sans);
+}
 
 /* ── Performance ── */
 .perf-summary {

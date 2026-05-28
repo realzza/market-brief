@@ -6,7 +6,7 @@ const DB_PATH = path.join(process.cwd(), 'data', 'serenity.db');
 
 let _db: Database.Database | null = null;
 
-function getDb(): Database.Database {
+export function getDb(): Database.Database {
   if (_db) return _db;
 
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
