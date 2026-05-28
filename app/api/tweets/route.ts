@@ -4,8 +4,13 @@ import { runFetch } from '@/lib/scheduler';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const limit = parseInt(searchParams.get('limit') || '50');
-  const offset = parseInt(searchParams.get('offset') || '0');
+  // Clamp to sensible bounds so a stray `?limit=999999999` can't ask sqlite
+  // for the whole table or trigger an OOM on the JSON encoder. parseInt of
+  // a non-numeric string is NaN; the `||` falls back to the default.
+  const rawLimit = parseInt(searchParams.get('limit') ?? '');
+  const rawOffset = parseInt(searchParams.get('offset') ?? '');
+  const limit  = Math.min(Math.max(Number.isFinite(rawLimit)  ? rawLimit  : 50, 1), 5000);
+  const offset = Math.max(Number.isFinite(rawOffset) ? rawOffset : 0, 0);
 
   const rows = getTweets(limit, offset);
   const tweets = rows.map((row) => {
