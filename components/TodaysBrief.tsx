@@ -3,6 +3,7 @@
 import { StoredTweet, DashboardStats } from '@/lib/types';
 import { fmtDate, fmtTime, fmtSigned, sentimentLabel, headlineFromTweet, stripImageDescription } from '@/lib/format';
 import { renderRichSummary } from '@/lib/richText';
+import type { FeaturedReason } from '@/lib/featured';
 
 const SENTIMENT_TEXT: Record<string, string> = {
   bullish: 'text-bull', bearish: 'text-bear', neutral: 'text-neutral', mixed: 'text-mixed',
@@ -18,10 +19,16 @@ interface Props {
   brief: StoredTweet | null;
   stats: DashboardStats;
   onTicker: (t: string) => void;
+  // Why this tweet was selected for the hero. Drives the eyebrow text so the
+  // reader isn't misled into thinking a 4-day-old commentary tweet is
+  // "Today's Brief". Defaults to 'signal' for backwards-compat with any
+  // older caller that hasn't been updated.
+  reason?: FeaturedReason;
 }
 
-export default function TodaysBrief({ brief, stats, onTicker }: Props) {
+export default function TodaysBrief({ brief, stats, onTicker, reason = 'signal' }: Props) {
   if (!brief?.analysis) return null;
+  const eyebrowText = reason === 'signal' ? "Today's Brief" : 'Recent analysis';
   const a = brief.analysis;
   const score = stats.avg_sentiment_score ?? 0;
   const lbl = sentimentLabel(score);
@@ -40,7 +47,7 @@ export default function TodaysBrief({ brief, stats, onTicker }: Props) {
           {/* Left — feature */}
           <div className="brief-feature">
             <div className="brief-eyebrow">
-              <span className="eyebrow" style={{ color: 'var(--accent)' }}>Today&rsquo;s Brief</span>
+              <span className="eyebrow" style={{ color: 'var(--accent)' }}>{eyebrowText}</span>
               <span className="eyebrow text-ink-4">·</span>
               <span className="eyebrow text-ink-4">
                 {fmtDate(brief.created_at)} · {fmtTime(brief.created_at)}
