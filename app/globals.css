@@ -714,45 +714,102 @@ button:disabled { cursor: not-allowed; }
 .panel-sub { font-size: 11px; color: var(--ink-3); letter-spacing: 0.005em; }
 .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
 @media (max-width: 900px) { .panel-grid { grid-template-columns: 1fr; } }
-.chart-host { width: 100%; }
-.chart-axis-l, .chart-axis-x { font-family: var(--font-mono); font-size: 10px; fill: var(--ink-4); }
-.chart-grid line { stroke: var(--rule-soft); stroke-width: 1; }
-.chart-zero line { stroke: var(--ink-4); stroke-width: 1; stroke-dasharray: 2 3; }
-.chart-area-bull { fill: color-mix(in oklab, var(--bull) 18%, transparent); }
-.chart-area-bear { fill: color-mix(in oklab, var(--bear) 18%, transparent); }
-.chart-line { stroke: var(--ink); stroke-width: 1.5; fill: none; }
-.chart-dot { fill: var(--ink); }
-.chart-legend { display: flex; gap: 18px; font-size: 11px; color: var(--ink-3); margin-top: 14px; }
-.chart-legend .swatch { width: 10px; height: 10px; display: inline-block; margin-right: 6px; vertical-align: -1px; }
-.vol-bars { display: flex; align-items: flex-end; gap: 3px; height: 110px; margin-top: 24px; }
-.vol-bars .vbar {
-  flex: 1; background: var(--ink-2); min-height: 2px; border-radius: 1px;
-  transition: background 100ms ease, transform 100ms ease;
-  cursor: default;
+/* ── Sentiment chart ─────────────────────────────────────────────────
+   Polished pass: gradient area fills, round-capped line, refined hover
+   card (date eyebrow + colored score + tweet count), and a softer
+   volume row that aligns with the chart's plotting area so the columns
+   read as the same days as the line above. */
+.sentiment-chart { width: 100%; }
+.chart-host { width: 100%; cursor: crosshair; }
+.chart-axis-l, .chart-axis-x {
+  font-family: var(--font-mono); font-size: 10px; fill: var(--ink-4);
+  font-feature-settings: "tnum";
 }
-.vol-bars .vbar.bull { background: color-mix(in oklab, var(--bull) 75%, var(--surface) 25%); }
-.vol-bars .vbar.bear { background: color-mix(in oklab, var(--bear) 75%, var(--surface) 25%); }
-.vol-bars .vbar:hover,
-.vol-bars .vbar.is-hover { background: var(--ink); }
-.vol-bars .vbar.bull:hover,
-.vol-bars .vbar.bull.is-hover { background: var(--bull); }
-.vol-bars .vbar.bear:hover,
-.vol-bars .vbar.bear.is-hover { background: var(--bear); }
+.chart-grid line     { stroke: var(--rule-soft); stroke-width: 1; }
+.chart-zero line     { stroke: var(--ink-4); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0.5; }
+.chart-line          { stroke: var(--ink); stroke-width: 1.75; fill: none;
+                       stroke-linecap: round; stroke-linejoin: round; }
+.chart-dot           { fill: var(--ink); }
 
-/* Sentiment chart crosshair + tooltip — same visual treatment as the
-   ticker modal's price chart (.pc-crosshair / .pc-tooltip) so the two
-   feel like one system. Defined separately to avoid coupling the chart
-   styles to a price-chart-specific class name. */
-.chart-host { cursor: crosshair; }
-.chart-crosshair line { stroke: var(--ink-4); stroke-width: 1; stroke-dasharray: 2 3; }
+/* Crosshair — slimmer dashed guide; circle picks up bull/bear stroke. */
+.chart-crosshair line   { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 2 4; opacity: 0.55; }
 .chart-crosshair circle { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
 .chart-crosshair circle.up   { stroke: var(--bull); }
 .chart-crosshair circle.down { stroke: var(--bear); }
-.chart-tooltip rect { fill: var(--surface); stroke: var(--ink); stroke-width: 1; }
-.chart-tooltip text {
-  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
-  fill: var(--ink); font-feature-settings: "tnum";
-  pointer-events: none;
+
+/* Tooltip card — two-line editorial annotation. Newsreader date eyebrow,
+   serif score in bull/bear hue, monospace tweet count for the figure. */
+.chart-tooltip rect {
+  fill: var(--surface); stroke: var(--rule);
+  stroke-width: 1;
+}
+.chart-tooltip text { pointer-events: none; }
+.chart-tooltip-date {
+  font-family: var(--font-sans); font-size: 9.5px; font-weight: 600;
+  letter-spacing: 0.16em; text-transform: uppercase; fill: var(--ink-4);
+}
+.chart-tooltip-value {
+  font-family: var(--font-serif); font-size: 17px; font-weight: 500;
+  font-feature-settings: "tnum"; fill: var(--ink);
+}
+.chart-tooltip-value.up   { fill: var(--bull); }
+.chart-tooltip-value.down { fill: var(--bear); }
+.chart-tooltip-count {
+  font-family: var(--font-mono); font-size: 10.5px;
+  font-feature-settings: "tnum"; fill: var(--ink-3);
+}
+
+/* Legend strip — keep it light; the swatch picks up the same gradient
+   feel as the area fills so the legend reads as the chart, not as a key
+   from a different palette. */
+.chart-legend {
+  display: flex; gap: 18px; font-size: 11px; color: var(--ink-3);
+  margin-top: 18px;
+}
+.chart-legend .swatch {
+  width: 12px; height: 12px; display: inline-block; margin-right: 6px;
+  vertical-align: -2px; border-radius: 2px;
+}
+.chart-legend-bull { background: color-mix(in oklab, var(--bull) 22%, transparent); }
+.chart-legend-bear { background: color-mix(in oklab, var(--bear) 22%, transparent); }
+.chart-legend-meta { margin-left: auto; color: var(--ink-4); font-family: var(--font-mono); font-feature-settings: "tnum"; }
+
+/* Volume row — calmer default tone, snap to full color on hover. Padding
+   matches the SVG's padL / padR so the bars sit under the chart's plot
+   area, not edge-to-edge of the panel. (44 / 16 of 920 → 4.78% / 1.74%) */
+.vol-section { margin-top: 40px; }
+.vol-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.vol-head-meta {
+  font-family: var(--font-mono); font-size: 10.5px;
+  color: var(--ink-4); font-feature-settings: "tnum";
+}
+.vol-bars {
+  display: flex; align-items: flex-end; gap: 4px; height: 72px;
+  padding: 0 1.74% 0 4.78%;
+}
+.vol-bars .vbar {
+  flex: 1; min-height: 2px; border-radius: 2px 2px 0 0;
+  background: color-mix(in oklab, var(--ink-3) 18%, transparent);
+  transition: background 140ms ease;
+  cursor: default;
+}
+.vol-bars .vbar.bull { background: color-mix(in oklab, var(--bull) 26%, transparent); }
+.vol-bars .vbar.bear { background: color-mix(in oklab, var(--bear) 26%, transparent); }
+.vol-bars .vbar:hover,
+.vol-bars .vbar.is-hover            { background: var(--ink-2); }
+.vol-bars .vbar.bull:hover,
+.vol-bars .vbar.bull.is-hover       { background: var(--bull); }
+.vol-bars .vbar.bear:hover,
+.vol-bars .vbar.bear.is-hover       { background: var(--bear); }
+
+.vol-axis {
+  display: flex; justify-content: space-between;
+  margin-top: 8px; padding: 0 1.74% 0 4.78%;
+  font-family: var(--font-mono); font-size: 10px; color: var(--ink-4);
+  font-feature-settings: "tnum";
 }
 
 /* ── Assets table ── */
