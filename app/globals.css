@@ -551,32 +551,34 @@ button:disabled { cursor: not-allowed; }
 .article-summary {
   margin-top: 22px; padding: 16px 0 16px 20px;
   border-left: 2px solid var(--rule);
-  font-family: var(--font-serif); font-style: italic; font-size: 15px;
+  font-family: var(--font-serif); font-size: 15px;
   line-height: 1.55; color: var(--ink-2); text-wrap: pretty;
 }
 .article-summary::before {
-  content: "Analyst note —"; display: inline;
-  font-family: var(--font-sans); font-style: normal; font-weight: 600;
+  content: "Analyst note"; display: block;
+  font-family: var(--font-sans); font-weight: 600;
   font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--accent); margin-right: 8px;
+  color: var(--accent); margin-bottom: 8px;
 }
 /* Image-insights block — sits between the media strip and the analyst
-   note. Lighter weight than the analyst note so the eye still lands on
-   the take, but still a distinct section so the reader knows this prose
-   describes the attached image(s). */
+   note. Uses the same serif treatment as the analyst note so the two
+   pieces of editorial prose share a visual family; the soft left rule
+   and "In the images" eyebrow keep the hierarchy. */
 .article-image-insights {
   margin-top: 18px; padding: 12px 0 12px 20px;
   border-left: 2px solid var(--rule-soft);
-  color: var(--ink-3);
 }
 .article-image-insights .eyebrow {
-  display: block; margin-bottom: 4px; color: var(--ink-4);
+  display: block; margin-bottom: 6px; color: var(--ink-4);
 }
 .article-image-insights p {
   margin: 0;
-  font-family: var(--font-sans); font-size: 13.5px; line-height: 1.55;
+  font-family: var(--font-serif); font-size: 15px; line-height: 1.55;
   color: var(--ink-2); text-wrap: pretty;
 }
+/* Each "Image N:" entry gets its own paragraph; spacing keeps them legible
+   without making the whole block feel like a list. */
+.article-image-insights p + p { margin-top: 8px; }
 .signals-block { margin-top: 22px; }
 .signals-block .eyebrow { margin-bottom: 10px; }
 .signal-row {
