@@ -397,10 +397,7 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
         {/* ── Assets ── */}
         {activeTab === 'assets' && (
           <div className="panel">
-            <AssetMentions
-              topTickers={stats?.top_tickers || []}
-              topDomains={stats?.top_domains || []}
-            />
+            <AssetMentions />
           </div>
         )}
 
