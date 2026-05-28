@@ -1,6 +1,7 @@
 'use client';
 
-import { fmtDate } from '@/lib/format';
+import { useRef, useState } from 'react';
+import { fmtDate, fmtSigned } from '@/lib/format';
 
 interface TimelinePoint {
   date: string;
@@ -14,6 +15,12 @@ interface TimelinePoint {
 interface Props { timeline: TimelinePoint[] }
 
 export default function SentimentChart({ timeline }: Props) {
+  // Hover state lives at this level so the line chart's crosshair and the
+  // matching volume bar below can highlight in sync — the two visuals
+  // represent the same day, so mousing over either should light up both.
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+
   if (!timeline || timeline.length === 0) {
     return (
       <div className="empty">
@@ -63,9 +70,37 @@ export default function SentimentChart({ timeline }: Props) {
   // Volume bars
   const maxCount = Math.max(...timeline.map((p) => p.tweet_count), 1);
 
+  // Map mouse X to the nearest day. Multiplying by W / r.width converts from
+  // CSS pixels back into the SVG's viewBox coordinate system, so the
+  // calculation works correctly at any chart width (responsive SVG).
+  function handleMove(e: React.MouseEvent) {
+    if (!wrapRef.current) return;
+    const r = wrapRef.current.getBoundingClientRect();
+    const mx = (e.clientX - r.left) * (W / r.width);
+    const frac = Math.max(0, Math.min(1, (mx - padL) / innerW));
+    setHoverIdx(Math.round(frac * (n - 1)));
+  }
+
+  // Tooltip geometry — built once per render when hover is active. Width is
+  // sized for the longest expected label ("MMM DD · +0.99 · 99 tweets") and
+  // tx is clamped so the tooltip can't escape the chart on left/right edges.
+  let tt: { hx: number; hy: number; tx: number; ty: number; w: number; h: number; label: string } | null = null;
+  if (hoverIdx != null && hoverIdx >= 0 && hoverIdx < n) {
+    const p = timeline[hoverIdx];
+    const hx = xFor(hoverIdx);
+    const hy = yFor(p.avg_score);
+    const w = 168;
+    const h = 22;
+    let tx = hx - w / 2;
+    tx = Math.max(padL + 2, Math.min(W - padR - w - 2, tx));
+    const ty = hy > padT + h + 8 ? hy - h - 8 : hy + 8;
+    const label = `${fmtDate(p.date)} · ${fmtSigned(p.avg_score, 2)} · ${p.tweet_count} ${p.tweet_count === 1 ? 'tweet' : 'tweets'}`;
+    tt = { hx, hy, tx, ty, w, h, label };
+  }
+
   return (
     <div>
-      <div className="chart-host">
+      <div className="chart-host" ref={wrapRef} onMouseMove={handleMove} onMouseLeave={() => setHoverIdx(null)}>
         <svg
           viewBox={`0 0 ${W} ${H}`}
           width="100%"
@@ -108,6 +143,29 @@ export default function SentimentChart({ timeline }: Props) {
               </text>
             ))}
           </g>
+          {/* Crosshair + tooltip — drawn last so they paint on top of the
+              line and areas. The dashed vertical line + filled circle is
+              the same visual treatment as the ticker modal's price chart,
+              so the two interactions feel like one system. */}
+          {tt && (
+            <g className="chart-crosshair">
+              <line x1={tt.hx} y1={padT} x2={tt.hx} y2={padT + innerH} />
+              <circle
+                cx={tt.hx}
+                cy={tt.hy}
+                r="4"
+                className={timeline[hoverIdx!].avg_score >= 0 ? 'up' : 'down'}
+              />
+            </g>
+          )}
+          {tt && (
+            <g className="chart-tooltip">
+              <rect x={tt.tx} y={tt.ty} width={tt.w} height={tt.h} rx="3" />
+              <text x={tt.tx + tt.w / 2} y={tt.ty + tt.h / 2 + 4} textAnchor="middle">
+                {tt.label}
+              </text>
+            </g>
+          )}
         </svg>
 
         <div className="chart-legend">
@@ -131,19 +189,22 @@ export default function SentimentChart({ timeline }: Props) {
         </div>
       </div>
 
-      {/* Volume bars */}
+      {/* Volume bars — also hoverable. Mousing over a bar highlights it AND
+          drives the same hoverIdx so the crosshair lights up above. Keeps
+          the two visualizations in sync since they're the same data. */}
       <div style={{ marginTop: 56 }}>
         <div className="eyebrow" style={{ marginBottom: 6 }}>Tweet volume · daily</div>
-        <div className="vol-bars">
+        <div className="vol-bars" onMouseLeave={() => setHoverIdx(null)}>
           {timeline.map((p, i) => {
             const cls = p.avg_score > 0.15 ? 'bull' : p.avg_score < -0.15 ? 'bear' : '';
             const h = Math.max(2, (p.tweet_count / maxCount) * 100);
             return (
               <div
                 key={i}
-                className={`vbar ${cls}`}
+                className={`vbar ${cls} ${hoverIdx === i ? 'is-hover' : ''}`}
                 style={{ height: h + '%' }}
                 title={`${p.date} · ${p.tweet_count} tweets`}
+                onMouseEnter={() => setHoverIdx(i)}
               />
             );
           })}
