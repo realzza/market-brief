@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { fmtDate, fmtPrice, fmtPct } from '@/lib/format';
 
 interface PerformanceEntry {
@@ -118,6 +118,8 @@ const INTRADAY_DAYS = 5;
 function PositionChart({ position }: { position: Position }) {
   const [data, setData] = useState<QuoteShape | null>(null);
   const [errored, setErrored] = useState(false);
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -152,8 +154,10 @@ function PositionChart({ position }: { position: Position }) {
     );
   }
 
-  const W = 920, H = 180;
-  const padL = 52, padR = 16, padT = 18, padB = 28;
+  // Chart geometry — bottom padding houses the x-axis; top padding is just
+  // breathing room (no marker labels live up there anymore).
+  const W = 920, H = 212;
+  const padL = 58, padR = 22, padT = 14, padB = 42;
   const innerW = W - padL - padR;
   const innerH = H - padT - padB;
   const n = points.length;
@@ -183,8 +187,6 @@ function PositionChart({ position }: { position: Position }) {
   const dirCls = ret == null ? 'flat' : ret >= 0 ? 'up' : 'down';
 
   // Map each signal's timestamp to the closest point in the chosen series.
-  // Intraday data lands within 5 minutes; daily data snaps to the same-day
-  // close. Markers stack visually when multiple signals collide on one bar.
   const markers = position.signals.map((s) => {
     const t = new Date(s.signal_date).getTime();
     let best = 0;
@@ -196,21 +198,117 @@ function PositionChart({ position }: { position: Position }) {
     return { idx: best, signal: s };
   });
 
-  // Marker label — for intraday data, multiple signals on the same day would
-  // all show "May 27" and overlap. Show HH:mm instead when we're in intraday
-  // mode so each marker remains distinguishable.
-  function markerLabel(iso: string): string {
-    if (!useIntraday) return fmtDate(iso);
+  // ── X-axis ────────────────────────────────────────────────────────────
+  // Smart format: span ≤ 18h → HH:MM, longer spans switch to MMM d (with a
+  // HH:MM suffix at the boundary so multi-day intraday isn't ambiguous).
+  // Ticks are evenly spaced *by index* (so off-hours / weekend gaps don't
+  // create dead horizontal space), then labeled with the timestamp of the
+  // data point that landed there.
+  const t0 = new Date(points[0].t).getTime();
+  const tN = new Date(points[n - 1].t).getTime();
+  const spanMs = tN - t0;
+  const HOUR = 3_600_000;
+
+  function formatXTick(iso: string): string {
     const d = new Date(iso);
-    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    if (spanMs <= 18 * HOUR) {
+      return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+    if (spanMs <= 5 * 24 * HOUR) {
+      // Multi-day intraday: month/day, plus time so neighbouring ticks read distinctly.
+      const md = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const hm = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+      return `${md} ${hm}`;
+    }
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
+
+  const longLabel = spanMs > 18 * HOUR && spanMs <= 5 * 24 * HOUR;
+  const tickCount = Math.min(longLabel ? 4 : 6, Math.max(3, n));
+  const xTickIdxs = Array.from({ length: tickCount },
+    (_, i) => Math.round((i * (n - 1)) / (tickCount - 1)));
+
+  // Markers don't carry their own time label — the x-axis is the single
+  // source of truth for time, and tweet timestamps (signal_date) can fall
+  // outside Yahoo's 5-min market-hour bars (overnight tweets, off-hours
+  // calls). When the dot snaps to the nearest available bar, a separate
+  // "signal time" label above would contradict the bar time on the axis
+  // below. The hover tooltip surfaces the bar time + price on demand.
 
   // Sparse y-axis: 4 ticks across the visible range.
   const yTicks = [yMin, yMin + yRng * 0.33, yMin + yRng * 0.66, yMax];
 
+  // ── Hover ─────────────────────────────────────────────────────────────
+  function handleMove(e: React.MouseEvent<SVGRectElement>) {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const pt = svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return;
+    const local = pt.matrixTransform(ctm.inverse());
+    const rel = (local.x - padL) / Math.max(innerW, 1);
+    const idx = Math.max(0, Math.min(n - 1, Math.round(rel * (n - 1))));
+    setHoverIdx(idx);
+  }
+  function handleLeave() { setHoverIdx(null); }
+
+  // Tooltip geometry — flips left/below the dot when it would overflow.
+  let hoverGroup: React.ReactNode = null;
+  if (hoverIdx != null) {
+    const p = points[hoverIdx];
+    const hx = xAt(hoverIdx);
+    const hy = yAt(p.c);
+    const entry = position.entry_price;
+    const deltaPct = entry != null
+      ? ((p.c - entry) / entry) * 100 * (isLong ? 1 : -1)
+      : null;
+    const tipW = 132, tipH = 46;
+    let tipX = hx + 12;
+    if (tipX + tipW > W - padR) tipX = hx - 12 - tipW;
+    let tipY = hy - tipH - 10;
+    if (tipY < padT) tipY = hy + 12;
+    const when = new Date(p.t);
+    const whenStr = spanMs <= 18 * HOUR
+      ? when.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+      : when.toLocaleString('en-US', {
+          month: 'short', day: 'numeric',
+          hour: '2-digit', minute: '2-digit', hour12: false,
+        });
+    hoverGroup = (
+      <g className="perf-chart-hover" pointerEvents="none">
+        <line
+          className="perf-chart-crosshair"
+          x1={hx} x2={hx} y1={padT} y2={padT + innerH}
+        />
+        <circle cx={hx} cy={hy} r="3.75" className={`perf-chart-hover-dot ${dirCls}`} />
+        <g transform={`translate(${tipX} ${tipY})`}>
+          <rect width={tipW} height={tipH} rx="3" className="perf-chart-tip-bg" />
+          <text x="11" y="19" className="perf-chart-tip-price">${fmtPrice(p.c)}</text>
+          <text x="11" y="35" className="perf-chart-tip-meta">{whenStr}</text>
+          {deltaPct != null && (
+            <text
+              x={tipW - 11} y="19" textAnchor="end"
+              className={`perf-chart-tip-delta ${deltaPct >= 0 ? 'pos' : 'neg'}`}
+            >
+              {fmtPct(deltaPct, 1)}
+            </text>
+          )}
+        </g>
+      </g>
+    );
+  }
+
   return (
     <div className="perf-chart-wrap">
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" preserveAspectRatio="xMinYMid meet" className="perf-chart">
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${W} ${H}`}
+        width="100%"
+        preserveAspectRatio="xMinYMid meet"
+        className="perf-chart"
+      >
         <g className="perf-chart-grid">
           {yTicks.map((v, i) => (
             <line key={i} x1={padL} x2={W - padR} y1={yAt(v)} y2={yAt(v)} />
@@ -218,26 +316,59 @@ function PositionChart({ position }: { position: Position }) {
         </g>
         <g className="perf-chart-axis-y">
           {yTicks.map((v, i) => (
-            <text key={i} x={padL - 8} y={yAt(v) + 3} textAnchor="end">${fmtPrice(v)}</text>
+            <text key={i} x={padL - 10} y={yAt(v) + 3} textAnchor="end">${fmtPrice(v)}</text>
           ))}
         </g>
+
+        {/* X-axis baseline + time ticks. */}
+        <line
+          className="perf-chart-axis-x-baseline"
+          x1={padL} x2={W - padR}
+          y1={padT + innerH} y2={padT + innerH}
+        />
+        <g className="perf-chart-axis-x">
+          {xTickIdxs.map((i, k) => {
+            const x = xAt(i);
+            const anchor =
+              k === 0 ? 'start' :
+              k === xTickIdxs.length - 1 ? 'end' :
+              'middle';
+            return (
+              <g key={k}>
+                <line x1={x} x2={x} y1={padT + innerH} y2={padT + innerH + 4} />
+                <text x={x} y={padT + innerH + 18} textAnchor={anchor}>
+                  {formatXTick(points[i].t)}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+
         <path d={line} className={`perf-chart-line ${dirCls}`} />
-        {/* Signal markers — vertical guide + dot at the close on that day,
-            same dot color as the position's direction. Long → up triangle,
-            short → down. */}
+
+        {/* Signal entry markers — solid colored dot with a paper-colored
+            ring. No vertical guide; the dot sits on the price line which
+            is already aligned to its x-coordinate. */}
         {markers.map((m, i) => {
           const x = xAt(m.idx);
           const y = yAt(points[m.idx].c);
           return (
             <g key={i} className={`perf-chart-marker ${isLong ? 'long' : 'short'}`}>
-              <line x1={x} y1={padT} x2={x} y2={padT + innerH} />
-              <circle cx={x} cy={y} r="4.5" />
-              <text x={x} y={padT - 4} textAnchor="middle">
-                {markerLabel(m.signal.signal_date)}
-              </text>
+              <circle cx={x} cy={y} r="5" />
             </g>
           );
         })}
+
+        {hoverGroup}
+
+        {/* Transparent hit-test layer sits on top so hover tracks anywhere
+            inside the plotting area. Rendered last → topmost in SVG. */}
+        <rect
+          x={padL} y={padT} width={innerW} height={innerH}
+          className="perf-chart-hit"
+          onMouseMove={handleMove}
+          onMouseLeave={handleLeave}
+        />
       </svg>
       <div className="perf-chart-foot">
         {n} {useIntraday ? '5-min bars' : 'trading days'} since {fmtDate(position.first_signal_date)} ·
