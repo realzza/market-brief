@@ -368,6 +368,30 @@ export function updatePerformanceOutcome(
   });
 }
 
+/**
+ * Update running P&L on a still-pending entry. Doesn't touch `outcome` (stays
+ * pending). Lets the dashboard display live return % on rows that haven't
+ * resolved yet — the alternative was a perpetual em-dash.
+ *
+ * Includes a `WHERE outcome = 'pending' OR outcome IS NULL` guard so a
+ * straggling cron tick can't overwrite a row that was resolved between
+ * `getPendingPerformanceEntries` and this update.
+ */
+export function updatePerformanceRunning(id: number, actual_return_pct: number): void {
+  const db = getDb();
+  db.prepare(
+    `UPDATE performance
+       SET actual_return_pct = @actual_return_pct,
+           updated_at = @updated_at
+     WHERE id = @id
+       AND (outcome = 'pending' OR outcome IS NULL)`,
+  ).run({
+    id,
+    actual_return_pct,
+    updated_at: new Date().toISOString(),
+  });
+}
+
 export function getSentimentTimeline(days = 30): Array<Record<string, unknown>> {
   const db = getDb();
   return db.prepare(`

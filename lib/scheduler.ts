@@ -13,11 +13,13 @@ const CRON_INTERVAL_MS = 15 * 60 * 1000;        // 15 min
 // Delay before the first background tick so we don't block server boot.
 const FIRST_TICK_DELAY_MS = 5_000;
 
-// Outcome resolution runs less often than the tweet fetch — pending trades
-// don't usually flip within minutes, and we'd rather amortize the Yahoo
-// calls. First check happens ~30s after boot so the backfill has a moment
-// to settle.
-const OUTCOMES_INTERVAL_MS = 60 * 60 * 1000;    // 60 min
+// Outcome resolution. 5 min strikes a balance — frequent enough that the
+// running P&L on the Performance tab feels live, infrequent enough that
+// Yahoo doesn't see a rate-pattern. Each tick fetches one chart + one quote
+// per pending entry; ~10 pending entries × 12 ticks/hour = ~240 calls/hour,
+// comfortably under any plausible rate limit. First check ~30s after boot
+// so the backfill has time to settle.
+const OUTCOMES_INTERVAL_MS = 5 * 60 * 1000;     // 5 min
 const OUTCOMES_FIRST_DELAY_MS = 30_000;
 
 let lastFetchAt: number | null = null;
@@ -88,10 +90,10 @@ async function outcomesTick() {
   const t0 = Date.now();
   try {
     const { runOutcomeRefresh } = await import('./performance');
-    const { checked, resolved } = await runOutcomeRefresh();
+    const { checked, resolved, updated } = await runOutcomeRefresh();
     if (checked > 0) {
       console.log(
-        `[scheduler] outcomes · ${new Date(t0).toISOString()} · checked=${checked} resolved=${resolved} took=${Date.now() - t0}ms`,
+        `[scheduler] outcomes · ${new Date(t0).toISOString()} · checked=${checked} resolved=${resolved} running=${updated} took=${Date.now() - t0}ms`,
       );
     }
   } catch (err) {

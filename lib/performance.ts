@@ -104,66 +104,112 @@ async function resolveSymbol(asset: string): Promise<string | null> {
   }
 }
 
-export interface CheckedOutcome {
-  outcome: 'win' | 'loss';
-  actual_return_pct: number;
+export interface ResolvedOutcome {
+  /** Final outcome when target/stop has been crossed, null while still open. */
+  outcome: 'win' | 'loss' | null;
+  /** Running return on open entries; final return on resolved ones. Null if we
+   *  truly can't compute (no entry, no symbol, no chart data). */
+  return_pct: number | null;
 }
 
-// Compare the current market price against the entry / target / stop levels
-// to decide if a pending entry has resolved. Conservative: only mark win/loss
-// when the level has actually been crossed. Anything ambiguous stays pending
-// for the next cron tick.
-export async function checkOutcome(entry: PerformanceEntry): Promise<CheckedOutcome | null> {
-  if (entry.entry_price == null) return null;
-  if (entry.target_price == null && entry.stop_loss_price == null) return null;
+interface ChartCandle {
+  date: Date;
+  high?: number | null;
+  low?: number | null;
+  close?: number | null;
+}
 
+/**
+ * Resolve an entry against Yahoo. Two improvements over the v1 checkOutcome:
+ *
+ *   1. **OHLC walking.** Instead of "did current price cross target?", walk
+ *      daily candles since signal_date and check each high / low. Catches
+ *      intraday spikes through target/stop that have since reversed — once
+ *      the level was touched, the position resolves.
+ *
+ *   2. **Synthetic entry + running return.** When Claude didn't extract an
+ *      explicit entry_price (the common case — most tweets don't quote a
+ *      precise level), use the close on signal_date as the implicit entry.
+ *      That lets us compute and persist a running return for every pending
+ *      row, so the Return column shows live P&L instead of perpetual "—".
+ *
+ * Returns null only when we genuinely can't compute anything — bad ticker,
+ * Yahoo down, no chart data at all.
+ */
+export async function resolveOutcome(entry: PerformanceEntry): Promise<ResolvedOutcome | null> {
   const sym = await resolveSymbol(entry.asset);
   if (!sym) return null;
 
-  let current: number | null = null;
+  // Fetch daily OHLC from signal_date forward + the current quote. The chart
+  // gives us highs/lows to walk; the quote gives us the freshest price for
+  // running return on entries whose level hasn't been hit.
+  const period1 = entry.signal_date.slice(0, 10); // YYYY-MM-DD; trim time portion
+  let candles: ChartCandle[] = [];
+  let currentPrice: number | null = null;
   try {
-    const q = await yf.quote(sym, {}, { validateResult: false });
-    current = q.regularMarketPrice ?? null;
+    const [chartRes, quoteRes] = await Promise.all([
+      yf.chart(sym, { period1, interval: '1d' }, { validateResult: false }).catch(() => null),
+      yf.quote(sym, {}, { validateResult: false }).catch(() => null),
+    ]);
+    candles = ((chartRes as { quotes?: ChartCandle[] } | null)?.quotes ?? []).filter(
+      (c) => c.high != null || c.low != null || c.close != null,
+    );
+    currentPrice = quoteRes?.regularMarketPrice ?? null;
   } catch {
     return null;
   }
-  if (current == null) return null;
 
-  const entryPrice = entry.entry_price;
+  // Effective entry: prefer Claude's extracted level, fall back to the close
+  // on the first trading day after signal_date. This is the conventional
+  // "tracked from signal date" convention retail dashboards use.
+  const syntheticEntry = candles[0]?.close ?? null;
+  const effectiveEntry = entry.entry_price ?? syntheticEntry;
+  if (effectiveEntry == null) return null;
+
   const isLong = entry.direction === 'long';
+  const pctFromEntry = (level: number) =>
+    isLong
+      ? ((level - effectiveEntry) / effectiveEntry) * 100
+      : ((effectiveEntry - level) / effectiveEntry) * 100;
 
-  // Long: target above entry, stop below. Short: inverted. Compute return
-  // off the actual level that was hit, not the current spot — gives the
-  // canonical fill-at-target / fill-at-stop P&L the dashboard expects.
-  if (isLong) {
-    if (entry.target_price != null && current >= entry.target_price) {
-      return {
-        outcome: 'win',
-        actual_return_pct: ((entry.target_price - entryPrice) / entryPrice) * 100,
-      };
-    }
-    if (entry.stop_loss_price != null && current <= entry.stop_loss_price) {
-      return {
-        outcome: 'loss',
-        actual_return_pct: ((entry.stop_loss_price - entryPrice) / entryPrice) * 100,
-      };
-    }
-  } else {
-    if (entry.target_price != null && current <= entry.target_price) {
-      return {
-        outcome: 'win',
-        actual_return_pct: ((entryPrice - entry.target_price) / entryPrice) * 100,
-      };
-    }
-    if (entry.stop_loss_price != null && current >= entry.stop_loss_price) {
-      return {
-        outcome: 'loss',
-        actual_return_pct: ((entryPrice - entry.stop_loss_price) / entryPrice) * 100,
-      };
+  // OHLC walking: only run when explicit target or stop has been extracted.
+  // Iterate candles oldest-first; whichever level is hit first wins. If both
+  // a target and a stop are hit inside the same candle, we can't tell the
+  // order intraday — conservative call is to mark it a stop-out (the
+  // pessimistic assumption you'd want if you were using these numbers to
+  // judge the strategy).
+  if (entry.target_price != null || entry.stop_loss_price != null) {
+    for (const c of candles) {
+      const hi = c.high ?? null;
+      const lo = c.low ?? null;
+      if (hi == null && lo == null) continue;
+
+      let targetHit = false;
+      let stopHit = false;
+      if (isLong) {
+        if (entry.target_price != null && hi != null && hi >= entry.target_price) targetHit = true;
+        if (entry.stop_loss_price != null && lo != null && lo <= entry.stop_loss_price) stopHit = true;
+      } else {
+        if (entry.target_price != null && lo != null && lo <= entry.target_price) targetHit = true;
+        if (entry.stop_loss_price != null && hi != null && hi >= entry.stop_loss_price) stopHit = true;
+      }
+
+      if (stopHit) {
+        return { outcome: 'loss', return_pct: pctFromEntry(entry.stop_loss_price!) };
+      }
+      if (targetHit) {
+        return { outcome: 'win', return_pct: pctFromEntry(entry.target_price!) };
+      }
     }
   }
 
-  return null;
+  // No level crossing detected — return running P&L against the latest price.
+  // Prefer the live quote; fall back to the most recent candle's close in case
+  // the quote call failed but the chart succeeded.
+  const lastPrice = currentPrice ?? candles[candles.length - 1]?.close ?? null;
+  if (lastPrice == null) return { outcome: null, return_pct: null };
+
+  return { outcome: null, return_pct: pctFromEntry(lastPrice) };
 }
 
 // ─── DB-touching orchestrators ───────────────────────────────────────────
@@ -174,22 +220,38 @@ export async function checkOutcome(entry: PerformanceEntry): Promise<CheckedOutc
 import {
   getPendingPerformanceEntries,
   updatePerformanceOutcome,
+  updatePerformanceRunning,
   upsertPerformance,
   getAnalyzedTradeCalls,
 } from './db';
 
-/** Walk every pending entry, check it against Yahoo, persist resolutions. */
-export async function runOutcomeRefresh(): Promise<{ checked: number; resolved: number }> {
+/**
+ * Walk every pending entry, resolve against Yahoo, persist both resolutions
+ * (win/loss + final return) and running P&L on still-open positions.
+ */
+export async function runOutcomeRefresh(): Promise<{
+  checked: number;
+  resolved: number;
+  updated: number;
+}> {
   const pending = getPendingPerformanceEntries() as unknown as PerformanceEntry[];
   let resolved = 0;
+  let updated = 0;
   for (const entry of pending) {
-    const result = await checkOutcome(entry);
-    if (result) {
-      updatePerformanceOutcome(entry.id, result.outcome, result.actual_return_pct);
+    const result = await resolveOutcome(entry);
+    if (!result) continue;
+    if (result.outcome) {
+      // Target or stop has been crossed — final outcome + final return.
+      updatePerformanceOutcome(entry.id, result.outcome, result.return_pct ?? 0);
       resolved += 1;
+    } else if (result.return_pct != null) {
+      // Still open — persist running return so the Return column shows
+      // live P&L instead of an em-dash.
+      updatePerformanceRunning(entry.id, result.return_pct);
+      updated += 1;
     }
   }
-  return { checked: pending.length, resolved };
+  return { checked: pending.length, resolved, updated };
 }
 
 /**
