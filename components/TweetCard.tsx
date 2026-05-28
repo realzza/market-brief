@@ -242,11 +242,22 @@ export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
           {/* Image insights — only rendered when an analysis actually
               extracted something from the attached media. Sits between
               the media strip and the analyst note so the visual order
-              reads: tweet → images → what's in the images → take. */}
+              reads: tweet → images → what's in the images → take.
+
+              Claude's output for multi-image tweets is a single string
+              like "Image 1: … Image 2: … Image 3: …". Split on the
+              "Image N:" marker so each gets its own paragraph instead of
+              wrapping into one dense block. Single-image tweets (or
+              custom-question analyses that don't number) just render as
+              one paragraph — the split returns a single chunk. */}
           {a?.image_insights && (
             <div className="article-image-insights">
               <span className="eyebrow">In the images</span>
-              <p>{a.image_insights}</p>
+              {a.image_insights
+                .split(/(?=\bImage\s+\d+\s*:)/i)
+                .map((chunk) => chunk.trim())
+                .filter(Boolean)
+                .map((chunk, i) => <p key={i}>{chunk}</p>)}
             </div>
           )}
 
