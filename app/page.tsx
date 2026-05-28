@@ -208,9 +208,15 @@ export default function Home() {
         onToggleTheme={toggleTheme}
       />
 
-      {/* Today's Brief hero */}
+      {/* Today's Brief hero — falls back to most recent analysis when no
+          trade call within 36h. Eyebrow relabels in that case. */}
       {featured && stats && (
-        <TodaysBrief brief={featured} stats={stats} onTicker={setActiveTicker} />
+        <TodaysBrief
+          brief={featured.tweet}
+          stats={stats}
+          onTicker={setActiveTicker}
+          reason={featured.reason}
+        />
       )}
 
       {/* Stats strip */}
