@@ -302,6 +302,7 @@ export default function Home() {
                       tweet={tweet}
                       serial={tweets.length - i}
                       onAnalyzed={loadData}
+                      onTicker={setActiveTicker}
                     />
                   ))}
                 </div>
@@ -347,6 +348,7 @@ export default function Home() {
             <AssetMentions
               topTickers={stats?.top_tickers || []}
               topDomains={stats?.top_domains || []}
+              onTicker={setActiveTicker}
             />
           </div>
         )}

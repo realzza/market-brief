@@ -6,12 +6,12 @@ import { domainColor } from '@/lib/domainConfig';
 import { fmtCompact, fmtDate, fmtPrice } from '@/lib/format';
 import { renderWithTickers, renderRichSummary } from '@/lib/richText';
 import { formatDistanceToNow } from 'date-fns';
-import TickerModal from './TickerModal';
 
 interface Props {
   tweet: StoredTweet;
   serial: number;
   onAnalyzed?: () => void;
+  onTicker: (ticker: string) => void;
 }
 
 // ─── Icon set ────────────────────────────────────────────────────────────────
@@ -157,9 +157,8 @@ const SENTIMENT_TEXT: Record<string, string> = {
 };
 
 // ─── Main card ───────────────────────────────────────────────────────────────
-export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
+export default function TweetCard({ tweet, serial, onAnalyzed, onTicker }: Props) {
   const [busy, setBusy] = useState(false);
-  const [activeTicker, setActiveTicker] = useState<string | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [question, setQuestion] = useState('');
   const a = tweet.analysis;
@@ -192,8 +191,7 @@ export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
   const mediaUrls: string[] = tweet.media_urls ?? [];
 
   return (
-    <>
-      <article className="article">
+    <article className="article">
         {/* Side rail */}
         <div className="article-rail">
           <span className="date">
@@ -234,7 +232,7 @@ export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
             </div>
           )}
 
-          <TweetText text={tweet.text} onTicker={setActiveTicker} />
+          <TweetText text={tweet.text} onTicker={onTicker} />
 
           {/* Media */}
           <MediaGallery urls={mediaUrls} />
@@ -242,7 +240,7 @@ export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
           {/* Analyst note */}
           {a?.summary && (
             <div className="article-summary">
-              {renderRichSummary(a.summary, setActiveTicker)}
+              {renderRichSummary(a.summary, onTicker)}
             </div>
           )}
 
@@ -261,7 +259,7 @@ export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
                 const arrow = t.direction === 'long' ? '↑' : t.direction === 'short' ? '↓' : '•';
                 const arrowCls = t.direction === 'long' ? 'long' : t.direction === 'short' ? 'short' : 'flat';
                 return (
-                  <button key={i} className="ticker-chip" onClick={() => setActiveTicker(t.ticker)}>
+                  <button key={i} className="ticker-chip" onClick={() => onTicker(t.ticker)}>
                     <span className={`arrow ${arrowCls}`}>{arrow}</span>
                     <span className="symbol">${t.ticker}</span>
                     <span className="typ">{t.asset_type}</span>
@@ -350,10 +348,5 @@ export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
           </div>
         </div>
       </article>
-
-      {activeTicker && (
-        <TickerModal ticker={activeTicker} onClose={() => setActiveTicker(null)} />
-      )}
-    </>
   );
 }

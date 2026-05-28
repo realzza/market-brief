@@ -2,18 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { domainColor } from '@/lib/domainConfig';
-import TickerModal from './TickerModal';
 
 interface Ticker { ticker: string; count: number; asset_type: string }
 
 interface Props {
   topTickers: Ticker[];
   topDomains: Array<{ domain: string; count: number }>;
+  onTicker: (ticker: string) => void;
 }
 
-export default function AssetMentions({ topTickers, topDomains }: Props) {
+export default function AssetMentions({ topTickers, topDomains, onTicker }: Props) {
   const [exchangeMap, setExchangeMap] = useState<Record<string, string>>({});
-  const [activeTicker, setActiveTicker] = useState<string | null>(null);
 
   useEffect(() => {
     if (!topTickers.length) return;
@@ -28,8 +27,7 @@ export default function AssetMentions({ topTickers, topDomains }: Props) {
   const maxD = topDomains[0]?.count || 1;
 
   return (
-    <>
-      <div className="panel-grid">
+    <div className="panel-grid">
         {/* Most-mentioned assets */}
         <section>
           <div className="panel-head">
@@ -54,7 +52,7 @@ export default function AssetMentions({ topTickers, topDomains }: Props) {
               </thead>
               <tbody>
                 {topTickers.map((t, i) => (
-                  <tr key={t.ticker} onClick={() => setActiveTicker(t.ticker)}>
+                  <tr key={t.ticker} onClick={() => onTicker(t.ticker)}>
                     <td className="rank num">{String(i + 1).padStart(2, '0')}</td>
                     <td className="symbol">${t.ticker}</td>
                     <td className="typ">{exchangeMap[t.ticker] || t.asset_type}</td>
@@ -104,11 +102,6 @@ export default function AssetMentions({ topTickers, topDomains }: Props) {
             </div>
           )}
         </section>
-      </div>
-
-      {activeTicker && (
-        <TickerModal ticker={activeTicker} onClose={() => setActiveTicker(null)} />
-      )}
-    </>
+    </div>
   );
 }

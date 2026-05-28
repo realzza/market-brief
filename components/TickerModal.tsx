@@ -186,12 +186,42 @@ export default function TickerModal({ ticker, onClose }: Props) {
   const [loadedTicker, setLoadedTicker] = useState('');
   const loading = loadedTicker !== ticker;
   const [activePeriod, setActivePeriod] = useState('3M');
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
 
+  // Escape to close + Tab trap inside the dialog. Without the trap, Tab
+  // walks straight back into the masthead/feed in the background.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { onClose(); return; }
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const focusables = dialogRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"]), input, select, textarea'
+      );
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last  = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey && active === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
+    };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  // Lock body scroll while open so the page behind doesn't scroll under
+  // the modal. Restored to whatever inline value was there on unmount.
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  // Focus the close button on open so a screen reader announces the dialog
+  // and keyboard users can immediately Esc/Tab inside.
+  useEffect(() => {
+    closeBtnRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     fetch(`/api/quote?ticker=${encodeURIComponent(ticker)}`)
@@ -249,13 +279,20 @@ export default function TickerModal({ ticker, onClose }: Props) {
 
   return (
     <div className="modal-scrim" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={dialogRef}
+        className="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ticker-modal-title"
+        onClick={(e) => e.stopPropagation()}
+      >
 
         {/* Header */}
         <div className="modal-head">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div className="modal-symbol">${ticker}</div>
+              <div id="ticker-modal-title" className="modal-symbol">${ticker}</div>
               {data?.exchange && (
                 <span className="eyebrow" style={{ padding: '3px 7px', border: '1px solid var(--rule)', borderRadius: 3 }}>
                   {data.exchange}
@@ -280,7 +317,14 @@ export default function TickerModal({ ticker, onClose }: Props) {
                 <span className="spinner" />
               </div>
             )}
-            <button className="modal-close" onClick={onClose}><CloseIcon /></button>
+            <button
+              ref={closeBtnRef}
+              className="modal-close"
+              onClick={onClose}
+              aria-label="Close ticker details"
+            >
+              <CloseIcon />
+            </button>
           </div>
         </div>
 
