@@ -67,6 +67,12 @@ function initSchema(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_tweets_created ON tweets(created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_analysis_sentiment ON tweet_analysis(sentiment);
     CREATE INDEX IF NOT EXISTS idx_performance_outcome ON performance(outcome);
+    -- Required for upsertPerformance's "ON CONFLICT DO NOTHING" to actually
+    -- fire — without a UNIQUE constraint SQLite has nothing to conflict on,
+    -- and re-running the backfill / re-analyzing a tweet would create
+    -- duplicate rows. (tweet_id, asset) is the natural key because one tweet
+    -- can legitimately hold multiple trade calls on different symbols.
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_performance_tweet_asset ON performance(tweet_id, asset);
   `);
 }
 
@@ -107,6 +113,15 @@ function migrate(db: Database.Database) {
     });
     apply(rows);
   }
+
+  // Performance UNIQUE index — added retroactively for databases that pre-
+  // date the auto-pipeline. Without it, the upsert's ON CONFLICT clause was
+  // a no-op and re-running the analyze pipeline would duplicate rows.
+  // CREATE UNIQUE INDEX IF NOT EXISTS is also in initSchema; this is the
+  // path for databases that already had `performance` but not the index.
+  db.exec(
+    'CREATE UNIQUE INDEX IF NOT EXISTS idx_performance_tweet_asset ON performance(tweet_id, asset)'
+  );
 }
 
 export function saveTweets(tweets: Array<{
@@ -238,7 +253,23 @@ export function getStats(): Record<string, unknown> {
     top_tickers: topTickers,
     top_domains: topDomains,
     avg_sentiment_score: avgScore ?? 0,
+    win_rate: getWinRate(),
   };
+}
+
+// Win rate over CLOSED entries in the performance table. Excludes 'pending'
+// because the dashboard already exposes "open" separately. Returns null when
+// no trades have closed yet — the consumer renders "—" in that case.
+function getWinRate(): number | null {
+  const db = getDb();
+  const row = db.prepare(
+    `SELECT
+       SUM(CASE WHEN outcome = 'win' THEN 1 ELSE 0 END) AS wins,
+       SUM(CASE WHEN outcome IN ('win', 'loss', 'breakeven') THEN 1 ELSE 0 END) AS closed
+     FROM performance`,
+  ).get() as { wins: number | null; closed: number | null };
+  if (!row.closed || row.closed === 0) return null;
+  return (row.wins ?? 0) / row.closed;
 }
 
 export function getPerformance(): Array<Record<string, unknown>> {
@@ -258,11 +289,83 @@ export function upsertPerformance(entry: {
   notes?: string; updated_at: string;
 }) {
   const db = getDb();
+  // Nullify undefined numerics — better-sqlite3 won't bind `undefined`, and
+  // re-running this with optional prices missing should still insert a row.
   db.prepare(`
     INSERT INTO performance (tweet_id, asset, direction, entry_price, target_price, stop_loss_price, signal_date, outcome, actual_return_pct, notes, updated_at)
     VALUES (@tweet_id, @asset, @direction, @entry_price, @target_price, @stop_loss_price, @signal_date, @outcome, @actual_return_pct, @notes, @updated_at)
-    ON CONFLICT DO NOTHING
-  `).run({ outcome: 'pending', ...entry });
+    ON CONFLICT(tweet_id, asset) DO NOTHING
+  `).run({
+    outcome: 'pending',
+    entry_price: null,
+    target_price: null,
+    stop_loss_price: null,
+    actual_return_pct: null,
+    notes: null,
+    ...entry,
+  });
+}
+
+/** All trade-call analyses, shaped for the performance backfill. */
+export function getAnalyzedTradeCalls(): Array<Record<string, unknown>> {
+  const db = getDb();
+  const rows = db.prepare(`
+    SELECT t.id AS tweet_id, t.created_at,
+           a.sentiment, a.sentiment_score, a.sentiment_reasoning,
+           a.tickers, a.signals, a.key_themes, a.domains, a.risk_level,
+           a.is_trade_call, a.summary, a.image_insights, a.analyzed_at
+    FROM tweets t
+    JOIN tweet_analysis a ON t.id = a.tweet_id
+    WHERE a.is_trade_call = 1
+  `).all() as Array<Record<string, unknown>>;
+  return rows.map((r) => ({
+    tweet_id: r.tweet_id,
+    created_at: r.created_at,
+    analysis: {
+      tweet_id: r.tweet_id,
+      sentiment: r.sentiment,
+      sentiment_score: r.sentiment_score,
+      sentiment_reasoning: r.sentiment_reasoning,
+      tickers: r.tickers ? JSON.parse(r.tickers as string) : [],
+      signals: r.signals ? JSON.parse(r.signals as string) : [],
+      key_themes: r.key_themes ? JSON.parse(r.key_themes as string) : [],
+      domains: r.domains ? JSON.parse(r.domains as string) : [],
+      risk_level: r.risk_level,
+      is_trade_call: r.is_trade_call === 1,
+      summary: r.summary,
+      image_insights: r.image_insights ?? null,
+      analyzed_at: r.analyzed_at,
+    },
+  }));
+}
+
+/** Performance entries that haven't resolved yet — the outcome refresh loop's input. */
+export function getPendingPerformanceEntries(): Array<Record<string, unknown>> {
+  const db = getDb();
+  return db.prepare(
+    `SELECT * FROM performance WHERE outcome = 'pending' OR outcome IS NULL`,
+  ).all() as Array<Record<string, unknown>>;
+}
+
+/** Mark one performance entry as resolved. Caller computes the return %. */
+export function updatePerformanceOutcome(
+  id: number,
+  outcome: 'win' | 'loss' | 'breakeven',
+  actual_return_pct: number,
+): void {
+  const db = getDb();
+  db.prepare(
+    `UPDATE performance
+       SET outcome = @outcome,
+           actual_return_pct = @actual_return_pct,
+           updated_at = @updated_at
+     WHERE id = @id`,
+  ).run({
+    id,
+    outcome,
+    actual_return_pct,
+    updated_at: new Date().toISOString(),
+  });
 }
 
 export function getSentimentTimeline(days = 30): Array<Record<string, unknown>> {
