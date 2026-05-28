@@ -711,7 +711,19 @@ button:disabled { cursor: not-allowed; }
   font-family: var(--font-serif); font-weight: 500; font-size: 22px;
   letter-spacing: -0.01em; margin: 0;
 }
-.panel-sub { font-size: 11px; color: var(--ink-3); letter-spacing: 0.005em; }
+/* Panel deck — serif italic standfirst under the serif headline, in the
+   "Newsreader regular → Newsreader italic" hierarchy that the rest of the
+   masthead leans on. Reads as editorial copy ("a small line of context
+   under a section title") rather than a UI label. */
+.panel-sub {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--ink-3);
+  letter-spacing: 0;
+}
 .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
 @media (max-width: 900px) { .panel-grid { grid-template-columns: 1fr; } }
 /* ── Sentiment chart ─────────────────────────────────────────────────
