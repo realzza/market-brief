@@ -347,47 +347,61 @@ export function getPendingPerformanceEntries(): Array<Record<string, unknown>> {
   ).all() as Array<Record<string, unknown>>;
 }
 
-/** Mark one performance entry as resolved. Caller computes the return %. */
+/**
+ * Mark one performance entry as resolved. Caller computes the return %. The
+ * optional `entry_price` is written via COALESCE so a Claude-extracted entry
+ * (when present) stays authoritative — the synthetic value only fills in the
+ * gap when the DB column is currently null.
+ */
 export function updatePerformanceOutcome(
   id: number,
   outcome: 'win' | 'loss' | 'breakeven',
   actual_return_pct: number,
+  entry_price?: number | null,
 ): void {
   const db = getDb();
   db.prepare(
     `UPDATE performance
        SET outcome = @outcome,
            actual_return_pct = @actual_return_pct,
+           entry_price = COALESCE(entry_price, @entry_price),
            updated_at = @updated_at
      WHERE id = @id`,
   ).run({
     id,
     outcome,
     actual_return_pct,
+    entry_price: entry_price ?? null,
     updated_at: new Date().toISOString(),
   });
 }
 
 /**
- * Update running P&L on a still-pending entry. Doesn't touch `outcome` (stays
- * pending). Lets the dashboard display live return % on rows that haven't
- * resolved yet — the alternative was a perpetual em-dash.
+ * Update running P&L on a still-pending entry. Doesn't touch `outcome`
+ * (stays pending). Optionally back-fills entry_price via COALESCE so the
+ * synthetic-from-tweet-time entry is persisted once on the first cron tick
+ * and never overwrites a Claude-extracted level.
  *
- * Includes a `WHERE outcome = 'pending' OR outcome IS NULL` guard so a
- * straggling cron tick can't overwrite a row that was resolved between
- * `getPendingPerformanceEntries` and this update.
+ * `WHERE outcome = 'pending' OR outcome IS NULL` guards against a straggling
+ * tick overwriting a row that resolved between read and update.
  */
-export function updatePerformanceRunning(id: number, actual_return_pct: number): void {
+export function updatePerformanceRunning(
+  id: number,
+  actual_return_pct: number,
+  entry_price?: number | null,
+): void {
   const db = getDb();
   db.prepare(
     `UPDATE performance
        SET actual_return_pct = @actual_return_pct,
+           entry_price = COALESCE(entry_price, @entry_price),
            updated_at = @updated_at
      WHERE id = @id
        AND (outcome = 'pending' OR outcome IS NULL)`,
   ).run({
     id,
     actual_return_pct,
+    entry_price: entry_price ?? null,
     updated_at: new Date().toISOString(),
   });
 }

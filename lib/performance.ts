@@ -110,59 +110,102 @@ export interface ResolvedOutcome {
   /** Running return on open entries; final return on resolved ones. Null if we
    *  truly can't compute (no entry, no symbol, no chart data). */
   return_pct: number | null;
+  /** The price we used as the effective entry. Worth persisting so the Entry
+   *  column on the dashboard shows a real number instead of an em-dash; the
+   *  caller writes it back via COALESCE so Claude-extracted entries stay
+   *  authoritative when they exist. */
+  effective_entry: number | null;
 }
 
 interface ChartCandle {
-  date: Date;
+  date: Date | string;
   high?: number | null;
   low?: number | null;
+  open?: number | null;
   close?: number | null;
 }
 
+// Pick chart resolution by signal age. Yahoo's intraday lookbacks (roughly):
+//   5m  → ~60 days, sometimes shorter
+//   1h  → ~2 years
+//   1d  → unlimited
+// Recent signals get the highest resolution so the entry candle sits as close
+// to the tweet's posting time as possible; older signals fall back to daily,
+// where the entry effectively becomes the close on the next trading day.
+function pickInterval(daysSinceSignal: number): '5m' | '1h' | '1d' {
+  if (daysSinceSignal <= 7) return '5m';
+  if (daysSinceSignal <= 60) return '1h';
+  return '1d';
+}
+
+function candleTime(c: ChartCandle): number {
+  return c.date instanceof Date
+    ? c.date.getTime()
+    : new Date(c.date as string).getTime();
+}
+
 /**
- * Resolve an entry against Yahoo. Two improvements over the v1 checkOutcome:
+ * Resolve an entry against Yahoo.
  *
- *   1. **OHLC walking.** Instead of "did current price cross target?", walk
- *      daily candles since signal_date and check each high / low. Catches
- *      intraday spikes through target/stop that have since reversed — once
- *      the level was touched, the position resolves.
+ *   1. **Entry from the tweet's exact timestamp.** Fetch intraday OHLC at the
+ *      finest resolution Yahoo supports for the signal's age (5m for recent,
+ *      1h for the past two months, 1d beyond). The entry candle is the first
+ *      one whose timestamp lies at or after the tweet's posting time — its
+ *      close is the synthetic entry price. Much more accurate than "close on
+ *      signal day," which could be hours away from a 10:32am tweet.
  *
- *   2. **Synthetic entry + running return.** When Claude didn't extract an
- *      explicit entry_price (the common case — most tweets don't quote a
- *      precise level), use the close on signal_date as the implicit entry.
- *      That lets us compute and persist a running return for every pending
- *      row, so the Return column shows live P&L instead of perpetual "—".
+ *   2. **OHLC walking from the entry candle.** Walk highs/lows on every
+ *      candle after the entry, checking whether target or stop was crossed.
+ *      Catches intraday spikes through the level that have since reversed.
+ *
+ *   3. **Running P&L on still-open positions.** Compare the effective entry
+ *      against the latest price (live quote, fall back to last candle close)
+ *      and persist via the caller. The Return column on the dashboard shows
+ *      live percentages instead of perpetual em-dashes.
  *
  * Returns null only when we genuinely can't compute anything — bad ticker,
- * Yahoo down, no chart data at all.
+ * Yahoo down, or no chart data available yet (very fresh tweets).
  */
 export async function resolveOutcome(entry: PerformanceEntry): Promise<ResolvedOutcome | null> {
   const sym = await resolveSymbol(entry.asset);
   if (!sym) return null;
 
-  // Fetch daily OHLC from signal_date forward + the current quote. The chart
-  // gives us highs/lows to walk; the quote gives us the freshest price for
-  // running return on entries whose level hasn't been hit.
-  const period1 = entry.signal_date.slice(0, 10); // YYYY-MM-DD; trim time portion
+  const signalTime = new Date(entry.signal_date).getTime();
+  if (!Number.isFinite(signalTime)) return null;
+  const daysSinceSignal = (Date.now() - signalTime) / 86_400_000;
+  const interval = pickInterval(daysSinceSignal);
+
+  // period1 is the tweet's full ISO timestamp — yahoo-finance2 accepts a Date
+  // and we want intraday precision when the resolution is 5m / 1h. For 1d
+  // the time portion is effectively ignored and we get the signal-date
+  // candle and onward.
+  const period1 = new Date(entry.signal_date);
+
   let candles: ChartCandle[] = [];
   let currentPrice: number | null = null;
   try {
     const [chartRes, quoteRes] = await Promise.all([
-      yf.chart(sym, { period1, interval: '1d' }, { validateResult: false }).catch(() => null),
+      yf.chart(sym, { period1, interval }, { validateResult: false }).catch(() => null),
       yf.quote(sym, {}, { validateResult: false }).catch(() => null),
     ]);
     candles = ((chartRes as { quotes?: ChartCandle[] } | null)?.quotes ?? []).filter(
-      (c) => c.high != null || c.low != null || c.close != null,
+      (c) => c.high != null || c.low != null || c.close != null || c.open != null,
     );
     currentPrice = quoteRes?.regularMarketPrice ?? null;
   } catch {
     return null;
   }
 
-  // Effective entry: prefer Claude's extracted level, fall back to the close
-  // on the first trading day after signal_date. This is the conventional
-  // "tracked from signal date" convention retail dashboards use.
-  const syntheticEntry = candles[0]?.close ?? null;
+  // Entry candle: first one whose timestamp is at or after the tweet. For
+  // intraday intervals this lands within minutes of the tweet; for 1d, on
+  // the first trading day. If the chart returned nothing yet (very fresh
+  // tweet, before the next candle has formed), the entry stays undefined.
+  const entryIdx = candles.findIndex((c) => candleTime(c) >= signalTime);
+  const entryCandle = entryIdx >= 0 ? candles[entryIdx] : candles[0];
+  const syntheticEntry = entryCandle?.close ?? entryCandle?.open ?? null;
+
+  // Prefer Claude's extracted entry when it exists — that's an explicit level
+  // the author quoted. Fall back to the synthetic entry from the candle.
   const effectiveEntry = entry.entry_price ?? syntheticEntry;
   if (effectiveEntry == null) return null;
 
@@ -172,14 +215,13 @@ export async function resolveOutcome(entry: PerformanceEntry): Promise<ResolvedO
       ? ((level - effectiveEntry) / effectiveEntry) * 100
       : ((effectiveEntry - level) / effectiveEntry) * 100;
 
-  // OHLC walking: only run when explicit target or stop has been extracted.
-  // Iterate candles oldest-first; whichever level is hit first wins. If both
-  // a target and a stop are hit inside the same candle, we can't tell the
-  // order intraday — conservative call is to mark it a stop-out (the
-  // pessimistic assumption you'd want if you were using these numbers to
-  // judge the strategy).
+  // OHLC walking starts from the entry candle. Candles BEFORE the tweet
+  // don't represent the position — including them would falsely resolve
+  // entries against price action that happened before the call.
+  const walked = entryIdx >= 0 ? candles.slice(entryIdx) : candles;
+
   if (entry.target_price != null || entry.stop_loss_price != null) {
-    for (const c of candles) {
+    for (const c of walked) {
       const hi = c.high ?? null;
       const lo = c.low ?? null;
       if (hi == null && lo == null) continue;
@@ -194,22 +236,37 @@ export async function resolveOutcome(entry: PerformanceEntry): Promise<ResolvedO
         if (entry.stop_loss_price != null && hi != null && hi >= entry.stop_loss_price) stopHit = true;
       }
 
+      // Both touched in the same candle — can't tell intraday order from
+      // OHLC alone. Conservative: assume stop-out (pessimistic-by-default,
+      // which is the assumption you want for honest strategy evaluation).
       if (stopHit) {
-        return { outcome: 'loss', return_pct: pctFromEntry(entry.stop_loss_price!) };
+        return {
+          outcome: 'loss',
+          return_pct: pctFromEntry(entry.stop_loss_price!),
+          effective_entry: effectiveEntry,
+        };
       }
       if (targetHit) {
-        return { outcome: 'win', return_pct: pctFromEntry(entry.target_price!) };
+        return {
+          outcome: 'win',
+          return_pct: pctFromEntry(entry.target_price!),
+          effective_entry: effectiveEntry,
+        };
       }
     }
   }
 
-  // No level crossing detected — return running P&L against the latest price.
-  // Prefer the live quote; fall back to the most recent candle's close in case
-  // the quote call failed but the chart succeeded.
-  const lastPrice = currentPrice ?? candles[candles.length - 1]?.close ?? null;
-  if (lastPrice == null) return { outcome: null, return_pct: null };
+  // Still open. Running P&L from effective entry to latest price.
+  const lastPrice = currentPrice ?? walked[walked.length - 1]?.close ?? null;
+  if (lastPrice == null) {
+    return { outcome: null, return_pct: null, effective_entry: effectiveEntry };
+  }
 
-  return { outcome: null, return_pct: pctFromEntry(lastPrice) };
+  return {
+    outcome: null,
+    return_pct: pctFromEntry(lastPrice),
+    effective_entry: effectiveEntry,
+  };
 }
 
 // ─── DB-touching orchestrators ───────────────────────────────────────────
@@ -227,7 +284,9 @@ import {
 
 /**
  * Walk every pending entry, resolve against Yahoo, persist both resolutions
- * (win/loss + final return) and running P&L on still-open positions.
+ * (win/loss + final return) and running P&L on still-open positions. The
+ * synthetic entry price gets written back via COALESCE so Claude-extracted
+ * entries (when present) stay authoritative.
  */
 export async function runOutcomeRefresh(): Promise<{
   checked: number;
@@ -242,12 +301,18 @@ export async function runOutcomeRefresh(): Promise<{
     if (!result) continue;
     if (result.outcome) {
       // Target or stop has been crossed — final outcome + final return.
-      updatePerformanceOutcome(entry.id, result.outcome, result.return_pct ?? 0);
+      updatePerformanceOutcome(
+        entry.id,
+        result.outcome,
+        result.return_pct ?? 0,
+        result.effective_entry,
+      );
       resolved += 1;
     } else if (result.return_pct != null) {
-      // Still open — persist running return so the Return column shows
-      // live P&L instead of an em-dash.
-      updatePerformanceRunning(entry.id, result.return_pct);
+      // Still open — persist running return so the Return column shows live
+      // P&L instead of an em-dash. Also writes the synthetic entry once, so
+      // the Entry column shows a real price for tracked-from-tweet entries.
+      updatePerformanceRunning(entry.id, result.return_pct, result.effective_entry);
       updated += 1;
     }
   }
