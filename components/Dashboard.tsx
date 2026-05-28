@@ -407,7 +407,7 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
         {/* ── Performance ── */}
         {activeTab === 'performance' && (
           <div className="panel">
-            <PerformanceDashboard entries={performance} />
+            <PerformanceDashboard entries={performance} onTicker={setActiveTicker} />
           </div>
         )}
 

@@ -877,6 +877,78 @@ button:disabled { cursor: not-allowed; }
 .perf-table .ret.neg { color: var(--bear); }
 .perf-table tbody tr:hover td { background: var(--surface-2); cursor: pointer; }
 
+/* ── Position row polish ─────────────────────────────────────────────── */
+/* Clickable ticker — matches the chip treatment elsewhere in the app so a
+   $TICKER on the performance table reads the same as one in the feed. */
+.perf-table .ticker-link {
+  background: none; border: 0; padding: 0; margin: 0;
+  font: inherit; color: inherit; cursor: pointer;
+  border-bottom: 1px solid var(--accent-rule);
+  transition: color 100ms ease, border-color 100ms ease;
+}
+.perf-table .ticker-link:hover { color: var(--accent); border-color: var(--accent); }
+
+/* "3 signals" chip below the date when a position rolled up multiple
+   tweets. Reads as supplementary annotation, not a competing column. */
+.perf-table .signal-count {
+  display: block; margin-top: 3px;
+  font-family: var(--font-sans); font-size: 10px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-4);
+}
+
+/* "Open" outcome reuses the .pending style (same DB value, friendlier
+   label). The label text itself is rewritten in PerformanceDashboard. */
+
+/* Chevron column — kept narrow, rotates 180° when the drawer is open. */
+.perf-table .perf-expand-cell { width: 28px; text-align: right; color: var(--ink-4); }
+.perf-chevron { transition: transform 160ms ease; vertical-align: middle; }
+.perf-chevron.open { transform: rotate(180deg); }
+.perf-row.is-expanded td { background: var(--surface-2); }
+.perf-row.is-expanded .perf-expand-cell { color: var(--ink-2); }
+
+/* Drawer row — colspans all 9 columns and holds the position price chart.
+   Background drops to the page paper so the drawer reads as a different
+   surface, not a continuation of the table cell. */
+.perf-drawer > td {
+  padding: 18px 20px 22px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+}
+
+/* ── Position chart ─────────────────────────────────────────────────── */
+.perf-chart-wrap { width: 100%; }
+.perf-chart {
+  display: block; width: 100%;
+  background: var(--surface); border: 1px solid var(--rule-soft); border-radius: var(--radius);
+  padding: 0; /* viewBox controls layout */
+}
+.perf-chart-grid line   { stroke: var(--rule-soft); stroke-width: 1; }
+.perf-chart-axis-y      { font-family: var(--font-mono); font-size: 9.5px; fill: var(--ink-4); font-feature-settings: "tnum"; }
+.perf-chart-line        { stroke: var(--ink); stroke-width: 1.75; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.perf-chart-line.up     { stroke: var(--bull); }
+.perf-chart-line.down   { stroke: var(--bear); }
+.perf-chart-line.flat   { stroke: var(--ink-2); }
+
+/* Signal markers — vertical guide + filled dot at the close on that day.
+   Color follows direction so longs get bull-green, shorts get bear-red,
+   making the buy-in points unmistakable at a glance. */
+.perf-chart-marker line   { stroke: var(--ink-4); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0.5; }
+.perf-chart-marker circle { fill: var(--surface); stroke-width: 1.75; }
+.perf-chart-marker.long  circle { stroke: var(--bull); }
+.perf-chart-marker.short circle { stroke: var(--bear); }
+.perf-chart-marker text   { font-family: var(--font-mono); font-size: 9px; fill: var(--ink-4); font-feature-settings: "tnum"; }
+
+.perf-chart-foot {
+  margin-top: 10px; font-family: var(--font-mono); font-size: 11px;
+  color: var(--ink-4); font-feature-settings: "tnum";
+}
+.perf-chart-status {
+  display: flex; align-items: center; gap: 10px;
+  padding: 24px; color: var(--ink-3); font-size: 12px;
+  font-family: var(--font-sans);
+}
+
 /* ── Ticker modal ── */
 .modal-scrim {
   position: fixed; inset: 0; z-index: 60;
