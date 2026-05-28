@@ -6,13 +6,8 @@
 
 import { getTweets, getStats, getSentimentTimeline, getPerformance } from '@/lib/db';
 import { serializeTweetRow } from '@/lib/serialize';
-import Dashboard, {
-  type DashboardInitial,
-  type Tab,
-  type SentimentFilter,
-  TAB_IDS,
-  SENTIMENT_IDS,
-} from '@/components/Dashboard';
+import Dashboard, { type DashboardInitial } from '@/components/Dashboard';
+import { type Tab, type SentimentFilter, TAB_IDS, SENTIMENT_IDS } from '@/lib/dashboardTabs';
 import type { DashboardStats, PerformanceEntry } from '@/lib/types';
 
 function pickEnum<T extends string>(raw: unknown, allowed: readonly T[], fallback: T): T {
