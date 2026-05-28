@@ -81,32 +81,65 @@ export default function SentimentChart({ timeline }: Props) {
     setHoverIdx(Math.round(frac * (n - 1)));
   }
 
-  // Tooltip geometry — built once per render when hover is active. Width is
-  // sized for the longest expected label ("MMM DD · +0.99 · 99 tweets") and
-  // tx is clamped so the tooltip can't escape the chart on left/right edges.
-  let tt: { hx: number; hy: number; tx: number; ty: number; w: number; h: number; label: string } | null = null;
+  // Tooltip geometry — two-line "editorial card" treatment. Width sized for
+  // the longest expected payload; tx clamped so the card can't escape the
+  // chart on left/right edges. ty places it above the data point when there's
+  // room, otherwise below, with a small visual gap.
+  const TT_W = 132;
+  const TT_H = 44;
+  const TT_PAD_X = 10;
+  let tt: {
+    hx: number; hy: number; tx: number; ty: number;
+    dateLabel: string; scoreLabel: string; countLabel: string;
+    above: boolean; bullish: boolean;
+  } | null = null;
   if (hoverIdx != null && hoverIdx >= 0 && hoverIdx < n) {
     const p = timeline[hoverIdx];
     const hx = xFor(hoverIdx);
     const hy = yFor(p.avg_score);
-    const w = 168;
-    const h = 22;
-    let tx = hx - w / 2;
-    tx = Math.max(padL + 2, Math.min(W - padR - w - 2, tx));
-    const ty = hy > padT + h + 8 ? hy - h - 8 : hy + 8;
-    const label = `${fmtDate(p.date)} · ${fmtSigned(p.avg_score, 2)} · ${p.tweet_count} ${p.tweet_count === 1 ? 'tweet' : 'tweets'}`;
-    tt = { hx, hy, tx, ty, w, h, label };
+    let tx = hx - TT_W / 2;
+    tx = Math.max(padL + 2, Math.min(W - padR - TT_W - 2, tx));
+    const above = hy > padT + TT_H + 10;
+    const ty = above ? hy - TT_H - 10 : hy + 10;
+    tt = {
+      hx, hy, tx, ty,
+      dateLabel: fmtDate(p.date),
+      scoreLabel: fmtSigned(p.avg_score, 2),
+      countLabel: `${p.tweet_count} ${p.tweet_count === 1 ? 'tweet' : 'tweets'}`,
+      above,
+      bullish: p.avg_score >= 0,
+    };
   }
 
   return (
-    <div>
+    <div className="sentiment-chart">
       <div className="chart-host" ref={wrapRef} onMouseMove={handleMove} onMouseLeave={() => setHoverIdx(null)}>
         <svg
           viewBox={`0 0 ${W} ${H}`}
           width="100%"
           preserveAspectRatio="xMinYMid meet"
-          style={{ display: 'block' }}
+          style={{ display: 'block', overflow: 'visible' }}
         >
+          <defs>
+            {/* Tooltip card shadow — soft, only on the card so it reads as a
+                floating annotation rather than another flat shape on the page. */}
+            <filter id="chart-tt-shadow" x="-30%" y="-30%" width="160%" height="200%">
+              <feDropShadow dx="0" dy="3" stdDeviation="4" floodOpacity="0.10" />
+            </filter>
+            {/* Subtle gradient fills replace the flat color blocks. The area
+                near the zero line stays at full soft-color, fading toward
+                transparent as it approaches +1 / -1, so the chart reads as
+                a sentiment "swell" instead of a printer ink slab. */}
+            <linearGradient id="chart-bull-grad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"   stopColor="var(--bull)" stopOpacity="0.02" />
+              <stop offset="100%" stopColor="var(--bull)" stopOpacity="0.18" />
+            </linearGradient>
+            <linearGradient id="chart-bear-grad" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%"   stopColor="var(--bear)" stopOpacity="0.02" />
+              <stop offset="100%" stopColor="var(--bear)" stopOpacity="0.18" />
+            </linearGradient>
+          </defs>
+
           <g className="chart-grid">
             {yTicks.map((t) => (
               <line key={t} x1={padL} x2={W - padR} y1={yFor(t)} y2={yFor(t)} />
@@ -122,8 +155,8 @@ export default function SentimentChart({ timeline }: Props) {
               </text>
             ))}
           </g>
-          <path d={bullArea} className="chart-area-bull" />
-          <path d={bearArea} className="chart-area-bear" />
+          <path d={bullArea} className="chart-area-bull" fill="url(#chart-bull-grad)" />
+          <path d={bearArea} className="chart-area-bear" fill="url(#chart-bear-grad)" />
           <path d={line} className="chart-line" />
           {timeline.map((p, i) =>
             (i % 5 === 0 || i === n - 1) ? (
@@ -143,26 +176,46 @@ export default function SentimentChart({ timeline }: Props) {
               </text>
             ))}
           </g>
-          {/* Crosshair + tooltip — drawn last so they paint on top of the
-              line and areas. The dashed vertical line + filled circle is
-              the same visual treatment as the ticker modal's price chart,
-              so the two interactions feel like one system. */}
+
+          {/* Crosshair + tooltip card — drawn last so they paint on top.
+              The card has a serif date eyebrow, a colored score figure, and
+              a muted tweet count. Reads like a small annotation, not a
+              debug overlay. */}
           {tt && (
             <g className="chart-crosshair">
               <line x1={tt.hx} y1={padT} x2={tt.hx} y2={padT + innerH} />
               <circle
                 cx={tt.hx}
                 cy={tt.hy}
-                r="4"
-                className={timeline[hoverIdx!].avg_score >= 0 ? 'up' : 'down'}
+                r="5"
+                className={tt.bullish ? 'up' : 'down'}
               />
             </g>
           )}
           {tt && (
-            <g className="chart-tooltip">
-              <rect x={tt.tx} y={tt.ty} width={tt.w} height={tt.h} rx="3" />
-              <text x={tt.tx + tt.w / 2} y={tt.ty + tt.h / 2 + 4} textAnchor="middle">
-                {tt.label}
+            <g className="chart-tooltip" filter="url(#chart-tt-shadow)">
+              <rect x={tt.tx} y={tt.ty} width={TT_W} height={TT_H} rx="6" />
+              <text
+                x={tt.tx + TT_PAD_X}
+                y={tt.ty + 16}
+                className="chart-tooltip-date"
+              >
+                {tt.dateLabel}
+              </text>
+              <text
+                x={tt.tx + TT_PAD_X}
+                y={tt.ty + 34}
+                className={`chart-tooltip-value ${tt.bullish ? 'up' : 'down'}`}
+              >
+                {tt.scoreLabel}
+              </text>
+              <text
+                x={tt.tx + TT_W - TT_PAD_X}
+                y={tt.ty + 34}
+                textAnchor="end"
+                className="chart-tooltip-count"
+              >
+                {tt.countLabel}
               </text>
             </g>
           )}
@@ -170,30 +223,30 @@ export default function SentimentChart({ timeline }: Props) {
 
         <div className="chart-legend">
           <span>
-            <span
-              className="swatch"
-              style={{ background: 'color-mix(in oklab, var(--bull) 18%, transparent)' }}
-            />
+            <span className="swatch chart-legend-bull" />
             Bullish days
           </span>
           <span>
-            <span
-              className="swatch"
-              style={{ background: 'color-mix(in oklab, var(--bear) 18%, transparent)' }}
-            />
+            <span className="swatch chart-legend-bear" />
             Bearish days
           </span>
-          <span style={{ marginLeft: 'auto', color: 'var(--ink-4)' }}>
+          <span className="chart-legend-meta">
             {timeline.length} days · scale −1 to +1
           </span>
         </div>
       </div>
 
       {/* Volume bars — also hoverable. Mousing over a bar highlights it AND
-          drives the same hoverIdx so the crosshair lights up above. Keeps
-          the two visualizations in sync since they're the same data. */}
-      <div style={{ marginTop: 56 }}>
-        <div className="eyebrow" style={{ marginBottom: 6 }}>Tweet volume · daily</div>
+          drives the same hoverIdx so the crosshair lights up above. The
+          row is padded to line up with the chart's plot area so the columns
+          read as the same days. */}
+      <div className="vol-section">
+        <div className="vol-head">
+          <span className="eyebrow">Tweet volume · daily</span>
+          <span className="vol-head-meta">
+            max {maxCount} · {timeline.reduce((a, b) => a + b.tweet_count, 0)} total
+          </span>
+        </div>
         <div className="vol-bars" onMouseLeave={() => setHoverIdx(null)}>
           {timeline.map((p, i) => {
             const cls = p.avg_score > 0.15 ? 'bull' : p.avg_score < -0.15 ? 'bear' : '';
@@ -203,13 +256,13 @@ export default function SentimentChart({ timeline }: Props) {
                 key={i}
                 className={`vbar ${cls} ${hoverIdx === i ? 'is-hover' : ''}`}
                 style={{ height: h + '%' }}
-                title={`${p.date} · ${p.tweet_count} tweets`}
+                title={`${fmtDate(p.date)} · ${p.tweet_count} ${p.tweet_count === 1 ? 'tweet' : 'tweets'}`}
                 onMouseEnter={() => setHoverIdx(i)}
               />
             );
           })}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 10, color: 'var(--ink-4)', fontFamily: 'var(--font-mono)' }}>
+        <div className="vol-axis">
           <span>{fmtDate(timeline[0].date)}</span>
           <span>{fmtDate(timeline[timeline.length - 1].date)}</span>
         </div>
