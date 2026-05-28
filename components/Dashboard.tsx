@@ -209,12 +209,28 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
   // a back-button bounce-loop: if `searchParams` were in the dep array, an
   // external URL change would re-run the effect and snap the URL back to
   // whatever state currently says.
+  //
+  // Filter scope: sentiment + domain only affect the Feed tab (Assets,
+  // Charts, Performance all read corpus-wide aggregates). Mirroring them
+  // to the URL while on a tab that doesn't consume them would be
+  // misleading — the URL would advertise a filter the visible content
+  // doesn't honor. So we only write those params when activeTab === 'feed';
+  // React state still holds the values, so switching back to Feed restores
+  // the filter without a reload.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const next = new URLSearchParams(window.location.search);
     if (activeTab === 'feed') next.delete('tab'); else next.set('tab', activeTab);
-    if (sentimentFilter === 'all') next.delete('sentiment'); else next.set('sentiment', sentimentFilter);
-    if (!domainFilter) next.delete('domain'); else next.set('domain', domainFilter);
+    if (activeTab === 'feed' && sentimentFilter !== 'all') {
+      next.set('sentiment', sentimentFilter);
+    } else {
+      next.delete('sentiment');
+    }
+    if (activeTab === 'feed' && domainFilter) {
+      next.set('domain', domainFilter);
+    } else {
+      next.delete('domain');
+    }
     const qs = next.toString();
     if (qs !== window.location.search.replace(/^\?/, '')) {
       router.replace(qs ? `/?${qs}` : '/', { scroll: false });
