@@ -1,7 +1,7 @@
 'use client';
 
 import { StoredTweet, DashboardStats } from '@/lib/types';
-import { fmtDate, fmtTime, fmtSigned, sentimentLabel, headlineFromTweet } from '@/lib/format';
+import { fmtDate, fmtTime, fmtSigned, sentimentLabel, headlineFromTweet, filterValidTickers } from '@/lib/format';
 import { renderRichSummary } from '@/lib/richText';
 import type { FeaturedReason } from '@/lib/featured';
 
@@ -34,7 +34,10 @@ export default function TodaysBrief({ brief, stats, onTicker, reason = 'signal' 
   const lbl = sentimentLabel(score);
   const markerPct = Math.min(98, Math.max(2, ((score + 1) / 2) * 100));
   const primarySignal = a.signals?.[0];
-  const primaryTicker = a.tickers?.[0];
+  // First *real* ticker — same filter as the per-tweet card, so the brief's
+  // "Primary call" row doesn't read "Long $UNKNOWN" when Claude returned a
+  // placeholder for a non-tickerable mention.
+  const primaryTicker = filterValidTickers(a.tickers)[0];
   const analyzed = stats.analyzed_tweets || 1;
   const bullPct = Math.round((stats.bullish_count / analyzed) * 100);
   const bearPct = Math.round((stats.bearish_count / analyzed) * 100);

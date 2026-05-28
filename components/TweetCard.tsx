@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { StoredTweet, TickerMention, TradeSignal } from '@/lib/types';
 import { domainColor } from '@/lib/domainConfig';
-import { fmtCompact, fmtDate, fmtPrice } from '@/lib/format';
+import { fmtCompact, fmtDate, fmtPrice, filterValidTickers } from '@/lib/format';
 import { renderWithTickers, renderRichSummary } from '@/lib/richText';
 import { formatDistanceToNow } from 'date-fns';
 import TickerModal from './TickerModal';
@@ -276,22 +276,30 @@ export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
             </div>
           )}
 
-          {/* Tickers list */}
-          {a?.tickers && a.tickers.length > 0 && (
-            <div className="tickers-row">
-              {a.tickers.map((t: TickerMention, i) => {
-                const arrow = t.direction === 'long' ? '↑' : t.direction === 'short' ? '↓' : '•';
-                const arrowCls = t.direction === 'long' ? 'long' : t.direction === 'short' ? 'short' : 'flat';
-                return (
-                  <button key={i} className="ticker-chip" onClick={() => setActiveTicker(t.ticker)}>
-                    <span className={`arrow ${arrowCls}`}>{arrow}</span>
-                    <span className="symbol">${t.ticker}</span>
-                    <span className="typ">{t.asset_type}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          {/* Tickers list — filtered to real symbols so a Claude analysis
+              that returned {ticker: "UNKNOWN"} for a non-specific mention
+              ("Chinese stocks", "US equities portfolio") doesn't render as a
+              clickable $UNKNOWN chip that would fail to resolve on Yahoo
+              Finance when opened. */}
+          {(() => {
+            const visibleTickers = filterValidTickers<TickerMention>(a?.tickers);
+            if (visibleTickers.length === 0) return null;
+            return (
+              <div className="tickers-row">
+                {visibleTickers.map((t, i) => {
+                  const arrow = t.direction === 'long' ? '↑' : t.direction === 'short' ? '↓' : '•';
+                  const arrowCls = t.direction === 'long' ? 'long' : t.direction === 'short' ? 'short' : 'flat';
+                  return (
+                    <button key={i} className="ticker-chip" onClick={() => setActiveTicker(t.ticker)}>
+                      <span className={`arrow ${arrowCls}`}>{arrow}</span>
+                      <span className="symbol">${t.ticker}</span>
+                      <span className="typ">{t.asset_type}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })()}
 
           {/* Key themes */}
           {a?.key_themes && a.key_themes.length > 0 && (

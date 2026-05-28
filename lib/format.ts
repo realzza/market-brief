@@ -51,11 +51,26 @@ function capitalize(s: string | undefined): string {
   return s[0].toUpperCase() + s.slice(1);
 }
 
+// Claude occasionally returns ticker entries for non-tickerable things
+// ("UNKNOWN", "Chinese stocks", "US equities portfolio") — useful as analysis
+// metadata but useless as clickable chips because the TickerModal would try to
+// look them up on Yahoo Finance and fail. Match the same shape the rest of
+// the codebase already treats as a real ticker symbol.
+const TICKER_RE = /^[A-Z]{1,6}(?:[-.][A-Z]{1,4})?$/;
+export function isValidTicker(sym: unknown): sym is string {
+  return typeof sym === 'string' && TICKER_RE.test(sym);
+}
+export function filterValidTickers<T extends { ticker?: string }>(tickers: T[] | undefined | null): T[] {
+  return (tickers ?? []).filter((t) => isValidTicker(t.ticker));
+}
+
 export function headlineFromTweet(t: StoredTweet): string {
   const a = t.analysis;
   if (!a) return 'Untitled note';
   const theme = a.key_themes?.[0];
-  const ticker = a.tickers?.[0]?.ticker;
+  // Pull the first *real* ticker — not a placeholder like "UNKNOWN" — so the
+  // synthetic headline ("$X lifts the thesis") doesn't read as "$UNKNOWN".
+  const ticker = filterValidTickers(a.tickers)[0]?.ticker;
   if (a.sentiment === 'bullish' && ticker)
     return `${capitalize(theme || 'Bullish setup')} — $${ticker} lifts the thesis`;
   if (a.sentiment === 'bearish' && ticker)
