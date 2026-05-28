@@ -85,9 +85,9 @@ export default function SentimentChart({ timeline }: Props) {
   // the longest expected payload; tx clamped so the card can't escape the
   // chart on left/right edges. ty places it above the data point when there's
   // room, otherwise below, with a small visual gap.
-  const TT_W = 132;
-  const TT_H = 44;
-  const TT_PAD_X = 10;
+  const TT_W = 116;
+  const TT_H = 36;
+  const TT_PAD_X = 9;
   let tt: {
     hx: number; hy: number; tx: number; ty: number;
     dateLabel: string; scoreLabel: string; countLabel: string;
@@ -197,21 +197,21 @@ export default function SentimentChart({ timeline }: Props) {
               <rect x={tt.tx} y={tt.ty} width={TT_W} height={TT_H} rx="6" />
               <text
                 x={tt.tx + TT_PAD_X}
-                y={tt.ty + 16}
+                y={tt.ty + 13}
                 className="chart-tooltip-date"
               >
                 {tt.dateLabel}
               </text>
               <text
                 x={tt.tx + TT_PAD_X}
-                y={tt.ty + 34}
+                y={tt.ty + 28}
                 className={`chart-tooltip-value ${tt.bullish ? 'up' : 'down'}`}
               >
                 {tt.scoreLabel}
               </text>
               <text
                 x={tt.tx + TT_W - TT_PAD_X}
-                y={tt.ty + 34}
+                y={tt.ty + 28}
                 textAnchor="end"
                 className="chart-tooltip-count"
               >
