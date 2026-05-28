@@ -239,6 +239,17 @@ export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
           {/* Media */}
           <MediaGallery urls={mediaUrls} />
 
+          {/* Image insights — only rendered when an analysis actually
+              extracted something from the attached media. Sits between
+              the media strip and the analyst note so the visual order
+              reads: tweet → images → what's in the images → take. */}
+          {a?.image_insights && (
+            <div className="article-image-insights">
+              <span className="eyebrow">In the images</span>
+              <p>{a.image_insights}</p>
+            </div>
+          )}
+
           {/* Analyst note */}
           {a?.summary && (
             <div className="article-summary">

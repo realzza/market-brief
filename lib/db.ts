@@ -45,6 +45,7 @@ function initSchema(db: Database.Database) {
       risk_level TEXT NOT NULL DEFAULT 'none',
       is_trade_call INTEGER NOT NULL DEFAULT 0,
       summary TEXT,
+      image_insights TEXT,
       analyzed_at TEXT NOT NULL
     );
 
@@ -78,6 +79,33 @@ function migrate(db: Database.Database) {
   const tweetCols = (db.prepare("PRAGMA table_info(tweets)").all() as Array<{ name: string }>).map(c => c.name);
   if (!tweetCols.includes('media_urls')) {
     db.exec("ALTER TABLE tweets ADD COLUMN media_urls TEXT NOT NULL DEFAULT '[]'");
+  }
+  // Image-insights column. Older rows had the image description glued onto
+  // the front of the `summary` string as `[Images: …] `; lift those into the
+  // new column and clean the summary so the brief / card render cleanly.
+  // Idempotent — once a row's image_insights is populated it's skipped.
+  if (!analysisCols.includes('image_insights')) {
+    db.exec("ALTER TABLE tweet_analysis ADD COLUMN image_insights TEXT");
+    const rows = db.prepare(
+      "SELECT tweet_id, summary FROM tweet_analysis WHERE summary LIKE '[Image%'"
+    ).all() as Array<{ tweet_id: string; summary: string | null }>;
+    const update = db.prepare(
+      "UPDATE tweet_analysis SET image_insights = @insights, summary = @summary WHERE tweet_id = @tweet_id"
+    );
+    const re = /^\s*\[Images?:\s*([\s\S]*?)\]\s*/i;
+    const apply = db.transaction((items: typeof rows) => {
+      for (const row of items) {
+        if (!row.summary) continue;
+        const m = row.summary.match(re);
+        if (!m) continue;
+        update.run({
+          tweet_id: row.tweet_id,
+          insights: m[1].trim() || null,
+          summary: row.summary.slice(m[0].length).trim(),
+        });
+      }
+    });
+    apply(rows);
   }
 }
 
@@ -116,13 +144,15 @@ export function saveAnalysis(analysis: {
   tweet_id: string; sentiment: string; sentiment_score: number;
   sentiment_reasoning: string; tickers: string; signals: string;
   key_themes: string; domains: string; risk_level: string;
-  is_trade_call: number; summary: string; analyzed_at: string;
+  is_trade_call: number; summary: string;
+  image_insights: string | null;
+  analyzed_at: string;
 }) {
   const db = getDb();
   db.prepare(`
     INSERT OR REPLACE INTO tweet_analysis
-    (tweet_id, sentiment, sentiment_score, sentiment_reasoning, tickers, signals, key_themes, domains, risk_level, is_trade_call, summary, analyzed_at)
-    VALUES (@tweet_id, @sentiment, @sentiment_score, @sentiment_reasoning, @tickers, @signals, @key_themes, @domains, @risk_level, @is_trade_call, @summary, @analyzed_at)
+    (tweet_id, sentiment, sentiment_score, sentiment_reasoning, tickers, signals, key_themes, domains, risk_level, is_trade_call, summary, image_insights, analyzed_at)
+    VALUES (@tweet_id, @sentiment, @sentiment_score, @sentiment_reasoning, @tickers, @signals, @key_themes, @domains, @risk_level, @is_trade_call, @summary, @image_insights, @analyzed_at)
   `).run(analysis);
 }
 
@@ -131,7 +161,7 @@ export function getTweets(limit = 50, offset = 0): Array<Record<string, unknown>
   return db.prepare(`
     SELECT t.*, a.sentiment, a.sentiment_score, a.sentiment_reasoning,
            a.tickers, a.signals, a.key_themes, a.domains, a.risk_level,
-           a.is_trade_call, a.summary, a.analyzed_at
+           a.is_trade_call, a.summary, a.image_insights, a.analyzed_at
     FROM tweets t
     LEFT JOIN tweet_analysis a ON t.id = a.tweet_id
     ORDER BY t.created_at DESC

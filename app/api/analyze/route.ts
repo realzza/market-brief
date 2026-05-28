@@ -40,6 +40,13 @@ export async function POST(request: Request) {
     const results = await analyzeBatch(toAnalyze, tweetId ? { userQuestion } : undefined);
 
     for (const analysis of results) {
+      // image_insights is its own column now — was previously glued onto the
+      // front of `summary` as `[Images: …] `, which bloated the brief lede
+      // and required render-time stripping. Storing it separately lets each
+      // surface decide whether to show it.
+      const insights = (typeof analysis.image_insights === 'string'
+        ? analysis.image_insights.trim()
+        : '');
       saveAnalysis({
         tweet_id: analysis.tweet_id,
         sentiment: analysis.sentiment,
@@ -51,9 +58,8 @@ export async function POST(request: Request) {
         domains: JSON.stringify(analysis.domains ?? []),
         risk_level: analysis.risk_level,
         is_trade_call: analysis.is_trade_call ? 1 : 0,
-        summary: analysis.image_insights
-          ? `[Images: ${analysis.image_insights}] ${analysis.summary}`
-          : analysis.summary,
+        summary: analysis.summary,
+        image_insights: insights.length > 0 ? insights : null,
         analyzed_at: analysis.analyzed_at,
       });
     }
