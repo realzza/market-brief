@@ -14,16 +14,18 @@ import AssetMentions from '@/components/AssetMentions';
 import PerformanceDashboard from '@/components/PerformanceDashboard';
 import TickerModal from '@/components/TickerModal';
 
-export type Tab = 'feed' | 'charts' | 'assets' | 'performance';
-export type SentimentFilter = 'all' | 'bullish' | 'bearish' | 'neutral' | 'mixed' | 'signals';
+// Tab + sentiment ID arrays live in lib/dashboardTabs.ts (no 'use client')
+// so the server component can import them as plain values. Importing them
+// from THIS file (a 'use client' module) into the server crashed at request
+// time — Next.js turns the array into a client-reference proxy and
+// `.includes()` is gone.
+import type { Tab, SentimentFilter } from '@/lib/dashboardTabs';
+export type { Tab, SentimentFilter };
 
 export interface TimelinePoint {
   date: string; avg_score: number; tweet_count: number;
   bullish: number; bearish: number; neutral: number;
 }
-
-export const TAB_IDS: readonly Tab[] = ['feed', 'charts', 'assets', 'performance'] as const;
-export const SENTIMENT_IDS: readonly SentimentFilter[] = ['all', 'bullish', 'bearish', 'neutral', 'mixed', 'signals'] as const;
 
 export interface DashboardInitial {
   tweets: StoredTweet[];
