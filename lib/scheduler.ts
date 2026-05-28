@@ -13,6 +13,13 @@ const CRON_INTERVAL_MS = 15 * 60 * 1000;        // 15 min
 // Delay before the first background tick so we don't block server boot.
 const FIRST_TICK_DELAY_MS = 5_000;
 
+// Outcome resolution runs less often than the tweet fetch — pending trades
+// don't usually flip within minutes, and we'd rather amortize the Yahoo
+// calls. First check happens ~30s after boot so the backfill has a moment
+// to settle.
+const OUTCOMES_INTERVAL_MS = 60 * 60 * 1000;    // 60 min
+const OUTCOMES_FIRST_DELAY_MS = 30_000;
+
 let lastFetchAt: number | null = null;
 let inFlight = false;
 let started = false;
@@ -74,6 +81,25 @@ async function tick() {
   }
 }
 
+async function outcomesTick() {
+  // Lazy import keeps yahoo-finance2's large dependency tree out of the cold
+  // path of `import 'lib/scheduler'` — it only loads on the first outcomes
+  // tick, well after boot.
+  const t0 = Date.now();
+  try {
+    const { runOutcomeRefresh } = await import('./performance');
+    const { checked, resolved } = await runOutcomeRefresh();
+    if (checked > 0) {
+      console.log(
+        `[scheduler] outcomes · ${new Date(t0).toISOString()} · checked=${checked} resolved=${resolved} took=${Date.now() - t0}ms`,
+      );
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[scheduler] outcomes fail · ${new Date(t0).toISOString()} · ${msg}`);
+  }
+}
+
 /**
  * Idempotent — safe to call multiple times. Only the first call wins.
  * Called from instrumentation.ts on Node server boot.
@@ -81,7 +107,27 @@ async function tick() {
 export function startScheduler(): void {
   if (started) return;
   started = true;
-  console.log(`[scheduler] started · interval=${CRON_INTERVAL_MS / 1000}s · first tick in ${FIRST_TICK_DELAY_MS}ms`);
+  console.log(
+    `[scheduler] started · tweets every ${CRON_INTERVAL_MS / 1000}s, outcomes every ${OUTCOMES_INTERVAL_MS / 1000}s`,
+  );
+
+  // One-shot backfill: dribble existing trade-call analyses into the
+  // performance table so the dashboard shows historical data on first boot
+  // after this lands. Idempotent — the UNIQUE(tweet_id, asset) index makes
+  // re-runs a no-op.
+  (async () => {
+    try {
+      const { backfillPerformance } = await import('./performance');
+      const { scanned, inserted } = backfillPerformance();
+      console.log(`[scheduler] perf backfill · scanned=${scanned} inserted=${inserted}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error(`[scheduler] perf backfill fail · ${msg}`);
+    }
+  })();
+
   setTimeout(tick, FIRST_TICK_DELAY_MS);
   setInterval(tick, CRON_INTERVAL_MS);
+  setTimeout(outcomesTick, OUTCOMES_FIRST_DELAY_MS);
+  setInterval(outcomesTick, OUTCOMES_INTERVAL_MS);
 }

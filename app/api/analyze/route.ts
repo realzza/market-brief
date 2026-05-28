@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getUnanalyzedTweets, getTweetForAnalysis, saveAnalysis } from '@/lib/db';
+import { getUnanalyzedTweets, getTweetForAnalysis, saveAnalysis, upsertPerformance } from '@/lib/db';
 import { analyzeBatch } from '@/lib/claude';
+import { derivePerformanceEntry } from '@/lib/performance';
 
 export async function POST(request: Request) {
   try {
@@ -62,6 +63,18 @@ export async function POST(request: Request) {
         image_insights: insights.length > 0 ? insights : null,
         analyzed_at: analysis.analyzed_at,
       });
+
+      // If this analysis flagged the tweet as an actionable trade call,
+      // derive a performance row and upsert. ON CONFLICT(tweet_id, asset)
+      // DO NOTHING means re-analyzing the same tweet is a safe no-op.
+      // Outcome resolution runs on the scheduler's hourly cron.
+      const source = toAnalyze.find((t) => t.id === analysis.tweet_id);
+      if (source) {
+        const perfEntry = derivePerformanceEntry(source.id, source.created_at, analysis);
+        if (perfEntry) {
+          upsertPerformance({ ...perfEntry, updated_at: new Date().toISOString() });
+        }
+      }
     }
 
     return NextResponse.json({ analyzed: results.length, pending: unanalyzed.length - results.length });
