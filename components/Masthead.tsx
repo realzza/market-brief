@@ -8,9 +8,11 @@ interface Props {
   edition: number;
   fetching: boolean;
   analyzing: boolean;
+  digesting: boolean;
   loading: boolean;
   onFetch: () => void;
   onAnalyze: () => void;
+  onDigest: () => void;
   onCancel: () => void;
   onRefresh: () => void;
   statusMsg: string;
@@ -30,6 +32,7 @@ function Icon({ name, size = 14 }: { name: string; size?: number }) {
     case 'download': return <svg {...props}><path d="M8 2v9M4.5 7.5L8 11l3.5-3.5M3 13h10"/></svg>;
     case 'zap':      return <svg {...props}><path d="M9 1L2 9h5l-1 6 7-8h-5l1-6z"/></svg>;
     case 'close':    return <svg {...props}><path d="M3 3l10 10M13 3L3 13"/></svg>;
+    case 'brief':    return <svg {...props}><path d="M2 3h8v10H3a1 1 0 0 1-1-1zM10 6h4v6a1 1 0 0 1-1 1h-3zM4 6h4M4 8.5h4M4 11h2"/></svg>;
     case 'sun':      return <svg {...props}><circle cx="8" cy="8" r="3"/><path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M2.8 2.8l1 1M12.2 12.2l1 1M2.8 13.2l1-1M12.2 3.8l1-1"/></svg>;
     case 'moon':     return <svg {...props}><path d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5 5.5 5.5 0 1 0 13.5 9.5z"/></svg>;
     default: return null;
@@ -39,8 +42,8 @@ function Icon({ name, size = 14 }: { name: string; size?: number }) {
 export default function Masthead({
   analysts,
   dateStr, edition,
-  fetching, analyzing,
-  loading, onFetch, onAnalyze, onCancel, onRefresh,
+  fetching, analyzing, digesting,
+  loading, onFetch, onAnalyze, onDigest, onCancel, onRefresh,
   statusMsg, statusType,
   theme, onToggleTheme,
 }: Props) {
@@ -108,6 +111,16 @@ export default function Masthead({
                   <Icon name="zap" size={13} />Analyze
                 </button>
               )}
+
+              <button
+                className="btn"
+                onClick={onDigest}
+                disabled={digesting}
+                title="Compile the Morning Wire digest from posts tracked since the last brief"
+              >
+                <Icon name="brief" size={13} />
+                {digesting ? 'Compiling…' : 'Brief'}
+              </button>
 
               <button className="btn btn-icon" onClick={onRefresh} title="Refresh" disabled={loading}>
                 <Icon name="refresh" size={13} />

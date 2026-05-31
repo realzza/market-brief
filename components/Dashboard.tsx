@@ -295,9 +295,11 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
         dateStr={initial.dateStr}
         fetching={fetching}
         analyzing={analyzing}
+        digesting={digesting}
         loading={loading}
         onFetch={handleFetch}
         onAnalyze={handleAnalyze}
+        onDigest={handleDigest}
         onCancel={handleCancelAnalyze}
         onRefresh={loadData}
         statusMsg={statusMsg}
