@@ -1,6 +1,9 @@
 'use client';
 
+import type { Analyst } from '@/lib/types';
+
 interface Props {
+  analysts: Analyst[];
   dateStr: string;
   edition: number;
   fetching: boolean;
@@ -34,6 +37,7 @@ function Icon({ name, size = 14 }: { name: string; size?: number }) {
 }
 
 export default function Masthead({
+  analysts,
   dateStr, edition,
   fetching, analyzing,
   loading, onFetch, onAnalyze, onCancel, onRefresh,
@@ -41,6 +45,17 @@ export default function Masthead({
   theme, onToggleTheme,
 }: Props) {
   const pillCls = statusType === 'error' ? 'is-error' : statusType === 'success' ? 'is-success' : '';
+
+  // Byline lists every tracked handle, capped so a long roster doesn't blow
+  // out the centered wordmark. Beyond the cap we collapse to a "+N more".
+  const MAX_HANDLES = 3;
+  const handles = analysts.map((a) => `@${a.handle}`);
+  const shownHandles = handles.slice(0, MAX_HANDLES);
+  const overflow = handles.length - shownHandles.length;
+  const byline =
+    handles.length === 0
+      ? 'Daily intelligence'
+      : `${shownHandles.join(' · ')}${overflow > 0 ? ` · +${overflow} more` : ''} · Daily intelligence`;
 
   return (
     <header className="masthead">
@@ -56,12 +71,12 @@ export default function Masthead({
           {/* Center — wordmark */}
           <div>
             <h1 className="masthead-title">
-              The Serenity <em>Brief</em>
+              The Market <em>Brief</em>
             </h1>
             <div className="masthead-rule" />
             <div className="masthead-rule-thin" />
             <div className="masthead-byline">
-              <span>@aleabitoreddit · Daily intelligence</span>
+              <span>{byline}</span>
               <span>Analyzed by Claude · {dateStr.split(',')[0]}</span>
             </div>
           </div>

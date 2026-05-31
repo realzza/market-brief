@@ -7,6 +7,7 @@
 
 import { fetchLatestTweets } from './twitter';
 import { saveTweets } from './db';
+import { getAnalysts, authorKey } from './analysts';
 
 // How often the background loop hits X (also our effective fetch rate).
 const CRON_INTERVAL_MS = 15 * 60 * 1000;        // 15 min
@@ -49,22 +50,40 @@ export async function runFetch(): Promise<{
   // the request is still hanging.
   lastFetchAt = Date.now();
   try {
-    const username = process.env.TWITTER_USERNAME || 'aleabitoreddit';
-    const raw = await fetchLatestTweets(username, 100);
     const now = new Date().toISOString();
-    const toSave = raw.map((t) => ({
-      id: t.id,
-      text: t.text,
-      created_at: t.created_at,
-      like_count: t.public_metrics?.like_count ?? 0,
-      retweet_count: t.public_metrics?.retweet_count ?? 0,
-      reply_count: t.public_metrics?.reply_count ?? 0,
-      impression_count: t.public_metrics?.impression_count ?? 0,
-      fetched_at: now,
-      media_urls: JSON.stringify(t.media_urls ?? []),
-    }));
-    const { inserted, updated } = saveTweets(toSave);
-    return { fetched: raw.length, inserted, updated };
+    let fetched = 0;
+    let inserted = 0;
+    let updated = 0;
+
+    // Fetch each tracked analyst sequentially so one slow/failing upstream
+    // doesn't sink the others, and so we stay gentle on the syndication API.
+    for (const analyst of getAnalysts()) {
+      try {
+        const raw = await fetchLatestTweets(analyst.handle, 100);
+        const author = authorKey(analyst.handle);
+        const toSave = raw.map((t) => ({
+          id: t.id,
+          text: t.text,
+          created_at: t.created_at,
+          like_count: t.public_metrics?.like_count ?? 0,
+          retweet_count: t.public_metrics?.retweet_count ?? 0,
+          reply_count: t.public_metrics?.reply_count ?? 0,
+          impression_count: t.public_metrics?.impression_count ?? 0,
+          fetched_at: now,
+          media_urls: JSON.stringify(t.media_urls ?? []),
+          author,
+        }));
+        const res = saveTweets(toSave);
+        fetched += raw.length;
+        inserted += res.inserted;
+        updated += res.updated;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`[scheduler] fetch failed for @${analyst.handle}: ${msg}`);
+      }
+    }
+
+    return { fetched, inserted, updated };
   } finally {
     inFlight = false;
   }

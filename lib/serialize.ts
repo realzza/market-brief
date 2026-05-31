@@ -16,6 +16,7 @@ export function serializeTweetRow(row: Record<string, unknown>): StoredTweet {
     id: String(row.id),
     text: String(row.text ?? ''),
     created_at: String(row.created_at),
+    author: String(row.author ?? ''),
     like_count: Number(row.like_count ?? 0),
     retweet_count: Number(row.retweet_count ?? 0),
     reply_count: Number(row.reply_count ?? 0),

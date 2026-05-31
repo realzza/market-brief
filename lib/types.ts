@@ -55,10 +55,22 @@ export interface TweetAnalysis {
   analyzed_at: string;
 }
 
+// A tracked X/Twitter account. The registry + resolution logic lives in
+// lib/analysts.ts; this is just the shape passed around the app.
+export interface Analyst {
+  id: string;       // stable slug (used for filter state / keys)
+  handle: string;   // X handle, no leading @ — also the tweet-URL segment
+  name: string;     // display name for mastheads / cards
+  blurb?: string;   // short descriptor shown in the byline
+}
+
 export interface StoredTweet {
   id: string;
   text: string;
   created_at: string;
+  // Author key (lowercased handle) of the analyst who posted this tweet.
+  // Rows predating multi-analyst support are backfilled to the legacy handle.
+  author: string;
   like_count: number;
   retweet_count: number;
   reply_count: number;

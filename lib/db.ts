@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
+import { LEGACY_HANDLE } from './analysts';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'serenity.db');
 
@@ -30,7 +31,8 @@ function initSchema(db: Database.Database) {
       reply_count INTEGER DEFAULT 0,
       impression_count INTEGER DEFAULT 0,
       fetched_at TEXT NOT NULL,
-      media_urls TEXT NOT NULL DEFAULT '[]'
+      media_urls TEXT NOT NULL DEFAULT '[]',
+      author TEXT NOT NULL DEFAULT ''
     );
 
     CREATE TABLE IF NOT EXISTS tweet_analysis (
@@ -65,6 +67,7 @@ function initSchema(db: Database.Database) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_tweets_created ON tweets(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_tweets_author ON tweets(author);
     CREATE INDEX IF NOT EXISTS idx_analysis_sentiment ON tweet_analysis(sentiment);
     CREATE INDEX IF NOT EXISTS idx_performance_outcome ON performance(outcome);
     -- Required for upsertPerformance's "ON CONFLICT DO NOTHING" to actually
@@ -86,6 +89,14 @@ function migrate(db: Database.Database) {
   if (!tweetCols.includes('media_urls')) {
     db.exec("ALTER TABLE tweets ADD COLUMN media_urls TEXT NOT NULL DEFAULT '[]'");
   }
+  // Author column for multi-analyst support. Databases that predate it hold
+  // tweets from the single original analyst, so backfill empty/null authors to
+  // the legacy handle rather than leaving them unattributed.
+  if (!tweetCols.includes('author')) {
+    db.exec("ALTER TABLE tweets ADD COLUMN author TEXT NOT NULL DEFAULT ''");
+  }
+  db.prepare("UPDATE tweets SET author = ? WHERE author IS NULL OR author = ''").run(LEGACY_HANDLE);
+  db.exec('CREATE INDEX IF NOT EXISTS idx_tweets_author ON tweets(author)');
   // Image-insights column. Older rows had the image description glued onto
   // the front of the `summary` string as `[Images: …] `; lift those into the
   // new column and clean the summary so the brief / card render cleanly.
@@ -128,6 +139,7 @@ export function saveTweets(tweets: Array<{
   id: string; text: string; created_at: string;
   like_count: number; retweet_count: number; reply_count: number;
   impression_count: number; fetched_at: string; media_urls: string;
+  author: string;
 }>): { inserted: number; updated: number } {
   const db = getDb();
   if (tweets.length === 0) return { inserted: 0, updated: 0 };
@@ -144,8 +156,8 @@ export function saveTweets(tweets: Array<{
   const updated = existing;
 
   const insert = db.prepare(`
-    INSERT OR REPLACE INTO tweets (id, text, created_at, like_count, retweet_count, reply_count, impression_count, fetched_at, media_urls)
-    VALUES (@id, @text, @created_at, @like_count, @retweet_count, @reply_count, @impression_count, @fetched_at, @media_urls)
+    INSERT OR REPLACE INTO tweets (id, text, created_at, like_count, retweet_count, reply_count, impression_count, fetched_at, media_urls, author)
+    VALUES (@id, @text, @created_at, @like_count, @retweet_count, @reply_count, @impression_count, @fetched_at, @media_urls, @author)
   `);
   const insertMany = db.transaction((rows: typeof tweets) => {
     for (const row of rows) insert.run(row);

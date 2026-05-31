@@ -6,6 +6,7 @@
 
 import { getTweets, getStats, getSentimentTimeline, getPerformance } from '@/lib/db';
 import { serializeTweetRow } from '@/lib/serialize';
+import { getAnalysts } from '@/lib/analysts';
 import Dashboard, { type DashboardInitial } from '@/components/Dashboard';
 import { type Tab, type SentimentFilter, TAB_IDS, SENTIMENT_IDS } from '@/lib/dashboardTabs';
 import type { DashboardStats, PerformanceEntry } from '@/lib/types';
@@ -52,16 +53,20 @@ export default async function Page({ searchParams }: PageProps) {
   // match anything in the dropdown.
   const domain = typeof sp.domain === 'string' ? sp.domain : '';
 
+  const analyst = typeof sp.analyst === 'string' ? sp.analyst : 'all';
+
   const initial: DashboardInitial = {
     tweets,
     stats,
     timeline,
     performance,
+    analysts: getAnalysts(),
     edition: editionNumber(now),
     dateStr: dateString(now),
     tab,
     sentiment,
     domain,
+    analyst,
   };
 
   return <Dashboard initial={initial} />;

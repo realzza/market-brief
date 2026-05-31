@@ -384,6 +384,14 @@ button:disabled { cursor: not-allowed; }
   display: flex; align-items: center; flex-wrap: wrap;
   gap: 6px; padding: 24px 0 8px;
 }
+.filter-group { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.filter-divider {
+  width: 1px; height: 18px; margin: 0 4px;
+  background: var(--rule); display: inline-block;
+}
+@media (max-width: 700px) {
+  .filter-divider { display: none; }
+}
 .chip {
   display: inline-flex; align-items: center; gap: 7px;
   height: 28px; padding: 0 12px; border-radius: 999px;
@@ -435,6 +443,19 @@ button:disabled { cursor: not-allowed; }
   color: var(--ink-3); letter-spacing: 0.01em;
 }
 .article-rail .ago { color: var(--ink-4); }
+.article-rail .article-source {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.article-rail .article-source .name {
+  font-family: var(--font-sans); font-size: 11px; font-weight: 600;
+  color: var(--ink-2); letter-spacing: 0.01em;
+}
+.article-rail .article-source .at {
+  font-family: var(--font-mono); font-size: 10px; color: var(--ink-4);
+}
+@media (max-width: 700px) {
+  .article-rail .article-source { flex-direction: row; align-items: baseline; gap: 6px; }
+}
 .article-rail .sentiment-tag {
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--font-sans); font-size: 10.5px; font-weight: 600;
