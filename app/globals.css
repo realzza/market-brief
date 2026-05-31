@@ -419,6 +419,15 @@ button:disabled { cursor: not-allowed; }
   border-right: 1.5px solid var(--ink-3); border-bottom: 1.5px solid var(--ink-3);
   transform: translateY(-70%) rotate(45deg); pointer-events: none;
 }
+/* Source selector: a pinned analyst reads as an active filter (filled),
+   mirroring the chip toggles it replaced. */
+.select-source select.is-active {
+  background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight: 600;
+}
+.select-source select.is-active:hover { color: var(--paper); }
+.select-source:has(select.is-active)::after {
+  border-right-color: var(--paper); border-bottom-color: var(--paper);
+}
 
 /* ── Article (tweet card) ── */
 .feed { display: grid; grid-template-columns: 1fr; gap: 0; padding-top: 12px; }
