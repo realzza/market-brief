@@ -1,3 +1,14 @@
+// A link-preview ("OpenGraph card") attached to a post — the thumbnail+title+
+// blurb box a platform renders under a shared link. Truth Social exposes this
+// natively via the Mastodon `card` field; we render it the same way.
+export interface LinkCard {
+  url: string;
+  title: string;
+  description: string;
+  image: string;       // thumbnail URL ('' when none)
+  provider: string;    // e.g. "justthenews.com" ('' when none)
+}
+
 export interface RawTweet {
   id: string;
   text: string;
@@ -9,6 +20,7 @@ export interface RawTweet {
     impression_count: number;
   };
   media_urls?: string[];
+  card?: LinkCard | null;
 }
 
 export type Sentiment = 'bullish' | 'bearish' | 'neutral' | 'mixed';
@@ -86,6 +98,8 @@ export interface StoredTweet {
   impression_count: number;
   fetched_at: string;
   media_urls: string[];
+  // Link-preview card, when the post shared a URL the platform unfurled.
+  card?: LinkCard | null;
   analysis?: TweetAnalysis;
 }
 

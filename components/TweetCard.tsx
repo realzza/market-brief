@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { StoredTweet, TickerMention, TradeSignal, Analyst } from '@/lib/types';
+import { StoredTweet, TickerMention, TradeSignal, Analyst, LinkCard } from '@/lib/types';
 import { domainColor } from '@/lib/domainConfig';
 import { fmtCompact, fmtDate, fmtPrice, filterValidTickers } from '@/lib/format';
 import { renderWithTickers, renderRichSummary } from '@/lib/richText';
@@ -155,6 +155,37 @@ function MediaGallery({ urls }: { urls: string[] }) {
   );
 }
 
+// ─── Link preview card ────────────────────────────────────────────────────────
+// The unfurled-link box a post shared, rendered the way Truth Social shows it:
+// a thumbnail beside the provider / headline / blurb, the whole thing a single
+// click-through to the source. Falls back gracefully when there's no image.
+function LinkPreview({ card }: { card: LinkCard }) {
+  let host = card.provider;
+  if (!host) {
+    try { host = new URL(card.url).hostname.replace(/^www\./, ''); } catch { host = ''; }
+  }
+  return (
+    <a
+      className="article-link-card"
+      href={card.url}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {card.image && (
+        <span className="link-card-img">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={card.image} alt="" loading="lazy" />
+        </span>
+      )}
+      <span className="link-card-body">
+        {host && <span className="link-card-provider">{host}</span>}
+        {card.title && <span className="link-card-title">{card.title}</span>}
+        {card.description && <span className="link-card-desc">{card.description}</span>}
+      </span>
+    </a>
+  );
+}
+
 // ─── Signal row ──────────────────────────────────────────────────────────────
 function SignalRow({ signal }: { signal: TradeSignal }) {
   return (
@@ -284,6 +315,10 @@ export default function TweetCard({ tweet, serial, source, onAnalyzed }: Props) 
 
           {/* Media */}
           <MediaGallery urls={mediaUrls} />
+
+          {/* Link preview — the unfurled card for a shared URL (e.g. Truth
+              Social posts that link out to an article). */}
+          {tweet.card && <LinkPreview card={tweet.card} />}
 
           {/* Image insights — only rendered when an analysis actually
               extracted something from the attached media. Sits between

@@ -76,6 +76,7 @@ export async function runFetch(): Promise<{
         media_urls: JSON.stringify(t.media_urls ?? []),
         author,
         platform,
+        link_card: t.card ? JSON.stringify(t.card) : null,
       }));
       const res = saveTweets(toSave);
       fetched += raw.length;
@@ -98,7 +99,9 @@ export async function runFetch(): Promise<{
       // is wired up. Failures here never affect the X path above.
       if (analyst.truthSocial && truthSocialEnabled()) {
         try {
-          save(await fetchTruthSocialPosts(analyst.truthSocial, 40), author, 'truthsocial');
+          // Match the X depth (100). The sidecar pages backward to reach this,
+          // so the feed shows real history instead of just the last few posts.
+          save(await fetchTruthSocialPosts(analyst.truthSocial, 100), author, 'truthsocial');
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
           console.error(`[scheduler] Truth Social fetch failed for @${analyst.truthSocial}: ${msg}`);
