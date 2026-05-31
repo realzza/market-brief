@@ -1,16 +1,28 @@
 'use client';
 
 import Link from 'next/link';
-import { Digest, DashboardStats } from '@/lib/types';
+import { Digest, DashboardStats, Analyst } from '@/lib/types';
+import { authorKey } from '@/lib/analysts';
 import { fmtDate, fmtTime, fmtSigned, sentimentLabel, isValidTicker } from '@/lib/format';
 
 const SENTIMENT_DOT: Record<string, string> = {
   bullish: 'dot-bull', bearish: 'dot-bear', neutral: 'dot-neutral', mixed: 'dot-mixed',
 };
 
+// "Serenity" → "S"; "Donald J. Trump" → "DT" (first + last word initials).
+function initials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return '?';
+  if (words.length === 1) return words[0][0].toUpperCase();
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
 interface Props {
   digest: Digest;
   stats: DashboardStats;
+  analysts: Analyst[];
+  // post_id → author key fallback for digests predating the stored item.author.
+  authorByPost: Record<string, string>;
   onTicker: (t: string) => void;
   onRegenerate: () => void;
   regenerating: boolean;
@@ -19,7 +31,8 @@ interface Props {
 // The batched "morning brief" hero. Replaces the single-post Today's Brief:
 // one Claude request summarized every post in the window into an overall
 // headline + a ranked list, each item linking to that post's page on our site.
-export default function DailyDigest({ digest, stats, onTicker, onRegenerate, regenerating }: Props) {
+export default function DailyDigest({ digest, stats, analysts, authorByPost, onTicker, onRegenerate, regenerating }: Props) {
+  const analystByAuthor = new Map(analysts.map((a) => [authorKey(a), a]));
   const score = stats.avg_sentiment_score ?? 0;
   const lbl = sentimentLabel(score);
   const markerPct = Math.min(98, Math.max(2, ((score + 1) / 2) * 100));
@@ -45,10 +58,10 @@ export default function DailyDigest({ digest, stats, onTicker, onRegenerate, reg
                 className="digest-regen"
                 onClick={onRegenerate}
                 disabled={regenerating}
-                title="Re-summarize posts tracked since the last brief"
+                title="Summarize posts tracked since the last brief (no cost when there are none)"
               >
                 {regenerating ? <span className="spinner-inline" /> : null}
-                {regenerating ? 'Compiling…' : 'Regenerate'}
+                {regenerating ? 'Compiling…' : 'Refresh'}
               </button>
             </div>
 
@@ -59,6 +72,9 @@ export default function DailyDigest({ digest, stats, onTicker, onRegenerate, reg
               <ol className="digest-list">
                 {digest.items.map((it) => {
                   const tickers = it.tickers.filter(isValidTicker);
+                  const authKey = it.author || authorByPost[it.post_id] || '';
+                  const analyst = authKey ? analystByAuthor.get(authKey) : undefined;
+                  const authorName = analyst?.name ?? (authKey ? `@${authKey}` : '');
                   return (
                     <li key={it.post_id} className="digest-item">
                       <span
@@ -66,10 +82,20 @@ export default function DailyDigest({ digest, stats, onTicker, onRegenerate, reg
                         title={it.sentiment}
                       />
                       <div className="digest-item-body">
+                        {authorName && (
+                          <span className="digest-byline">
+                            <span className="digest-mono">{initials(authorName)}</span>
+                            <span className="digest-byline-name">{authorName}</span>
+                          </span>
+                        )}
                         <Link href={`/post/${it.post_id}`} className="digest-item-headline">
                           {it.headline}
-                          {it.importance === 'high' && <span className="digest-flag">Top story</span>}
                         </Link>
+                        {it.importance === 'high' && (
+                          <div className="digest-flag-row">
+                            <span className="digest-flag">Top story</span>
+                          </div>
+                        )}
                         {it.blurb && <p className="digest-item-blurb">{it.blurb}</p>}
                         {tickers.length > 0 && (
                           <div className="digest-tickers">

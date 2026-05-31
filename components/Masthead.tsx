@@ -1,5 +1,6 @@
 'use client';
 
+import { useLayoutEffect, useRef } from 'react';
 import type { Analyst } from '@/lib/types';
 
 interface Props {
@@ -7,16 +8,15 @@ interface Props {
   dateStr: string;
   edition: number;
   fetching: boolean;
-  analyzing: boolean;
   digesting: boolean;
   loading: boolean;
   onFetch: () => void;
-  onAnalyze: () => void;
   onDigest: () => void;
-  onCancel: () => void;
   onRefresh: () => void;
   statusMsg: string;
   statusType: 'info' | 'error' | 'success';
+  // Which action raised the status, so the pill anchors under its button.
+  statusSource: 'fetch' | 'digest' | null;
   theme: string;
   onToggleTheme: () => void;
 }
@@ -42,12 +42,25 @@ function Icon({ name, size = 14 }: { name: string; size?: number }) {
 export default function Masthead({
   analysts,
   dateStr, edition,
-  fetching, analyzing, digesting,
-  loading, onFetch, onAnalyze, onDigest, onCancel, onRefresh,
-  statusMsg, statusType,
+  fetching, digesting,
+  loading, onFetch, onDigest, onRefresh,
+  statusMsg, statusType, statusSource,
   theme, onToggleTheme,
 }: Props) {
   const pillCls = statusType === 'error' ? 'is-error' : statusType === 'success' ? 'is-success' : '';
+
+  // Anchor the status pill under the button that raised it. The pill is
+  // absolutely positioned inside .masthead-buttons (its offset parent), so we
+  // set its left to the source button's offsetLeft after layout.
+  const pillRef = useRef<HTMLSpanElement>(null);
+  const fetchRef = useRef<HTMLButtonElement>(null);
+  const briefRef = useRef<HTMLButtonElement>(null);
+  useLayoutEffect(() => {
+    const pill = pillRef.current;
+    if (!pill || !statusMsg) return;
+    const target = statusSource === 'digest' ? briefRef.current : statusSource === 'fetch' ? fetchRef.current : null;
+    pill.style.left = target ? `${target.offsetLeft}px` : '0px';
+  }, [statusMsg, statusSource]);
 
   // Byline lists every tracked handle, capped so a long roster doesn't blow
   // out the centered wordmark. Beyond the cap we collapse to a "+N more".
@@ -90,30 +103,22 @@ export default function Masthead({
           <div className="masthead-actions">
             <div className="masthead-buttons">
               {statusMsg && (
-                <span className={`status-pill ${pillCls}`}>{statusMsg}</span>
+                <span ref={pillRef} className={`status-pill ${pillCls}`}>{statusMsg}</span>
               )}
 
               <button
+                ref={fetchRef}
                 className="btn"
                 onClick={onFetch}
-                disabled={fetching || analyzing}
+                disabled={fetching}
               >
                 <Icon name="download" size={13} />
                 {fetching ? 'Fetching…' : 'Fetch'}
               </button>
 
-              {analyzing ? (
-                <button className="btn btn-danger" onClick={onCancel}>
-                  <Icon name="close" size={13} />Cancel
-                </button>
-              ) : (
-                <button className="btn btn-primary" onClick={onAnalyze} disabled={fetching}>
-                  <Icon name="zap" size={13} />Analyze
-                </button>
-              )}
-
               <button
-                className="btn"
+                ref={briefRef}
+                className="btn btn-primary"
                 onClick={onDigest}
                 disabled={digesting}
                 title="Compile the Morning Wire digest from posts tracked since the last brief"

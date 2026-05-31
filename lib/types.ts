@@ -131,6 +131,10 @@ export interface PerformanceEntry {
 // any id the model invents), so `/post/<post_id>` is guaranteed to resolve.
 export interface DigestItem {
   post_id: string;
+  // Author key (lowercased handle) of the post this item summarizes — set at
+  // build time from the source row so the brief can show a byline without a
+  // second lookup. May be '' on digests generated before this field existed.
+  author: string;
   headline: string;
   blurb: string;
   sentiment: Sentiment;
