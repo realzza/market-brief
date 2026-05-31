@@ -20,14 +20,14 @@ export async function POST(request: Request) {
 
     if (tweetId) {
       const row = getTweetForAnalysis(tweetId) as { id: string; text: string; created_at: string; media_urls: string } | null;
-      if (!row) return NextResponse.json({ error: 'Tweet not found' }, { status: 404 });
+      if (!row) return NextResponse.json({ error: 'Post not found' }, { status: 404 });
       unanalyzed = [row];
     } else {
       unanalyzed = getUnanalyzedTweets(limit) as typeof unanalyzed;
     }
 
     if (unanalyzed.length === 0) {
-      return NextResponse.json({ message: 'All tweets already analyzed', analyzed: 0 });
+      return NextResponse.json({ message: 'All posts already analyzed', analyzed: 0 });
     }
 
     // Parse media_urls JSON string before passing to analyzer

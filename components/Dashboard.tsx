@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { StoredTweet, DashboardStats, PerformanceEntry, Domain, Analyst } from '@/lib/types';
-import { authorKey } from '@/lib/analysts';
+import { StoredTweet, DashboardStats, PerformanceEntry, Domain, Analyst, Platform } from '@/lib/types';
+import { authorKey, trackedPlatforms } from '@/lib/analysts';
 import { getFeaturedTweet } from '@/lib/featured';
 import { useTheme } from '@/hooks/useTheme';
 import Masthead from '@/components/Masthead';
@@ -73,6 +73,7 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
   const [sentimentFilter, setSentimentFilter] = useState<SentimentFilter>(initial.sentiment);
   const [domainFilter,    setDomainFilter]    = useState<string>(initial.domain);
   const [analystFilter,   setAnalystFilter]   = useState<string>(initial.analyst);
+  const [platformFilter,  setPlatformFilter]  = useState<'all' | Platform>('all');
   const [activeTicker,    setActiveTicker]    = useState<string | null>(null);
   const [loading,    setLoading]    = useState(false);
   const [analyzing,  setAnalyzing]  = useState(false);
@@ -124,7 +125,7 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
 
   const handleFetch = async () => {
     setFetching(true);
-    setStatus('Fetching tweets from X…');
+    setStatus('Fetching posts…');
     try {
       const res  = await fetch('/api/tweets', { method: 'POST' });
       const data = await res.json();
@@ -134,14 +135,14 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
       }
       const newCount = data.inserted ?? 0;
       const msg = newCount === 0
-        ? 'No new tweets.'
+        ? 'No new posts.'
         : newCount === 1
-        ? '1 new tweet.'
-        : `${newCount} new tweets.`;
+        ? '1 new post.'
+        : `${newCount} new posts.`;
       setStatus(msg, 'success');
       await loadData();
     } catch {
-      setStatus('Failed to connect to X API.', 'error');
+      setStatus('Failed to fetch posts.', 'error');
     } finally {
       setFetching(false);
     }
@@ -149,8 +150,8 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
 
   const handleAnalyze = async () => {
     const pending = tweets.filter((t) => !t.analysis).length;
-    if (pending === 0) { setStatus('All tweets are already analyzed.', 'info'); return; }
-    if (!window.confirm(`Analyze ${pending} tweets? This will use Claude API credits.`)) return;
+    if (pending === 0) { setStatus('All posts are already analyzed.', 'info'); return; }
+    if (!window.confirm(`Analyze ${pending} posts? This will use Claude API credits.`)) return;
 
     cancelRef.current = false;
     setAnalyzing(true);
@@ -171,8 +172,8 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
       }
       setStatus(
         cancelRef.current
-          ? `Cancelled — ${total} tweets analyzed.`
-          : `Done! ${total} tweets analyzed.`,
+          ? `Cancelled — ${total} posts analyzed.`
+          : `Done! ${total} posts analyzed.`,
         'success'
       );
       await loadData();
@@ -198,9 +199,15 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
   // its display metadata (for the per-card source label); `selectedAuthor` is
   // the author key the analyst filter is pinned to, or null for "All".
   const analysts = initial.analysts;
-  const analystByAuthor = new Map(analysts.map((a) => [authorKey(a.handle), a]));
+  const analystByAuthor = new Map(analysts.map((a) => [authorKey(a), a]));
   const selectedAnalyst = analysts.find((a) => a.id === analystFilter);
-  const selectedAuthor = selectedAnalyst ? authorKey(selectedAnalyst.handle) : null;
+  const selectedAuthor = selectedAnalyst ? authorKey(selectedAnalyst) : null;
+
+  // Platforms tracked across the active roster. The platform filter is only
+  // worth showing when more than one platform is in play (e.g. X + Truth
+  // Social) — a single-platform roster has nothing to filter.
+  const platforms = trackedPlatforms();
+  const showPlatformFilter = platforms.length > 1;
 
   const filteredTweets = tweets.filter((t) => {
     const sentOk =
@@ -209,7 +216,8 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
       t.analysis?.sentiment === sentimentFilter;
     const domainOk = !domainFilter || (t.analysis?.domains ?? []).includes(domainFilter as Domain);
     const analystOk = !selectedAuthor || t.author === selectedAuthor;
-    return sentOk && domainOk && analystOk;
+    const platformOk = platformFilter === 'all' || t.platform === platformFilter;
+    return sentOk && domainOk && analystOk && platformOk;
   });
 
   const featured = getFeaturedTweet(tweets);
@@ -335,6 +343,23 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
                 </span>
               )}
 
+              {showPlatformFilter && (
+                <span className="filter-group">
+                  <span className="select select-source">
+                    <select
+                      value={platformFilter}
+                      onChange={(e) => { setPlatformFilter(e.target.value as 'all' | Platform); setDisplayCount(20); e.target.blur(); }}
+                      aria-label="Filter by platform"
+                    >
+                      <option value="all">All platforms</option>
+                      {platforms.includes('x') && <option value="x">X</option>}
+                      {platforms.includes('truthsocial') && <option value="truthsocial">Truth Social</option>}
+                    </select>
+                  </span>
+                  <span className="filter-divider" aria-hidden />
+                </span>
+              )}
+
               {SENTIMENT_FILTERS.map((f) => (
                 <button
                   key={f.id}
@@ -378,9 +403,9 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
               </div>
             ) : filteredTweets.length === 0 ? (
               <div className="empty">
-                <div className="title">No tweets found</div>
+                <div className="title">No posts found</div>
                 <div className="desc">
-                  {tweets.length === 0 ? 'Fetch tweets to get started.' : 'Try adjusting your filters.'}
+                  {tweets.length === 0 ? 'Fetch posts to get started.' : 'Try adjusting your filters.'}
                 </div>
               </div>
             ) : (

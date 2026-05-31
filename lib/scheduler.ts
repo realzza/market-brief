@@ -87,24 +87,28 @@ export async function runFetch(): Promise<{
     // Fetch each tracked analyst sequentially so one slow/failing upstream
     // doesn't sink the others, and so we stay gentle on the upstream APIs.
     for (const analyst of getAnalysts()) {
-      const author = authorKey(analyst.handle);
-      try {
-        save(await fetchLatestTweets(analyst.handle, 100), author, 'x');
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.error(`[scheduler] X fetch failed for @${analyst.handle}: ${msg}`);
+      const author = authorKey(analyst);
+
+      // X, when the analyst declares an X handle under `platforms`.
+      if (analyst.platforms.x) {
+        try {
+          save(await fetchLatestTweets(analyst.platforms.x, 100), author, 'x');
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error(`[scheduler] X fetch failed for @${analyst.platforms.x}: ${msg}`);
+        }
       }
 
-      // Truth Social, when the analyst has an acct configured and the sidecar
-      // is wired up. Failures here never affect the X path above.
-      if (analyst.truthSocial && truthSocialEnabled()) {
+      // Truth Social, when the analyst declares an acct under `platforms` and
+      // the sidecar is wired up. Failures here never affect the X path above.
+      if (analyst.platforms.truthsocial && truthSocialEnabled()) {
         try {
           // Match the X depth (100). The sidecar pages backward to reach this,
           // so the feed shows real history instead of just the last few posts.
-          save(await fetchTruthSocialPosts(analyst.truthSocial, 100), author, 'truthsocial');
+          save(await fetchTruthSocialPosts(analyst.platforms.truthsocial, 100), author, 'truthsocial');
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
-          console.error(`[scheduler] Truth Social fetch failed for @${analyst.truthSocial}: ${msg}`);
+          console.error(`[scheduler] Truth Social fetch failed for @${analyst.platforms.truthsocial}: ${msg}`);
         }
       }
     }

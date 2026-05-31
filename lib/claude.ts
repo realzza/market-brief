@@ -6,9 +6,9 @@ const client = new Anthropic();
 const SYSTEM_PROMPT = `You are an expert financial and trading analyst specializing in equities, crypto, options, and macro markets.
 Your job is to analyze social media posts from traders/analysts and extract structured financial intelligence.
 
-You may receive images alongside tweets — these can include stock charts, screenshots of positions, portfolio screenshots, price quotes, news headlines, or other financial data. Analyze all visual content carefully and incorporate it into your analysis.
+You may receive images alongside posts — these can include stock charts, screenshots of positions, portfolio screenshots, price quotes, news headlines, or other financial data. Analyze all visual content carefully and incorporate it into your analysis.
 
-For each tweet (and any attached images), identify:
+For each post (and any attached images), identify:
 1. Overall market sentiment (bullish/bearish/neutral/mixed) with a score from -1.0 to 1.0
 2. Asset/ticker mentions with their context and implied direction
 3. Specific trade signals (entries, targets, stop losses, alerts) — extract price levels from charts if visible
@@ -24,8 +24,8 @@ For each tweet (and any attached images), identify:
 When images contain charts: note the asset, approximate price range, trend direction, and any key levels visible.
 Be precise. Only use domain labels clearly relevant to the content.`;
 
-// Static schema instruction — separated so it can be prompt-cached across all tweet analyses.
-const SCHEMA_INSTRUCTION = `Analyze the tweet and any attached images from a financial/trading perspective. Return ONLY valid JSON matching the schema exactly.
+// Static schema instruction — separated so it can be prompt-cached across all post analyses.
+const SCHEMA_INSTRUCTION = `Analyze the post and any attached images from a financial/trading perspective. Return ONLY valid JSON matching the schema exactly.
 
 Return this exact JSON structure:
 {
@@ -52,7 +52,7 @@ Return this exact JSON structure:
       "leverage": "<e.g. 10x or null>",
       "timeframe": "<e.g. 4h, daily or null>",
       "confidence": "high|medium|low",
-      "raw_text": "<relevant part of tweet or image>"
+      "raw_text": "<relevant part of post or image>"
     }
   ],
   "key_themes": ["<theme1>", "<theme2>"],
@@ -107,11 +107,11 @@ export async function analyzeTweet(
     ? {
         type: 'text',
         text:
-          `The user has asked a specific question about this tweet:\n"${question}"\n\n` +
+          `The user has asked a specific question about this post:\n"${question}"\n\n` +
           `Still return the full JSON schema as instructed, but make the "summary" ` +
           `field directly answer this question (1-3 sentences). The other fields ` +
           `(sentiment, tickers, signals, etc.) should still be populated from your ` +
-          `objective analysis of the tweet, not influenced by the question.`,
+          `objective analysis of the post, not influenced by the question.`,
       }
     : null;
 
@@ -127,7 +127,7 @@ export async function analyzeTweet(
     ...(questionBlock ? [questionBlock] : []),
     {
       type: 'text',
-      text: `Tweet (posted ${tweet.created_at}):\n"${tweet.text}"`,
+      text: `Post (posted ${tweet.created_at}):\n"${tweet.text}"`,
     },
   ];
 

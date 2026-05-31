@@ -49,7 +49,9 @@ export default function Masthead({
   // Byline lists every tracked handle, capped so a long roster doesn't blow
   // out the centered wordmark. Beyond the cap we collapse to a "+N more".
   const MAX_HANDLES = 3;
-  const handles = analysts.map((a) => `@${a.handle}`);
+  const handles = analysts.map(
+    (a) => `@${a.platforms.x ?? a.platforms.truthsocial ?? a.id}`,
+  );
   const shownHandles = handles.slice(0, MAX_HANDLES);
   const overflow = handles.length - shownHandles.length;
   const byline =

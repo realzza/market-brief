@@ -25,7 +25,7 @@ export default function SentimentChart({ timeline }: Props) {
     return (
       <div className="empty">
         <div className="title">No timeline data</div>
-        <div className="desc">Analyze some tweets to see the sentiment trend.</div>
+        <div className="desc">Analyze some posts to see the sentiment trend.</div>
       </div>
     );
   }
@@ -105,7 +105,7 @@ export default function SentimentChart({ timeline }: Props) {
       hx, hy, tx, ty,
       dateLabel: fmtDate(p.date),
       scoreLabel: fmtSigned(p.avg_score, 2),
-      countLabel: `${p.tweet_count} ${p.tweet_count === 1 ? 'tweet' : 'tweets'}`,
+      countLabel: `${p.tweet_count} ${p.tweet_count === 1 ? 'post' : 'posts'}`,
       above,
       bullish: p.avg_score >= 0,
     };
@@ -242,7 +242,7 @@ export default function SentimentChart({ timeline }: Props) {
           read as the same days. */}
       <div className="vol-section">
         <div className="vol-head">
-          <span className="eyebrow">Tweet volume · daily</span>
+          <span className="eyebrow">Post volume · daily</span>
           <span className="vol-head-meta">
             max {maxCount} · {timeline.reduce((a, b) => a + b.tweet_count, 0)} total
           </span>
@@ -256,7 +256,7 @@ export default function SentimentChart({ timeline }: Props) {
                 key={i}
                 className={`vbar ${cls} ${hoverIdx === i ? 'is-hover' : ''}`}
                 style={{ height: h + '%' }}
-                title={`${fmtDate(p.date)} · ${p.tweet_count} ${p.tweet_count === 1 ? 'tweet' : 'tweets'}`}
+                title={`${fmtDate(p.date)} · ${p.tweet_count} ${p.tweet_count === 1 ? 'post' : 'posts'}`}
                 onMouseEnter={() => setHoverIdx(i)}
               />
             );
