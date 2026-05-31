@@ -82,20 +82,20 @@ export default function DailyDigest({ digest, stats, analysts, authorByPost, onT
                         title={it.sentiment}
                       />
                       <div className="digest-item-body">
-                        {authorName && (
-                          <span className="digest-byline">
-                            <span className="digest-mono">{initials(authorName)}</span>
-                            <span className="digest-byline-name">{authorName}</span>
-                          </span>
+                        {(authorName || it.importance === 'high') && (
+                          <div className="digest-meta">
+                            {authorName && (
+                              <span className="digest-byline">
+                                <span className="digest-mono">{initials(authorName)}</span>
+                                <span className="digest-byline-name">{authorName}</span>
+                              </span>
+                            )}
+                            {it.importance === 'high' && <span className="digest-flag">Top story</span>}
+                          </div>
                         )}
                         <Link href={`/post/${it.post_id}`} className="digest-item-headline">
                           {it.headline}
                         </Link>
-                        {it.importance === 'high' && (
-                          <div className="digest-flag-row">
-                            <span className="digest-flag">Top story</span>
-                          </div>
-                        )}
                         {it.blurb && <p className="digest-item-blurb">{it.blurb}</p>}
                         {tickers.length > 0 && (
                           <div className="digest-tickers">
