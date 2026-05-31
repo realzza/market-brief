@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
 import { LEGACY_HANDLE } from './analysts';
+import type { Digest, DigestItem } from './types';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'serenity.db');
 
@@ -68,7 +69,27 @@ function initSchema(db: Database.Database) {
       updated_at TEXT NOT NULL
     );
 
+    -- Daily digest: one row per generated morning brief. Brand-new table, so
+    -- it lives entirely in initSchema (no migrate backfill needed). The items
+    -- column holds the ranked DigestItem list as JSON; input/output token
+    -- counts are stored so the cost saving vs. per-post analysis is observable.
+    CREATE TABLE IF NOT EXISTS digests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      generated_at TEXT NOT NULL,
+      window_start TEXT NOT NULL,
+      window_end   TEXT NOT NULL,
+      post_count   INTEGER NOT NULL,
+      headline TEXT NOT NULL,
+      summary  TEXT NOT NULL,
+      items    TEXT NOT NULL DEFAULT '[]',
+      model TEXT,
+      input_tokens  INTEGER,
+      output_tokens INTEGER,
+      created_at TEXT NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_tweets_created ON tweets(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_digests_generated ON digests(generated_at DESC);
     -- NOTE: the idx_tweets_author index is intentionally NOT created here.
     -- initSchema runs before migrate(), and on a pre-existing database the
     -- CREATE TABLE above is a no-op so it will not add the author column to an
@@ -434,6 +455,92 @@ export function updatePerformanceRunning(
     entry_price: entry_price ?? null,
     updated_at: new Date().toISOString(),
   });
+}
+
+// ─── Digest ────────────────────────────────────────────────────────────────
+
+/** Raw posts whose created_at falls in [startIso, endIso), newest first. Feeds
+ *  the digest builder — text only, no analysis join (the digest reads raw
+ *  text). */
+export function getPostsInWindow(
+  startIso: string,
+  endIso: string,
+): Array<{ id: string; text: string; created_at: string; author: string; platform: string }> {
+  const db = getDb();
+  return db.prepare(`
+    SELECT id, text, created_at, author, platform
+    FROM tweets
+    WHERE created_at >= ? AND created_at < ?
+    ORDER BY created_at DESC
+  `).all(startIso, endIso) as Array<{
+    id: string; text: string; created_at: string; author: string; platform: string;
+  }>;
+}
+
+/** Single tweet + its analysis, shaped exactly like a getTweets() row so the
+ *  caller can run it straight through serializeTweetRow. Null when not found. */
+export function getTweetWithAnalysis(id: string): Record<string, unknown> | null {
+  const db = getDb();
+  return (db.prepare(`
+    SELECT t.*, a.sentiment, a.sentiment_score, a.sentiment_reasoning,
+           a.tickers, a.signals, a.key_themes, a.domains, a.risk_level,
+           a.is_trade_call, a.summary, a.image_insights, a.analyzed_at
+    FROM tweets t
+    LEFT JOIN tweet_analysis a ON t.id = a.tweet_id
+    WHERE t.id = ?
+  `).get(id) as Record<string, unknown>) ?? null;
+}
+
+/** Persist a freshly built digest. Returns the new row id. */
+export function saveDigest(digest: {
+  generated_at: string;
+  window_start: string;
+  window_end: string;
+  post_count: number;
+  headline: string;
+  summary: string;
+  items: DigestItem[];
+  model: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+}): number {
+  const db = getDb();
+  const info = db.prepare(`
+    INSERT INTO digests
+      (generated_at, window_start, window_end, post_count, headline, summary, items, model, input_tokens, output_tokens, created_at)
+    VALUES
+      (@generated_at, @window_start, @window_end, @post_count, @headline, @summary, @items, @model, @input_tokens, @output_tokens, @created_at)
+  `).run({
+    ...digest,
+    items: JSON.stringify(digest.items),
+    created_at: new Date().toISOString(),
+  });
+  return Number(info.lastInsertRowid);
+}
+
+/** The most recent digest, items parsed. Null when none have been generated. */
+export function getLatestDigest(): Digest | null {
+  const db = getDb();
+  const row = db.prepare(
+    'SELECT * FROM digests ORDER BY generated_at DESC LIMIT 1',
+  ).get() as Record<string, unknown> | undefined;
+  if (!row) return null;
+  let items: DigestItem[] = [];
+  try { items = JSON.parse(String(row.items ?? '[]')) as DigestItem[]; } catch {}
+  return {
+    id: Number(row.id),
+    generated_at: String(row.generated_at),
+    window_start: String(row.window_start),
+    window_end: String(row.window_end),
+    post_count: Number(row.post_count ?? 0),
+    headline: String(row.headline ?? ''),
+    summary: String(row.summary ?? ''),
+    items,
+    model: row.model == null ? null : String(row.model),
+    input_tokens: row.input_tokens == null ? null : Number(row.input_tokens),
+    output_tokens: row.output_tokens == null ? null : Number(row.output_tokens),
+    created_at: String(row.created_at),
+  };
 }
 
 export function getSentimentTimeline(days = 30): Array<Record<string, unknown>> {

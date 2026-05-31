@@ -25,6 +25,14 @@ const FIRST_TICK_DELAY_MS = 5_000;
 const OUTCOMES_INTERVAL_MS = 5 * 60 * 1000;     // 5 min
 const OUTCOMES_FIRST_DELAY_MS = 30_000;
 
+// Daily digest fires once per day at DIGEST_HOUR (server-local, honors the TZ
+// env var). Default 08:00. A self-re-arming setTimeout — not setInterval — so
+// it can't drift across DST boundaries or a clock that isn't a clean 24h apart.
+const DIGEST_HOUR = (() => {
+  const h = parseInt(process.env.DIGEST_HOUR ?? '8', 10);
+  return Number.isFinite(h) && h >= 0 && h <= 23 ? h : 8;
+})();
+
 let lastFetchAt: number | null = null;
 let inFlight = false;
 let started = false;
@@ -151,6 +159,49 @@ async function outcomesTick() {
   }
 }
 
+// Milliseconds from `now` until the next occurrence of DIGEST_HOUR:00 local.
+function msUntilNextDigest(now = new Date()): number {
+  const next = new Date(now);
+  next.setHours(DIGEST_HOUR, 0, 0, 0);
+  if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 1);
+  return next.getTime() - now.getTime();
+}
+
+async function digestTick(): Promise<void> {
+  // Lazy import keeps the Anthropic SDK out of the cold boot path (mirrors the
+  // performance import below) — it only loads on the first digest fire.
+  const t0 = Date.now();
+  try {
+    const { buildDigest, dailyWindow } = await import('./digest');
+    const { saveDigest } = await import('./db');
+    const built = await buildDigest(dailyWindow());
+    if (!built) {
+      console.log(`[scheduler] digest · ${new Date(t0).toISOString()} · no posts in window`);
+      return;
+    }
+    saveDigest(built);
+    console.log(
+      `[scheduler] digest · ${new Date(t0).toISOString()} · posts=${built.post_count} items=${built.items.length} tokens_in=${built.input_tokens} tokens_out=${built.output_tokens} took=${Date.now() - t0}ms`,
+    );
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[scheduler] digest fail · ${new Date(t0).toISOString()} · ${msg}`);
+  }
+}
+
+// Self-re-arming daily scheduler. Runs digestTick at the next DIGEST_HOUR, then
+// reschedules for the following day from inside the callback.
+function scheduleDailyDigest(): void {
+  const delay = msUntilNextDigest();
+  console.log(
+    `[scheduler] next digest at ${new Date(Date.now() + delay).toISOString()} (in ${Math.round(delay / 60000)}m)`,
+  );
+  setTimeout(async () => {
+    await digestTick();
+    scheduleDailyDigest();
+  }, delay);
+}
+
 /**
  * Idempotent — safe to call multiple times. Only the first call wins.
  * Called from instrumentation.ts on Node server boot.
@@ -159,7 +210,7 @@ export function startScheduler(): void {
   if (started) return;
   started = true;
   console.log(
-    `[scheduler] started · tweets every ${CRON_INTERVAL_MS / 1000}s, outcomes every ${OUTCOMES_INTERVAL_MS / 1000}s`,
+    `[scheduler] started · tweets every ${CRON_INTERVAL_MS / 1000}s, outcomes every ${OUTCOMES_INTERVAL_MS / 1000}s, digest daily at ${String(DIGEST_HOUR).padStart(2, '0')}:00`,
   );
 
   // One-shot backfill: dribble existing trade-call analyses into the
@@ -181,4 +232,5 @@ export function startScheduler(): void {
   setInterval(tick, CRON_INTERVAL_MS);
   setTimeout(outcomesTick, OUTCOMES_FIRST_DELAY_MS);
   setInterval(outcomesTick, OUTCOMES_INTERVAL_MS);
+  scheduleDailyDigest();
 }

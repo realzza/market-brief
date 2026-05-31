@@ -126,6 +126,37 @@ export interface PerformanceEntry {
   updated_at: string;
 }
 
+// One highlighted post inside a daily digest. `post_id` references a row in the
+// `tweets` table — it always points at a real, in-window post (the builder drops
+// any id the model invents), so `/post/<post_id>` is guaranteed to resolve.
+export interface DigestItem {
+  post_id: string;
+  headline: string;
+  blurb: string;
+  sentiment: Sentiment;
+  tickers: string[];
+  importance: 'high' | 'medium' | 'low';
+}
+
+// A batched morning brief — one Claude request summarizing every post in a time
+// window into an overall headline + a ranked list of the most important posts.
+// Replaces the per-post analyze grind for the daily-overview use case (see
+// lib/digest.ts). Token counts are persisted so the cost saving is observable.
+export interface Digest {
+  id: number;
+  generated_at: string;
+  window_start: string;
+  window_end: string;
+  post_count: number;
+  headline: string;
+  summary: string;
+  items: DigestItem[];
+  model: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  created_at: string;
+}
+
 export interface DashboardStats {
   total_tweets: number;
   analyzed_tweets: number;

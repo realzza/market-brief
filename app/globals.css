@@ -325,6 +325,48 @@ button:disabled { cursor: not-allowed; }
 }
 .mood-mini .sub { margin-top: 6px; font-size: 11px; color: var(--ink-3); }
 
+/* ── Daily digest (Morning Wire) ── */
+.digest-regen {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-sans); font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-3); background: transparent;
+  border: 1px solid var(--rule); border-radius: 999px; padding: 4px 10px;
+  cursor: pointer; transition: color .15s, border-color .15s;
+}
+.digest-regen:hover:not(:disabled) { color: var(--ink); border-color: var(--ink-3); }
+.digest-regen:disabled { opacity: 0.6; cursor: default; }
+.digest-list {
+  list-style: none; margin: 0; padding-top: 20px; border-top: 1px solid var(--rule);
+  display: flex; flex-direction: column; gap: 18px;
+}
+.digest-item { display: flex; gap: 12px; align-items: flex-start; }
+.digest-dot { margin-top: 7px; flex-shrink: 0; }
+.digest-item-body { min-width: 0; }
+.digest-item-headline {
+  font-family: var(--font-serif); font-size: 18px; line-height: 1.25;
+  color: var(--ink); text-decoration: none; display: inline-flex;
+  align-items: baseline; gap: 10px; flex-wrap: wrap;
+}
+.digest-item-headline:hover { color: var(--accent); }
+.digest-flag {
+  font-family: var(--font-sans); font-size: 9px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--accent);
+  border: 1px solid color-mix(in oklab, var(--accent) 40%, transparent);
+  border-radius: 3px; padding: 1px 5px; transform: translateY(-1px);
+}
+.digest-item-blurb {
+  font-family: var(--font-serif); font-size: 14.5px; line-height: 1.5;
+  color: var(--ink-2); margin: 5px 0 0; max-width: 60ch;
+}
+.digest-tickers { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.digest-ticker {
+  font-family: var(--font-mono); font-size: 11px; color: var(--ink-3);
+  background: var(--surface); border: 1px solid var(--rule);
+  border-radius: 4px; padding: 1px 7px; cursor: pointer;
+  transition: color .15s, border-color .15s;
+}
+.digest-ticker:hover { color: var(--accent); border-color: var(--ink-3); }
+
 /* ── Stats strip ── */
 .stats {
   display: grid; grid-template-columns: repeat(6, 1fr);
