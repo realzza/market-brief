@@ -67,21 +67,29 @@ export interface TweetAnalysis {
   analyzed_at: string;
 }
 
-// A tracked voice. The registry + resolution logic lives in lib/analysts.ts;
-// this is just the shape passed around the app. An analyst is keyed by its X
-// handle, but may *also* publish on Truth Social — both feeds merge under the
-// one analyst entry (distinguished per-post by StoredTweet.platform).
-export interface Analyst {
-  id: string;            // stable slug (used for filter state / keys)
-  handle: string;        // X handle, no leading @ — also the tweet-URL segment
-  name: string;          // display name for mastheads / cards
-  blurb?: string;        // short descriptor shown in the byline
-  truthSocial?: string;  // Truth Social acct (no @) to also track, if any
-}
-
 // Which platform a stored post came from. Posts from both platforms can share
 // one analyst (e.g. Trump on X + Truth Social), so this lives per-row.
 export type Platform = 'x' | 'truthsocial';
+
+// A tracked voice. The registry + resolution logic lives in lib/analysts.ts;
+// this is just the shape passed around the app.
+//
+// Platforms are configured EXPLICITLY: each analyst lists, under `platforms`,
+// exactly which platforms we track and the account handle on each. Adding a
+// handle under `platforms` is the *only* thing that makes that platform get
+// fetched — there is no implicit "also check Truth Social". Posts from every
+// configured platform merge under the one analyst (distinguished per-post by
+// StoredTweet.platform); the per-card platform tag + "View on …" link follow
+// from that.
+export interface Analyst {
+  id: string;            // stable slug (used for filter state / keys / author)
+  name: string;          // display name for mastheads / cards
+  blurb?: string;        // short descriptor shown in the byline
+  platforms: {
+    x?: string;           // X / Twitter handle (no @)
+    truthsocial?: string; // Truth Social acct (no @)
+  };
+}
 
 export interface StoredTweet {
   id: string;

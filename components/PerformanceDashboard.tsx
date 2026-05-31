@@ -516,7 +516,7 @@ export default function PerformanceDashboard({ entries, onTicker }: Props) {
       {positions.length === 0 ? (
         <div className="empty">
           <div className="title">No positions tracked</div>
-          <div className="desc">Trade calls from analyzed tweets will appear here once they’re flagged.</div>
+          <div className="desc">Trade calls from analyzed posts will appear here once they’re flagged.</div>
         </div>
       ) : (
         <table className="perf-table">

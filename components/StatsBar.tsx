@@ -17,9 +17,9 @@ export default function StatsBar({ stats }: Props) {
 
   const cells = [
     { label: 'Coverage', v: fmtCompact(total),    sub: `${analyzed} analyzed · ${covPct}%`,  bar: covPct,      trend: 'accent'  },
-    { label: 'Bullish',  v: bullPct + '%',         sub: `${stats.bullish_count} tweets`,       bar: bullPct,     trend: 'bull'    },
-    { label: 'Bearish',  v: bearPct + '%',         sub: `${stats.bearish_count} tweets`,       bar: bearPct,     trend: 'bear'    },
-    { label: 'Neutral',  v: neutPct + '%',         sub: `${stats.neutral_count ?? 0} tweets`,  bar: neutPct,     trend: 'neutral' },
+    { label: 'Bullish',  v: bullPct + '%',         sub: `${stats.bullish_count} posts`,        bar: bullPct,     trend: 'bull'    },
+    { label: 'Bearish',  v: bearPct + '%',         sub: `${stats.bearish_count} posts`,        bar: bearPct,     trend: 'bear'    },
+    { label: 'Neutral',  v: neutPct + '%',         sub: `${stats.neutral_count ?? 0} posts`,   bar: neutPct,     trend: 'neutral' },
     { label: 'Signals',  v: stats.trade_calls,     sub: `${sigPct}% are calls`,               bar: sigPct,      trend: 'signal'  },
     { label: 'Win rate', v: winPct != null ? winPct + '%' : '—', sub: 'Tracked outcomes',     bar: winPct || 0, trend: 'bull'    },
   ];

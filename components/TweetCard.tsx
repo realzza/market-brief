@@ -224,11 +224,11 @@ export default function TweetCard({ tweet, serial, source, onAnalyzed }: Props) 
   const a = tweet.analysis;
   // Prefer the configured handle; fall back to the stored author key so the
   // link still resolves for tweets from a now-deconfigured analyst.
-  const handle = source?.handle ?? tweet.author;
+  const handle = source?.platforms.x ?? tweet.author;
   // One analyst can span X + Truth Social, so the per-post platform decides the
   // permalink and the "View on …" label / source marker.
   const isTruth = tweet.platform === 'truthsocial';
-  const tsHandle = source?.truthSocial ?? handle;
+  const tsHandle = source?.platforms.truthsocial ?? handle;
   const platformLabel = isTruth ? 'Truth Social' : 'X';
   const tweetUrl = isTruth
     ? `https://truthsocial.com/@${tsHandle}/${tweet.id}`
@@ -397,7 +397,7 @@ export default function TweetCard({ tweet, serial, source, onAnalyzed }: Props) 
           {/* Analyze CTA (unanalyzed only, when form is closed) */}
           {!a && !showPrompt && !busy && (
             <button className="analyze-cta" onClick={() => setShowPrompt(true)}>
-              <Icon name="zap" size={12} />Analyze this tweet
+              <Icon name="zap" size={12} />Analyze this post
             </button>
           )}
 
@@ -438,12 +438,21 @@ export default function TweetCard({ tweet, serial, source, onAnalyzed }: Props) 
             </div>
           )}
 
-          {/* Footer */}
+          {/* Footer. Engagement metrics aren't available from every source
+              (RSSHub reports none; no platform exposes view counts), so we hide
+              a metric rather than show a misleading zero — the like/RT/reply
+              cluster collapses when all three are zero, views when absent. */}
           <div className="article-footer">
-            <span className="metric"><Icon name="heart" size={11} />{fmtCompact(tweet.like_count)}</span>
-            <span className="metric"><Icon name="repeat" size={11} />{fmtCompact(tweet.retweet_count)}</span>
-            <span className="metric"><Icon name="reply" size={11} />{fmtCompact(tweet.reply_count)}</span>
-            <span className="metric num">{fmtCompact(tweet.impression_count)} views</span>
+            {(tweet.like_count > 0 || tweet.retweet_count > 0 || tweet.reply_count > 0) && (
+              <>
+                <span className="metric"><Icon name="heart" size={11} />{fmtCompact(tweet.like_count)}</span>
+                <span className="metric"><Icon name="repeat" size={11} />{fmtCompact(tweet.retweet_count)}</span>
+                <span className="metric"><Icon name="reply" size={11} />{fmtCompact(tweet.reply_count)}</span>
+              </>
+            )}
+            {tweet.impression_count > 0 && (
+              <span className="metric num">{fmtCompact(tweet.impression_count)} views</span>
+            )}
 
             {a && !showPrompt && !busy && (
               <button

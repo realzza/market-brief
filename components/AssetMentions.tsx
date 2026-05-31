@@ -103,7 +103,7 @@ export default function AssetMentions() {
         <section>
           <div className="panel-head">
             <h3 className="panel-title">Most-mentioned assets</h3>
-            <span className="panel-sub">$TICKER from raw tweet text</span>
+            <span className="panel-sub">$TICKER from raw post text</span>
           </div>
           <TrendingTable
             kind="ticker"
@@ -156,7 +156,7 @@ function TrendingTable({ kind, items, loading, showCompare, exchangeMap, onPick 
     return (
       <div className="empty">
         <div className="title">No data in this window</div>
-        <div className="desc">Try a wider time range, or fetch more tweets.</div>
+        <div className="desc">Try a wider time range, or fetch more posts.</div>
       </div>
     );
   }

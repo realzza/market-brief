@@ -119,7 +119,7 @@ export default function TodaysBrief({ brief, stats, onTicker, reason = 'signal' 
                 {fmtSigned(score, 2)}
               </div>
               <div className="text-ink-3" style={{ fontSize: 13, fontFamily: 'var(--font-serif)', fontStyle: 'italic', marginTop: 8 }}>
-                {lbl} · {stats.analyzed_tweets} of {stats.total_tweets} tweets analyzed
+                {lbl} · {stats.analyzed_tweets} of {stats.total_tweets} posts analyzed
               </div>
               <div className="mood-gauge">
                 <span className="marker" style={{ left: `${markerPct}%` }} />
