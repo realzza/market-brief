@@ -1,0 +1,4 @@
+# Browser-TLS-impersonating HTTP client — the only reliable way past Truth
+# Social's Cloudflare JA3 fingerprint block. Needs to be recent enough to
+# offer a current Chrome impersonation target (see TS_IMPERSONATE in server.py).
+curl_cffi>=0.7.0

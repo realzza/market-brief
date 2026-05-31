@@ -10,7 +10,7 @@ function parseTweetDate(raw: string): string {
   return new Date(raw).toISOString();
 }
 
-function decodeHtmlEntities(text: string): string {
+export function decodeHtmlEntities(text: string): string {
   return text
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
@@ -127,7 +127,7 @@ function extractTweetId(item: JsonFeedItem): string | null {
   return m?.[1] ?? null;
 }
 
-function stripHtml(html: string): string {
+export function stripHtml(html: string): string {
   return html
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<[^>]+>/g, '')

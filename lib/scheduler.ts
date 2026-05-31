@@ -6,8 +6,10 @@
 // the same in-flight gate.
 
 import { fetchLatestTweets } from './twitter';
+import { fetchTruthSocialPosts, truthSocialEnabled } from './truthsocial';
 import { saveTweets } from './db';
 import { getAnalysts, authorKey } from './analysts';
+import type { RawTweet } from './types';
 
 // How often the background loop hits X (also our effective fetch rate).
 const CRON_INTERVAL_MS = 15 * 60 * 1000;        // 15 min
@@ -55,31 +57,52 @@ export async function runFetch(): Promise<{
     let inserted = 0;
     let updated = 0;
 
+    // One author key per analyst; both platforms save under it so they merge
+    // into a single source. The `platform` column distinguishes per post.
+    const save = (
+      raw: RawTweet[],
+      author: string,
+      platform: 'x' | 'truthsocial',
+    ): void => {
+      const toSave = raw.map((t) => ({
+        id: t.id,
+        text: t.text,
+        created_at: t.created_at,
+        like_count: t.public_metrics?.like_count ?? 0,
+        retweet_count: t.public_metrics?.retweet_count ?? 0,
+        reply_count: t.public_metrics?.reply_count ?? 0,
+        impression_count: t.public_metrics?.impression_count ?? 0,
+        fetched_at: now,
+        media_urls: JSON.stringify(t.media_urls ?? []),
+        author,
+        platform,
+      }));
+      const res = saveTweets(toSave);
+      fetched += raw.length;
+      inserted += res.inserted;
+      updated += res.updated;
+    };
+
     // Fetch each tracked analyst sequentially so one slow/failing upstream
-    // doesn't sink the others, and so we stay gentle on the syndication API.
+    // doesn't sink the others, and so we stay gentle on the upstream APIs.
     for (const analyst of getAnalysts()) {
+      const author = authorKey(analyst.handle);
       try {
-        const raw = await fetchLatestTweets(analyst.handle, 100);
-        const author = authorKey(analyst.handle);
-        const toSave = raw.map((t) => ({
-          id: t.id,
-          text: t.text,
-          created_at: t.created_at,
-          like_count: t.public_metrics?.like_count ?? 0,
-          retweet_count: t.public_metrics?.retweet_count ?? 0,
-          reply_count: t.public_metrics?.reply_count ?? 0,
-          impression_count: t.public_metrics?.impression_count ?? 0,
-          fetched_at: now,
-          media_urls: JSON.stringify(t.media_urls ?? []),
-          author,
-        }));
-        const res = saveTweets(toSave);
-        fetched += raw.length;
-        inserted += res.inserted;
-        updated += res.updated;
+        save(await fetchLatestTweets(analyst.handle, 100), author, 'x');
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        console.error(`[scheduler] fetch failed for @${analyst.handle}: ${msg}`);
+        console.error(`[scheduler] X fetch failed for @${analyst.handle}: ${msg}`);
+      }
+
+      // Truth Social, when the analyst has an acct configured and the sidecar
+      // is wired up. Failures here never affect the X path above.
+      if (analyst.truthSocial && truthSocialEnabled()) {
+        try {
+          save(await fetchTruthSocialPosts(analyst.truthSocial, 40), author, 'truthsocial');
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error(`[scheduler] Truth Social fetch failed for @${analyst.truthSocial}: ${msg}`);
+        }
       }
     }
 

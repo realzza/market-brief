@@ -55,14 +55,21 @@ export interface TweetAnalysis {
   analyzed_at: string;
 }
 
-// A tracked X/Twitter account. The registry + resolution logic lives in
-// lib/analysts.ts; this is just the shape passed around the app.
+// A tracked voice. The registry + resolution logic lives in lib/analysts.ts;
+// this is just the shape passed around the app. An analyst is keyed by its X
+// handle, but may *also* publish on Truth Social — both feeds merge under the
+// one analyst entry (distinguished per-post by StoredTweet.platform).
 export interface Analyst {
-  id: string;       // stable slug (used for filter state / keys)
-  handle: string;   // X handle, no leading @ — also the tweet-URL segment
-  name: string;     // display name for mastheads / cards
-  blurb?: string;   // short descriptor shown in the byline
+  id: string;            // stable slug (used for filter state / keys)
+  handle: string;        // X handle, no leading @ — also the tweet-URL segment
+  name: string;          // display name for mastheads / cards
+  blurb?: string;        // short descriptor shown in the byline
+  truthSocial?: string;  // Truth Social acct (no @) to also track, if any
 }
+
+// Which platform a stored post came from. Posts from both platforms can share
+// one analyst (e.g. Trump on X + Truth Social), so this lives per-row.
+export type Platform = 'x' | 'truthsocial';
 
 export interface StoredTweet {
   id: string;
@@ -71,6 +78,8 @@ export interface StoredTweet {
   // Author key (lowercased handle) of the analyst who posted this tweet.
   // Rows predating multi-analyst support are backfilled to the legacy handle.
   author: string;
+  // Source platform. Rows predating Truth Social support default to 'x'.
+  platform: Platform;
   like_count: number;
   retweet_count: number;
   reply_count: number;

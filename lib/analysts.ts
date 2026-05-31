@@ -30,6 +30,9 @@ const REGISTRY: Analyst[] = [
     handle: 'realDonaldTrump',
     name: 'Donald J. Trump',
     blurb: 'Policy & macro',
+    // Trump mainly posts on Truth Social; those posts merge into this same
+    // analyst alongside his X feed (see lib/truthsocial.ts + the scheduler).
+    truthSocial: 'realDonaldTrump',
   },
 ];
 
