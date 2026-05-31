@@ -119,6 +119,32 @@ def _account_id(acct: str) -> str:
     return aid
 
 
+# Truth Social caps a single statuses page at 20 regardless of the `limit` we
+# ask for, so reaching further back means walking pages with `max_id` (Mastodon
+# pagination is "give me statuses older than this id"). This bound caps how many
+# pages we'll chase in one fetch so a very chatty account can't make a single
+# request run unbounded.
+PAGE_SIZE = 20
+MAX_PAGES = 25
+
+
+def _link_card(post: dict) -> dict | None:
+    """Mastodon attaches an OpenGraph-style link preview as `card`. Lift the
+    bits we render (the same shape Truth Social's own UI shows): provider,
+    title, description, thumbnail. Returns None when there's no link."""
+    c = post.get("card") or {}
+    url = c.get("url")
+    if not url:
+        return None
+    return {
+        "url": url,
+        "title": c.get("title") or "",
+        "description": c.get("description") or "",
+        "image": c.get("image") or "",
+        "provider": c.get("provider_name") or "",
+    }
+
+
 def _normalize(post: dict) -> dict:
     media = []
     for m in post.get("media_attachments") or []:
@@ -135,23 +161,38 @@ def _normalize(post: dict) -> dict:
         "reblogs_count": post.get("reblogs_count") or 0,
         "favourites_count": post.get("favourites_count") or 0,
         "media": media,
+        "card": _link_card(post),
     }
 
 
 def fetch_statuses(acct: str, limit: int) -> list:
     now = time.time()
     cached = _post_cache.get(acct)
-    if cached and now - cached[0] < CACHE_TTL:
+    # Reuse the cache only when it already holds at least as many posts as asked
+    # for — a later request for a deeper range must be allowed to page further.
+    if cached and now - cached[0] < CACHE_TTL and len(cached[1]) >= limit:
         return cached[1][:limit]
 
     aid = _account_id(acct)
     # exclude_replies keeps the feed to Trump's own posts; we drop reblogs
     # (ReTruths of other accounts) below to match the X path, which excludes RTs.
-    raw = _api_get(
-        f"/accounts/{aid}/statuses",
-        params={"limit": min(max(limit, 1), 40), "exclude_replies": "true"},
-    )
-    posts = [_normalize(p) for p in raw if not p.get("reblog")]
+    # Page backward with max_id until we've collected `limit` own-posts, the
+    # account runs out, or we hit the page ceiling.
+    posts: list = []
+    max_id = None
+    for _ in range(MAX_PAGES):
+        params = {"limit": PAGE_SIZE, "exclude_replies": "true"}
+        if max_id:
+            params["max_id"] = max_id
+        raw = _api_get(f"/accounts/{aid}/statuses", params=params)
+        if not raw:
+            break
+        posts.extend(_normalize(p) for p in raw if not p.get("reblog"))
+        max_id = str(raw[-1]["id"])  # next page = statuses older than this id
+        if len(posts) >= limit or len(raw) < PAGE_SIZE:
+            break
+        time.sleep(0.3)  # gentle pacing so a multi-page walk doesn't burst
+
     _post_cache[acct] = (now, posts)
     return posts[:limit]
 

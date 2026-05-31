@@ -1,4 +1,4 @@
-import { RawTweet } from './types';
+import { RawTweet, LinkCard } from './types';
 import { decodeHtmlEntities, stripHtml } from './twitter';
 
 // Truth Social can't be fetched from Node directly — Cloudflare blocks the
@@ -21,6 +21,13 @@ interface SidecarMedia {
   url?: string;
   preview_url?: string | null;
 }
+interface SidecarCard {
+  url?: string;
+  title?: string;
+  description?: string;
+  image?: string;
+  provider?: string;
+}
 interface SidecarPost {
   id: string;
   content: string; // HTML
@@ -29,6 +36,7 @@ interface SidecarPost {
   reblogs_count?: number;
   favourites_count?: number;
   media?: SidecarMedia[];
+  card?: SidecarCard | null;
 }
 
 function toRawTweet(p: SidecarPost): RawTweet {
@@ -49,6 +57,19 @@ function toRawTweet(p: SidecarPost): RawTweet {
     }
   }
 
+  // Link preview, when the post shared an unfurled URL. Title/description come
+  // back as plain text but can still carry HTML entities, so decode them.
+  let card: LinkCard | null = null;
+  if (p.card?.url) {
+    card = {
+      url: p.card.url,
+      title: decodeHtmlEntities(p.card.title ?? '').trim(),
+      description: decodeHtmlEntities(p.card.description ?? '').trim(),
+      image: p.card.image ?? '',
+      provider: p.card.provider ?? '',
+    };
+  }
+
   return {
     id: p.id,
     text,
@@ -63,6 +84,7 @@ function toRawTweet(p: SidecarPost): RawTweet {
       impression_count: 0,
     },
     media_urls,
+    card,
   };
 }
 

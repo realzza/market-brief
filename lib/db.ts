@@ -33,7 +33,8 @@ function initSchema(db: Database.Database) {
       fetched_at TEXT NOT NULL,
       media_urls TEXT NOT NULL DEFAULT '[]',
       author TEXT NOT NULL DEFAULT '',
-      platform TEXT NOT NULL DEFAULT 'x'
+      platform TEXT NOT NULL DEFAULT 'x',
+      link_card TEXT
     );
 
     CREATE TABLE IF NOT EXISTS tweet_analysis (
@@ -109,6 +110,11 @@ function migrate(db: Database.Database) {
   if (!tweetCols.includes('platform')) {
     db.exec("ALTER TABLE tweets ADD COLUMN platform TEXT NOT NULL DEFAULT 'x'");
   }
+  // Link-preview card (JSON, nullable). Older rows simply have no card; the
+  // column is left NULL and serializeTweetRow treats absence as "no preview".
+  if (!tweetCols.includes('link_card')) {
+    db.exec("ALTER TABLE tweets ADD COLUMN link_card TEXT");
+  }
   // Image-insights column. Older rows had the image description glued onto
   // the front of the `summary` string as `[Images: …] `; lift those into the
   // new column and clean the summary so the brief / card render cleanly.
@@ -151,7 +157,7 @@ export function saveTweets(tweets: Array<{
   id: string; text: string; created_at: string;
   like_count: number; retweet_count: number; reply_count: number;
   impression_count: number; fetched_at: string; media_urls: string;
-  author: string; platform: string;
+  author: string; platform: string; link_card: string | null;
 }>): { inserted: number; updated: number } {
   const db = getDb();
   if (tweets.length === 0) return { inserted: 0, updated: 0 };
@@ -168,8 +174,8 @@ export function saveTweets(tweets: Array<{
   const updated = existing;
 
   const insert = db.prepare(`
-    INSERT OR REPLACE INTO tweets (id, text, created_at, like_count, retweet_count, reply_count, impression_count, fetched_at, media_urls, author, platform)
-    VALUES (@id, @text, @created_at, @like_count, @retweet_count, @reply_count, @impression_count, @fetched_at, @media_urls, @author, @platform)
+    INSERT OR REPLACE INTO tweets (id, text, created_at, like_count, retweet_count, reply_count, impression_count, fetched_at, media_urls, author, platform, link_card)
+    VALUES (@id, @text, @created_at, @like_count, @retweet_count, @reply_count, @impression_count, @fetched_at, @media_urls, @author, @platform, @link_card)
   `);
   const insertMany = db.transaction((rows: typeof tweets) => {
     for (const row of rows) insert.run(row);

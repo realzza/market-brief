@@ -584,6 +584,62 @@ button:disabled { cursor: not-allowed; }
 @media (max-width: 700px) {
   .strip-slot { flex: 0 0 70%; }   /* one-and-a-bit on narrow screens */
 }
+/* Link preview card — the unfurled box for a shared URL (Truth Social posts
+   that link out to an article). Thumbnail on the left, provider/headline/blurb
+   on the right; the whole row is a single click-through. Tuned to sit in the
+   same visual family as .media-slot (same border, radius, hairline rule). */
+.article-link-card {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  align-items: stretch;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  text-decoration: none;
+  background: var(--surface-2);
+  transition: border-color 0.15s ease, background 0.15s ease;
+  max-width: 80%;
+}
+.article-link-card:hover {
+  border-color: var(--ink-4);
+  background: var(--paper);
+}
+.link-card-img {
+  position: relative;
+  background: repeating-linear-gradient(135deg, var(--surface-2) 0, var(--surface-2) 6px, var(--paper) 6px, var(--paper) 12px);
+  border-right: 1px solid var(--rule);
+}
+.link-card-img img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover;
+}
+.link-card-body {
+  display: flex; flex-direction: column; gap: 5px;
+  padding: 12px 14px;
+  min-width: 0;
+}
+.link-card-provider {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.06em; text-transform: lowercase;
+  color: var(--ink-4);
+}
+.link-card-title {
+  font-family: var(--font-serif);
+  font-size: 14px; line-height: 1.35; color: var(--ink);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.link-card-desc {
+  font-family: var(--font-sans);
+  font-size: 12px; line-height: 1.45; color: var(--ink-3);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+@media (max-width: 700px) {
+  .article-link-card { max-width: 100%; grid-template-columns: 96px 1fr; }
+}
+
 .article-summary {
   margin-top: 22px; padding: 16px 0 16px 20px;
   border-left: 2px solid var(--rule);
