@@ -319,22 +319,19 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
             <div className="filters">
               {analysts.length > 1 && (
                 <span className="filter-group">
-                  <button
-                    className={`chip ${analystFilter === 'all' ? 'is-active' : ''}`}
-                    onClick={() => { setAnalystFilter('all'); setDisplayCount(20); }}
-                  >
-                    All sources
-                  </button>
-                  {analysts.map((an) => (
-                    <button
-                      key={an.id}
-                      className={`chip ${analystFilter === an.id ? 'is-active' : ''}`}
-                      onClick={() => { setAnalystFilter(an.id); setDisplayCount(20); }}
-                      title={`@${an.handle}`}
+                  <span className="select select-source">
+                    <select
+                      value={analystFilter}
+                      onChange={(e) => { setAnalystFilter(e.target.value); setDisplayCount(20); }}
+                      className={analystFilter !== 'all' ? 'is-active' : ''}
+                      aria-label="Filter by source"
                     >
-                      {an.name}
-                    </button>
-                  ))}
+                      <option value="all">All sources</option>
+                      {analysts.map((an) => (
+                        <option key={an.id} value={an.id}>{an.name}</option>
+                      ))}
+                    </select>
+                  </span>
                   <span className="filter-divider" aria-hidden />
                 </span>
               )}
