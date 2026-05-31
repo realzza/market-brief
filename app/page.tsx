@@ -4,7 +4,7 @@
 // component (components/Dashboard.tsx) which seeds its state from these
 // props and takes over from there.
 
-import { getTweets, getStats, getSentimentTimeline, getPerformance } from '@/lib/db';
+import { getTweets, getStats, getSentimentTimeline, getPerformance, getLatestDigest } from '@/lib/db';
 import { serializeTweetRow } from '@/lib/serialize';
 import { getAnalysts } from '@/lib/analysts';
 import Dashboard, { type DashboardInitial } from '@/components/Dashboard';
@@ -44,6 +44,7 @@ export default async function Page({ searchParams }: PageProps) {
   const stats = getStats() as unknown as DashboardStats;
   const timeline = getSentimentTimeline(30) as unknown as DashboardInitial['timeline'];
   const performance = getPerformance() as unknown as PerformanceEntry[];
+  const digest = getLatestDigest();
 
   const now = new Date();
   const tab      = pickEnum<Tab>(sp.tab, TAB_IDS, 'feed');
@@ -60,6 +61,7 @@ export default async function Page({ searchParams }: PageProps) {
     stats,
     timeline,
     performance,
+    digest,
     analysts: getAnalysts(),
     edition: editionNumber(now),
     dateStr: dateString(now),

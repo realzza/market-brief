@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { StoredTweet, DashboardStats, PerformanceEntry, Domain, Analyst, Platform } from '@/lib/types';
+import { StoredTweet, DashboardStats, PerformanceEntry, Domain, Analyst, Platform, Digest } from '@/lib/types';
 import { authorKey, trackedPlatforms } from '@/lib/analysts';
 import { getFeaturedTweet } from '@/lib/featured';
 import { useTheme } from '@/hooks/useTheme';
 import Masthead from '@/components/Masthead';
 import TodaysBrief from '@/components/TodaysBrief';
+import DailyDigest from '@/components/DailyDigest';
 import StatsBar from '@/components/StatsBar';
 import TweetCard from '@/components/TweetCard';
 import SentimentChart from '@/components/SentimentChart';
@@ -33,6 +34,7 @@ export interface DashboardInitial {
   stats: DashboardStats | null;
   timeline: TimelinePoint[];
   performance: PerformanceEntry[];
+  digest: Digest | null;
   analysts: Analyst[];
   edition: number;
   dateStr: string;
@@ -69,6 +71,7 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
   const [stats,       setStats]       = useState<DashboardStats | null>(initial.stats);
   const [timeline,    setTimeline]    = useState<TimelinePoint[]>(initial.timeline);
   const [performance, setPerformance] = useState<PerformanceEntry[]>(initial.performance);
+  const [digest,      setDigest]      = useState<Digest | null>(initial.digest);
   const [activeTab,   setActiveTab]   = useState<Tab>(initial.tab);
   const [sentimentFilter, setSentimentFilter] = useState<SentimentFilter>(initial.sentiment);
   const [domainFilter,    setDomainFilter]    = useState<string>(initial.domain);
@@ -78,6 +81,7 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
   const [loading,    setLoading]    = useState(false);
   const [analyzing,  setAnalyzing]  = useState(false);
   const [fetching,   setFetching]   = useState(false);
+  const [digesting,  setDigesting]  = useState(false);
   const [statusMsg,  setStatusMsg]  = useState('');
   const [statusType, setStatusType] = useState<'info' | 'error' | 'success'>('info');
   const cancelRef = useRef(false);
@@ -190,6 +194,26 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
     setStatus('Cancelling after current batch…');
   };
 
+  // Manual digest trigger — one cheap request that summarizes every post tracked
+  // since the last brief. The route's in-flight gate (409) guards double-spend.
+  const handleDigest = async () => {
+    if (digesting) return;
+    setDigesting(true);
+    setStatus('Compiling the brief…');
+    try {
+      const res = await fetch('/api/digest', { method: 'POST' });
+      const data = await res.json();
+      if (data.error) { setStatus(data.error, 'error'); return; }
+      if (!data.digest) { setStatus(data.message || 'No new posts to summarize.', 'info'); return; }
+      setDigest(data.digest);
+      setStatus(`Brief compiled — ${data.digest.items?.length ?? 0} highlights.`, 'success');
+    } catch {
+      setStatus('Failed to compile the brief.', 'error');
+    } finally {
+      setDigesting(false);
+    }
+  };
+
   // Domain list for filter dropdown
   const allDomains = Array.from(
     new Set(tweets.flatMap((t) => t.analysis?.domains ?? []))
@@ -282,16 +306,25 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
         onToggleTheme={toggleTheme}
       />
 
-      {/* Today's Brief hero — falls back to most recent analysis when no
-          trade call within 36h. Eyebrow relabels in that case. */}
-      {featured && stats && (
+      {/* Hero. The batched daily digest takes the slot; until one exists (first
+          boot) we fall back to the single-post Today's Brief so the page is
+          never empty. */}
+      {digest && stats ? (
+        <DailyDigest
+          digest={digest}
+          stats={stats}
+          onTicker={setActiveTicker}
+          onRegenerate={handleDigest}
+          regenerating={digesting}
+        />
+      ) : featured && stats ? (
         <TodaysBrief
           brief={featured.tweet}
           stats={stats}
           onTicker={setActiveTicker}
           reason={featured.reason}
         />
-      )}
+      ) : null}
 
       {/* Stats strip */}
       {stats && (
