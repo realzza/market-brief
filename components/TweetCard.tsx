@@ -77,6 +77,36 @@ function TweetText({ text, onTicker }: { text: string; onTicker: (t: string) => 
 }
 
 // ─── Media gallery ───────────────────────────────────────────────────────────
+// Media URLs are stored flat (see lib/twitter.ts); videos/GIFs are saved as a
+// playable mp4 URL, photos as an image URL. Distinguish by URL so each slot
+// renders the right element.
+function isVideoUrl(url: string): boolean {
+  return /\.mp4(?:$|\?)/i.test(url) || url.includes('video.twimg.com');
+}
+
+// One media slot — a player for videos, a click-through image otherwise.
+function MediaSlot({ url, alt, className = '' }: { url: string; alt: string; className?: string }) {
+  if (isVideoUrl(url)) {
+    return (
+      <div className={`media-slot ${className}`}>
+        {/* Playback depends on the page-level `same-origin` referrer policy
+            (see app/layout.tsx metadata): video.twimg.com hotlink protection
+            403s a cross-site Referer but serves requests with none, and
+            <video> doesn't honor a per-element referrerpolicy attribute.
+            preload=metadata shows the first frame as a poster without pulling
+            the whole file; controls + playsInline keep it on-page. */}
+        <video src={url} controls preload="metadata" playsInline />
+      </div>
+    );
+  }
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" className={`media-slot ${className}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={url} alt={alt} loading="lazy" />
+    </a>
+  );
+}
+
 // 1 → narrow solo · 2 → paired side-by-side · 3+ → horizontally scrollable
 // filmstrip with edge-fade gradients so the user can see content extends.
 function MediaGallery({ urls }: { urls: string[] }) {
@@ -86,10 +116,7 @@ function MediaGallery({ urls }: { urls: string[] }) {
   if (n === 1) {
     return (
       <div className="article-media is-single">
-        <a href={urls[0]} target="_blank" rel="noopener noreferrer" className="media-slot">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={urls[0]} alt="media" loading="lazy" />
-        </a>
+        <MediaSlot url={urls[0]} alt="media" />
       </div>
     );
   }
@@ -98,10 +125,7 @@ function MediaGallery({ urls }: { urls: string[] }) {
     return (
       <div className="article-media is-multi">
         {urls.map((url, i) => (
-          <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="media-slot">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt={`media ${i + 1}`} loading="lazy" />
-          </a>
+          <MediaSlot key={i} url={url} alt={`media ${i + 1}`} />
         ))}
       </div>
     );
@@ -112,18 +136,9 @@ function MediaGallery({ urls }: { urls: string[] }) {
   // .strip-track mask in globals.css.
   return (
     <div className="article-media is-strip">
-      <div className="strip-track" role="region" aria-label={`${n} images, scroll horizontally`}>
+      <div className="strip-track" role="region" aria-label={`${n} items, scroll horizontally`}>
         {urls.map((url, i) => (
-          <a
-            key={i}
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="media-slot strip-slot"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt={`media ${i + 1} of ${n}`} loading="lazy" />
-          </a>
+          <MediaSlot key={i} url={url} alt={`media ${i + 1} of ${n}`} className="strip-slot" />
         ))}
       </div>
     </div>

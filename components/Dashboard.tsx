@@ -322,8 +322,7 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
                   <span className="select select-source">
                     <select
                       value={analystFilter}
-                      onChange={(e) => { setAnalystFilter(e.target.value); setDisplayCount(20); }}
-                      className={analystFilter !== 'all' ? 'is-active' : ''}
+                      onChange={(e) => { setAnalystFilter(e.target.value); setDisplayCount(20); e.target.blur(); }}
                       aria-label="Filter by source"
                     >
                       <option value="all">All sources</option>
