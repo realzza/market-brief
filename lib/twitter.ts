@@ -151,8 +151,18 @@ function extractMedia(item: JsonFeedItem): string[] {
       // copy of the src attribute yields a 404. Decode entities to recover.
       urls.add(decodeHtmlEntities(m[1]));
     }
-    // <video src="…"> and nested <source src="…"> both carry the playable URL.
-    for (const m of item.content_html.matchAll(/<(?:video|source)[^>]+src="([^"]+)"/g)) {
+    // RSSHub renders videos as <video src="MP4" poster="THUMB" …>. Pair the
+    // poster with the mp4 (carried in a #poster fragment, see TweetCard) so the
+    // card paints a frame instead of black — matching the syndication path.
+    for (const m of item.content_html.matchAll(/<video\b[^>]*>/g)) {
+      const src = m[0].match(/\bsrc="([^"]+)"/)?.[1];
+      if (!src) continue;
+      const mp4 = decodeHtmlEntities(src);
+      const poster = m[0].match(/\bposter="([^"]+)"/)?.[1];
+      urls.add(poster ? `${mp4}#poster=${encodeURIComponent(decodeHtmlEntities(poster))}` : mp4);
+    }
+    // Nested <source src="…"> fallback (no poster attribute lives on <source>).
+    for (const m of item.content_html.matchAll(/<source\b[^>]+src="([^"]+)"/g)) {
       urls.add(decodeHtmlEntities(m[1]));
     }
   }
