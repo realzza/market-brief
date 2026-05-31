@@ -342,8 +342,10 @@ button:disabled { cursor: not-allowed; }
 .digest-item { display: flex; gap: 12px; align-items: flex-start; }
 .digest-dot { margin-top: 9px; flex-shrink: 0; }
 .digest-item-body { min-width: 0; }
-/* Byline — small monogram + name, always on its own line above the headline. */
-.digest-byline { display: flex; width: fit-content; align-items: center; gap: 7px; margin-bottom: 6px; }
+/* Meta row — byline + optional "Top story" flag share one line above the
+   headline, so they don't sandwich the title. */
+.digest-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.digest-byline { display: inline-flex; align-items: center; gap: 7px; }
 .digest-mono {
   display: inline-flex; align-items: center; justify-content: center;
   width: 18px; height: 18px; border-radius: 3px;
@@ -359,8 +361,7 @@ button:disabled { cursor: not-allowed; }
   color: var(--ink); text-decoration: none; display: inline-block;
 }
 .digest-item-headline:hover { color: var(--accent); }
-/* "Top story" flag — always its own line beneath the headline. */
-.digest-flag-row { margin-top: 7px; }
+/* "Top story" flag — sits inline in the meta row next to the byline. */
 .digest-flag {
   display: inline-block;
   font-family: var(--font-sans); font-size: 9px; letter-spacing: 0.08em;
