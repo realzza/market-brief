@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { StoredTweet, DashboardStats, PerformanceEntry, Domain, Analyst, Platform, Digest } from '@/lib/types';
 import { authorKey, trackedPlatforms } from '@/lib/analysts';
@@ -79,18 +79,24 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
   const [platformFilter,  setPlatformFilter]  = useState<'all' | Platform>('all');
   const [activeTicker,    setActiveTicker]    = useState<string | null>(null);
   const [loading,    setLoading]    = useState(false);
-  const [analyzing,  setAnalyzing]  = useState(false);
   const [fetching,   setFetching]   = useState(false);
   const [digesting,  setDigesting]  = useState(false);
   const [statusMsg,  setStatusMsg]  = useState('');
   const [statusType, setStatusType] = useState<'info' | 'error' | 'success'>('info');
-  const cancelRef = useRef(false);
+  // Which action raised the current status, so the masthead can anchor the
+  // status pill under the button that triggered it (Fetch vs Brief).
+  const [statusSource, setStatusSource] = useState<'fetch' | 'digest' | null>(null);
   const statusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [displayCount, setDisplayCount] = useState(20);
 
-  const setStatus = (msg: string, type: 'info' | 'error' | 'success' = 'info') => {
+  const setStatus = (
+    msg: string,
+    type: 'info' | 'error' | 'success' = 'info',
+    source: 'fetch' | 'digest' | null = null,
+  ) => {
     setStatusMsg(msg);
     setStatusType(type);
+    setStatusSource(source);
     if (statusTimerRef.current) {
       clearTimeout(statusTimerRef.current);
       statusTimerRef.current = null;
@@ -129,12 +135,12 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
 
   const handleFetch = async () => {
     setFetching(true);
-    setStatus('Fetching posts…');
+    setStatus('Fetching posts…', 'info', 'fetch');
     try {
       const res  = await fetch('/api/tweets', { method: 'POST' });
       const data = await res.json();
       if (data.error) {
-        setStatus(data.error, 'error');
+        setStatus(data.error, 'error', 'fetch');
         return;
       }
       const newCount = data.inserted ?? 0;
@@ -143,72 +149,31 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
         : newCount === 1
         ? '1 new post.'
         : `${newCount} new posts.`;
-      setStatus(msg, 'success');
+      setStatus(msg, 'success', 'fetch');
       await loadData();
     } catch {
-      setStatus('Failed to fetch posts.', 'error');
+      setStatus('Failed to fetch posts.', 'error', 'fetch');
     } finally {
       setFetching(false);
     }
   };
 
-  const handleAnalyze = async () => {
-    const pending = tweets.filter((t) => !t.analysis).length;
-    if (pending === 0) { setStatus('All posts are already analyzed.', 'info'); return; }
-    if (!window.confirm(`Analyze ${pending} posts? This will use Claude API credits.`)) return;
-
-    cancelRef.current = false;
-    setAnalyzing(true);
-    setStatus('Running AI analysis…');
-    let total = 0;
-    try {
-      while (!cancelRef.current) {
-        const res  = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ limit: 10 }),
-        });
-        const data = await res.json();
-        if (data.error) { setStatus(data.error, 'error'); break; }
-        total += data.analyzed || 0;
-        setStatus(`Running AI analysis — ${total} analyzed…`);
-        if (!data.analyzed || data.analyzed === 0) break;
-      }
-      setStatus(
-        cancelRef.current
-          ? `Cancelled — ${total} posts analyzed.`
-          : `Done! ${total} posts analyzed.`,
-        'success'
-      );
-      await loadData();
-    } catch {
-      setStatus('Analysis failed.', 'error');
-    } finally {
-      setAnalyzing(false);
-      cancelRef.current = false;
-    }
-  };
-
-  const handleCancelAnalyze = () => {
-    cancelRef.current = true;
-    setStatus('Cancelling after current batch…');
-  };
-
   // Manual digest trigger — one cheap request that summarizes every post tracked
   // since the last brief. The route's in-flight gate (409) guards double-spend.
+  // Status is tagged 'digest' so the pill anchors under the Brief button.
   const handleDigest = async () => {
     if (digesting) return;
     setDigesting(true);
-    setStatus('Compiling the brief…');
+    setStatus('Compiling the brief…', 'info', 'digest');
     try {
       const res = await fetch('/api/digest', { method: 'POST' });
       const data = await res.json();
-      if (data.error) { setStatus(data.error, 'error'); return; }
-      if (!data.digest) { setStatus(data.message || 'No new posts to summarize.', 'info'); return; }
+      if (data.error) { setStatus(data.error, 'error', 'digest'); return; }
+      if (!data.digest) { setStatus(data.message || 'No new posts to summarize.', 'info', 'digest'); return; }
       setDigest(data.digest);
-      setStatus(`Brief compiled — ${data.digest.items?.length ?? 0} highlights.`, 'success');
+      setStatus(`Brief compiled — ${data.digest.items?.length ?? 0} highlights.`, 'success', 'digest');
     } catch {
-      setStatus('Failed to compile the brief.', 'error');
+      setStatus('Failed to compile the brief.', 'error', 'digest');
     } finally {
       setDigesting(false);
     }
@@ -226,6 +191,14 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
   const analystByAuthor = new Map(analysts.map((a) => [authorKey(a), a]));
   const selectedAnalyst = analysts.find((a) => a.id === analystFilter);
   const selectedAuthor = selectedAnalyst ? authorKey(selectedAnalyst) : null;
+
+  // post_id → author key, so the digest can resolve a byline even for older
+  // digests whose items predate the stored `author` field.
+  const authorByPost = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const t of tweets) m[t.id] = t.author;
+    return m;
+  }, [tweets]);
 
   // Platforms tracked across the active roster. The platform filter is only
   // worth showing when more than one platform is in play (e.g. X + Truth
@@ -294,16 +267,14 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
         edition={initial.edition}
         dateStr={initial.dateStr}
         fetching={fetching}
-        analyzing={analyzing}
         digesting={digesting}
         loading={loading}
         onFetch={handleFetch}
-        onAnalyze={handleAnalyze}
         onDigest={handleDigest}
-        onCancel={handleCancelAnalyze}
         onRefresh={loadData}
         statusMsg={statusMsg}
         statusType={statusType}
+        statusSource={statusSource}
         theme={theme}
         onToggleTheme={toggleTheme}
       />
@@ -315,6 +286,8 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
         <DailyDigest
           digest={digest}
           stats={stats}
+          analysts={analysts}
+          authorByPost={authorByPost}
           onTicker={setActiveTicker}
           onRegenerate={handleDigest}
           regenerating={digesting}

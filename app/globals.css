@@ -340,19 +340,33 @@ button:disabled { cursor: not-allowed; }
   display: flex; flex-direction: column; gap: 18px;
 }
 .digest-item { display: flex; gap: 12px; align-items: flex-start; }
-.digest-dot { margin-top: 7px; flex-shrink: 0; }
+.digest-dot { margin-top: 9px; flex-shrink: 0; }
 .digest-item-body { min-width: 0; }
+/* Byline — small monogram + name, always on its own line above the headline. */
+.digest-byline { display: flex; width: fit-content; align-items: center; gap: 7px; margin-bottom: 6px; }
+.digest-mono {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 3px;
+  background: var(--ink); color: var(--paper);
+  font-family: var(--font-mono); font-size: 9px; font-weight: 600; line-height: 1;
+}
+.digest-byline-name {
+  font-family: var(--font-sans); font-size: 10.5px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-3);
+}
 .digest-item-headline {
   font-family: var(--font-serif); font-size: 18px; line-height: 1.25;
-  color: var(--ink); text-decoration: none; display: inline-flex;
-  align-items: baseline; gap: 10px; flex-wrap: wrap;
+  color: var(--ink); text-decoration: none; display: inline-block;
 }
 .digest-item-headline:hover { color: var(--accent); }
+/* "Top story" flag — always its own line beneath the headline. */
+.digest-flag-row { margin-top: 7px; }
 .digest-flag {
+  display: inline-block;
   font-family: var(--font-sans); font-size: 9px; letter-spacing: 0.08em;
   text-transform: uppercase; color: var(--accent);
   border: 1px solid color-mix(in oklab, var(--accent) 40%, transparent);
-  border-radius: 3px; padding: 1px 5px; transform: translateY(-1px);
+  border-radius: 3px; padding: 2px 6px;
 }
 .digest-item-blurb {
   font-family: var(--font-serif); font-size: 14.5px; line-height: 1.5;

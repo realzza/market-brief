@@ -130,6 +130,7 @@ export async function buildDigest(window: { start: string; end: string }): Promi
     // Newest-first already; trim to the cap so the request stays bounded.
     const posts = allPosts.slice(0, MAX_POSTS);
     const validIds = new Set(posts.map((p) => p.id));
+    const postById = new Map(posts.map((p) => [p.id, p]));
 
     const postList = posts
       .map(
@@ -180,8 +181,10 @@ export async function buildDigest(window: { start: string; end: string }): Promi
       .slice(0, MAX_ITEMS)
       .map((it) => {
         const sentiment = String(it.sentiment) as Sentiment;
+        const postId = it.post_id as string;
         return {
-          post_id: it.post_id as string,
+          post_id: postId,
+          author: postById.get(postId)?.author ?? '',
           headline: String(it.headline ?? '').trim(),
           blurb: String(it.blurb ?? '').trim(),
           sentiment: VALID_SENTIMENTS.has(sentiment) ? sentiment : 'neutral',
