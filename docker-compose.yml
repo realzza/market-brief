@@ -20,6 +20,7 @@ services:
     restart: unless-stopped
     depends_on:
       - rsshub
+      - truthsocial
 
     # Host:container — change PORT_HOST in .env (or export it) if 3737 is
     # taken. The container always listens on 3000 internally.
@@ -43,6 +44,10 @@ services:
       # If empty, lib/twitter.ts skips the RSSHub path and goes straight to
       # syndication. Set to "" in .env to disable RSSHub even if it's running.
       - RSSHUB_URL=${RSSHUB_URL-http://rsshub:1200}
+      # Truth Social fetch sidecar (internal DNS). If empty, lib/truthsocial.ts
+      # skips Truth Social entirely and tracked analysts are X-only. Set to ""
+      # in .env to disable even when the container is running.
+      - TRUTHSOCIAL_URL=${TRUTHSOCIAL_URL-http://truthsocial:8000}
 
     healthcheck:
       test:
@@ -81,6 +86,31 @@ services:
       - TWITTER_AUTH_TOKEN=${TWITTER_AUTH_TOKEN:-}
       - TWITTER_CONSUMER_KEY=${TWITTER_CONSUMER_KEY:-}
       - TWITTER_CONSUMER_SECRET=${TWITTER_CONSUMER_SECRET:-}
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # Truth Social fetch sidecar. Truth Social blocks plain server requests at
+  # the Cloudflare TLS-fingerprint layer, so this small Python service uses
+  # browser TLS impersonation (curl_cffi) to pull a tracked account's public
+  # posts and serves them as JSON on the internal network. No credentials
+  # needed for prominent public accounts (e.g. @realDonaldTrump). Internal-only;
+  # inspect with `docker compose exec truthsocial python -c "import urllib.request as u; print(u.urlopen('http://localhost:8000/healthz').read())"`.
+  truthsocial:
+    build:
+      context: ./truthsocial-sidecar
+      dockerfile: Dockerfile
+    image: serenity-truthsocial:latest
+    container_name: serenity-truthsocial
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ:-UTC}
+      # Newest-first Chrome TLS impersonation targets; the first that clears
+      # Cloudflare wins. Bump if Truth Social's Cloudflare starts blocking.
+      - TS_IMPERSONATE=${TS_IMPERSONATE:-chrome146,chrome136,chrome131,chrome124,chrome120}
+      - TS_CACHE_TTL=${TS_CACHE_TTL:-300}
     logging:
       driver: json-file
       options:

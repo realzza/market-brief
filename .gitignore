@@ -43,3 +43,8 @@ next-env.d.ts
 
 # SQLite database
 data/
+
+# Truth Social sidecar (Python) — local venv / caches
+truthsocial-sidecar/.venv/
+__pycache__/
+*.pyc

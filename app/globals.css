@@ -455,8 +455,20 @@ button:disabled { cursor: not-allowed; }
 .article-rail .article-source .at {
   font-family: var(--font-mono); font-size: 10px; color: var(--ink-4);
 }
+/* Source platform marker — a quiet uppercase tag so a merged feed (e.g. Trump
+   on both X and Truth Social) reads at a glance without shouting. */
+.article-rail .article-source .platform {
+  display: inline-flex; align-items: center; align-self: flex-start;
+  margin-top: 3px; padding: 1px 6px;
+  font-family: var(--font-mono); font-size: 9px; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-4);
+  border: 1px solid var(--rule); border-radius: 999px;
+}
+.article-rail .article-source .platform.is-truth { color: var(--ink-3); }
 @media (max-width: 700px) {
   .article-rail .article-source { flex-direction: row; align-items: baseline; gap: 6px; }
+  .article-rail .article-source .platform { margin-top: 0; }
 }
 .article-rail .sentiment-tag {
   display: inline-flex; align-items: center; gap: 6px;

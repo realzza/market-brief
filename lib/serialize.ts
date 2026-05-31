@@ -3,7 +3,7 @@
 // load. Keeping the mapping in one place stops the two surfaces from drifting
 // (e.g. one forgetting to JSON.parse a new column).
 
-import type { StoredTweet, Sentiment } from './types';
+import type { StoredTweet, Sentiment, Platform } from './types';
 
 export function serializeTweetRow(row: Record<string, unknown>): StoredTweet {
   const hasAnalysis = row.sentiment !== null && row.sentiment !== undefined;
@@ -17,6 +17,7 @@ export function serializeTweetRow(row: Record<string, unknown>): StoredTweet {
     text: String(row.text ?? ''),
     created_at: String(row.created_at),
     author: String(row.author ?? ''),
+    platform: (row.platform === 'truthsocial' ? 'truthsocial' : 'x') as Platform,
     like_count: Number(row.like_count ?? 0),
     retweet_count: Number(row.retweet_count ?? 0),
     reply_count: Number(row.reply_count ?? 0),

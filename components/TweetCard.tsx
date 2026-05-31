@@ -194,7 +194,14 @@ export default function TweetCard({ tweet, serial, source, onAnalyzed }: Props) 
   // Prefer the configured handle; fall back to the stored author key so the
   // link still resolves for tweets from a now-deconfigured analyst.
   const handle = source?.handle ?? tweet.author;
-  const tweetUrl = `https://x.com/${handle}/status/${tweet.id}`;
+  // One analyst can span X + Truth Social, so the per-post platform decides the
+  // permalink and the "View on …" label / source marker.
+  const isTruth = tweet.platform === 'truthsocial';
+  const tsHandle = source?.truthSocial ?? handle;
+  const platformLabel = isTruth ? 'Truth Social' : 'X';
+  const tweetUrl = isTruth
+    ? `https://truthsocial.com/@${tsHandle}/${tweet.id}`
+    : `https://x.com/${handle}/status/${tweet.id}`;
 
   async function runAnalysis() {
     setBusy(true);
@@ -236,9 +243,10 @@ export default function TweetCard({ tweet, serial, source, onAnalyzed }: Props) 
           </span>
 
           {handle && (
-            <span className="article-source" title={`@${handle}`}>
+            <span className="article-source" title={`@${isTruth ? tsHandle : handle}`}>
               <span className="name">{source?.name ?? `@${handle}`}</span>
-              <span className="at">@{handle}</span>
+              <span className="at">@{isTruth ? tsHandle : handle}</span>
+              <span className={`platform ${isTruth ? 'is-truth' : 'is-x'}`}>{platformLabel}</span>
             </span>
           )}
 
@@ -413,7 +421,7 @@ export default function TweetCard({ tweet, serial, source, onAnalyzed }: Props) 
             )}
 
             <a className="external" href={tweetUrl} target="_blank" rel="noopener noreferrer">
-              View on X<Icon name="external" size={11} />
+              View on {platformLabel}<Icon name="external" size={11} />
             </a>
           </div>
         </div>
