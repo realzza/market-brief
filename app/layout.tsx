@@ -20,8 +20,8 @@ const newsreader = Newsreader({
 });
 
 export const metadata: Metadata = {
-  title: "The Serenity Brief — @aleabitoreddit Analysis",
-  description: "Editorial AI analysis of @aleabitoreddit's market commentary",
+  title: "The Market Brief — Multi-Analyst AI Analysis",
+  description: "Editorial AI analysis of tracked market voices' commentary",
 };
 
 export default function RootLayout({

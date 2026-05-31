@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { StoredTweet, TickerMention, TradeSignal } from '@/lib/types';
+import { StoredTweet, TickerMention, TradeSignal, Analyst } from '@/lib/types';
 import { domainColor } from '@/lib/domainConfig';
 import { fmtCompact, fmtDate, fmtPrice, filterValidTickers } from '@/lib/format';
 import { renderWithTickers, renderRichSummary } from '@/lib/richText';
@@ -11,6 +11,9 @@ import TickerModal from './TickerModal';
 interface Props {
   tweet: StoredTweet;
   serial: number;
+  // Resolved analyst metadata for this tweet's author. Absent when the tweet's
+  // author isn't in the active config — we fall back to the bare handle.
+  source?: Analyst;
   onAnalyzed?: () => void;
 }
 
@@ -157,13 +160,16 @@ const SENTIMENT_TEXT: Record<string, string> = {
 };
 
 // ─── Main card ───────────────────────────────────────────────────────────────
-export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
+export default function TweetCard({ tweet, serial, source, onAnalyzed }: Props) {
   const [busy, setBusy] = useState(false);
   const [activeTicker, setActiveTicker] = useState<string | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [question, setQuestion] = useState('');
   const a = tweet.analysis;
-  const tweetUrl = `https://x.com/aleabitoreddit/status/${tweet.id}`;
+  // Prefer the configured handle; fall back to the stored author key so the
+  // link still resolves for tweets from a now-deconfigured analyst.
+  const handle = source?.handle ?? tweet.author;
+  const tweetUrl = `https://x.com/${handle}/status/${tweet.id}`;
 
   async function runAnalysis() {
     setBusy(true);
@@ -203,6 +209,13 @@ export default function TweetCard({ tweet, serial, onAnalyzed }: Props) {
               {formatDistanceToNow(new Date(tweet.created_at), { addSuffix: true })}
             </span>
           </span>
+
+          {handle && (
+            <span className="article-source" title={`@${handle}`}>
+              <span className="name">{source?.name ?? `@${handle}`}</span>
+              <span className="at">@{handle}</span>
+            </span>
+          )}
 
           {a && (
             <span className={`sentiment-tag ${SENTIMENT_TEXT[a.sentiment] ?? 'text-ink-3'}`}>

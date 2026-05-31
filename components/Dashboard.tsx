@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { StoredTweet, DashboardStats, PerformanceEntry, Domain } from '@/lib/types';
+import { StoredTweet, DashboardStats, PerformanceEntry, Domain, Analyst } from '@/lib/types';
+import { authorKey } from '@/lib/analysts';
 import { getFeaturedTweet } from '@/lib/featured';
 import { useTheme } from '@/hooks/useTheme';
 import Masthead from '@/components/Masthead';
@@ -32,11 +33,13 @@ export interface DashboardInitial {
   stats: DashboardStats | null;
   timeline: TimelinePoint[];
   performance: PerformanceEntry[];
+  analysts: Analyst[];
   edition: number;
   dateStr: string;
   tab: Tab;
   sentiment: SentimentFilter;
   domain: string;
+  analyst: string; // 'all' or an analyst id
 }
 
 const SENTIMENT_FILTERS: Array<{ id: SentimentFilter; label: string; dot: string }> = [
@@ -69,6 +72,7 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
   const [activeTab,   setActiveTab]   = useState<Tab>(initial.tab);
   const [sentimentFilter, setSentimentFilter] = useState<SentimentFilter>(initial.sentiment);
   const [domainFilter,    setDomainFilter]    = useState<string>(initial.domain);
+  const [analystFilter,   setAnalystFilter]   = useState<string>(initial.analyst);
   const [activeTicker,    setActiveTicker]    = useState<string | null>(null);
   const [loading,    setLoading]    = useState(false);
   const [analyzing,  setAnalyzing]  = useState(false);
@@ -190,13 +194,22 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
     new Set(tweets.flatMap((t) => t.analysis?.domains ?? []))
   ).sort();
 
+  // Analyst lookups. `analystByAuthor` resolves a tweet's stored author key to
+  // its display metadata (for the per-card source label); `selectedAuthor` is
+  // the author key the analyst filter is pinned to, or null for "All".
+  const analysts = initial.analysts;
+  const analystByAuthor = new Map(analysts.map((a) => [authorKey(a.handle), a]));
+  const selectedAnalyst = analysts.find((a) => a.id === analystFilter);
+  const selectedAuthor = selectedAnalyst ? authorKey(selectedAnalyst.handle) : null;
+
   const filteredTweets = tweets.filter((t) => {
     const sentOk =
       sentimentFilter === 'all'     ? true :
       sentimentFilter === 'signals' ? !!t.analysis?.is_trade_call :
       t.analysis?.sentiment === sentimentFilter;
     const domainOk = !domainFilter || (t.analysis?.domains ?? []).includes(domainFilter as Domain);
-    return sentOk && domainOk;
+    const analystOk = !selectedAuthor || t.author === selectedAuthor;
+    return sentOk && domainOk && analystOk;
   });
 
   const featured = getFeaturedTweet(tweets);
@@ -231,15 +244,21 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
     } else {
       next.delete('domain');
     }
+    if (activeTab === 'feed' && analystFilter !== 'all') {
+      next.set('analyst', analystFilter);
+    } else {
+      next.delete('analyst');
+    }
     const qs = next.toString();
     if (qs !== window.location.search.replace(/^\?/, '')) {
       router.replace(qs ? `/?${qs}` : '/', { scroll: false });
     }
-  }, [activeTab, sentimentFilter, domainFilter, router]);
+  }, [activeTab, sentimentFilter, domainFilter, analystFilter, router]);
 
   return (
     <>
       <Masthead
+        analysts={analysts}
         edition={initial.edition}
         dateStr={initial.dateStr}
         fetching={fetching}
@@ -298,6 +317,28 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
         {activeTab === 'feed' && (
           <>
             <div className="filters">
+              {analysts.length > 1 && (
+                <span className="filter-group">
+                  <button
+                    className={`chip ${analystFilter === 'all' ? 'is-active' : ''}`}
+                    onClick={() => { setAnalystFilter('all'); setDisplayCount(20); }}
+                  >
+                    All sources
+                  </button>
+                  {analysts.map((an) => (
+                    <button
+                      key={an.id}
+                      className={`chip ${analystFilter === an.id ? 'is-active' : ''}`}
+                      onClick={() => { setAnalystFilter(an.id); setDisplayCount(20); }}
+                      title={`@${an.handle}`}
+                    >
+                      {an.name}
+                    </button>
+                  ))}
+                  <span className="filter-divider" aria-hidden />
+                </span>
+              )}
+
               {SENTIMENT_FILTERS.map((f) => (
                 <button
                   key={f.id}
@@ -354,6 +395,7 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
                       key={tweet.id}
                       tweet={tweet}
                       serial={tweets.length - i}
+                      source={analystByAuthor.get(tweet.author)}
                       onAnalyzed={loadData}
                     />
                   ))}
@@ -410,7 +452,7 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
 
         <footer className="footer">
           <div className="colophon">Compiled with care · Set in Newsreader &amp; Geist</div>
-          <div>The Serenity Brief · {new Date().getFullYear()}</div>
+          <div>The Market Brief · {new Date().getFullYear()}</div>
         </footer>
       </div>
 
