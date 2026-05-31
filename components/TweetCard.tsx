@@ -81,21 +81,31 @@ function TweetText({ text, onTicker }: { text: string; onTicker: (t: string) => 
 // playable mp4 URL, photos as an image URL. Distinguish by URL so each slot
 // renders the right element.
 function isVideoUrl(url: string): boolean {
-  return /\.mp4(?:$|\?)/i.test(url) || url.includes('video.twimg.com');
+  return /\.mp4(?:$|[?#])/i.test(url) || url.includes('video.twimg.com');
+}
+
+// The poster thumbnail rides along in a `#poster=<encoded>` URL fragment
+// (see lib/twitter.ts) so the flat media_urls list still holds one string per
+// item. Fragments are never sent to the network, so the mp4 src stays clean.
+function splitVideoUrl(url: string): { src: string; poster?: string } {
+  const i = url.indexOf('#poster=');
+  if (i === -1) return { src: url };
+  return { src: url.slice(0, i), poster: decodeURIComponent(url.slice(i + 8)) };
 }
 
 // One media slot — a player for videos, a click-through image otherwise.
 function MediaSlot({ url, alt, className = '' }: { url: string; alt: string; className?: string }) {
   if (isVideoUrl(url)) {
+    const { src, poster } = splitVideoUrl(url);
     return (
       <div className={`media-slot ${className}`}>
         {/* Playback depends on the page-level `same-origin` referrer policy
             (see app/layout.tsx metadata): video.twimg.com hotlink protection
             403s a cross-site Referer but serves requests with none, and
             <video> doesn't honor a per-element referrerpolicy attribute.
-            preload=metadata shows the first frame as a poster without pulling
-            the whole file; controls + playsInline keep it on-page. */}
-        <video src={url} controls preload="metadata" playsInline />
+            The poster paints immediately (preload=metadata alone shows black);
+            controls + playsInline keep it on-page. */}
+        <video src={src} poster={poster} controls preload="metadata" playsInline />
       </div>
     );
   }

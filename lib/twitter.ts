@@ -73,10 +73,17 @@ function toRawTweet(t: SyndicationTweet): RawTweet {
   text = decodeHtmlEntities(text);
 
   // Photos contribute their image URL; videos / GIFs contribute a playable
-  // mp4 URL. Both land in the flat media_urls list — the card distinguishes
-  // them by URL (see isVideoUrl in TweetCard) and renders <video> vs <img>.
+  // mp4 URL with the poster thumbnail carried in a `#poster=` fragment so the
+  // card can paint a frame before any video data loads (preload=metadata shows
+  // black otherwise). Both land in the flat media_urls list — the card
+  // distinguishes them by URL (see isVideoUrl in TweetCard).
   const media = (t.extended_entities?.media ?? t.entities?.media ?? [])
-    .map((m) => (m.type === 'photo' ? m.media_url_https : bestVideoUrl(m)))
+    .map((m) => {
+      if (m.type === 'photo') return m.media_url_https;
+      const mp4 = bestVideoUrl(m);
+      if (!mp4) return null;
+      return m.media_url_https ? `${mp4}#poster=${encodeURIComponent(m.media_url_https)}` : mp4;
+    })
     .filter((u): u is string => !!u);
 
   return {
