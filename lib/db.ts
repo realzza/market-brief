@@ -67,7 +67,13 @@ function initSchema(db: Database.Database) {
     );
 
     CREATE INDEX IF NOT EXISTS idx_tweets_created ON tweets(created_at DESC);
-    CREATE INDEX IF NOT EXISTS idx_tweets_author ON tweets(author);
+    -- NOTE: the idx_tweets_author index is intentionally NOT created here.
+    -- initSchema runs before migrate(), and on a pre-existing database the
+    -- CREATE TABLE above is a no-op so it will not add the author column to an
+    -- existing table. Indexing tweets(author) here would throw no such
+    -- column author and abort getDb() before migrate() can add it. The
+    -- index is created in migrate() instead, after the column is guaranteed
+    -- to exist.
     CREATE INDEX IF NOT EXISTS idx_analysis_sentiment ON tweet_analysis(sentiment);
     CREATE INDEX IF NOT EXISTS idx_performance_outcome ON performance(outcome);
     -- Required for upsertPerformance's "ON CONFLICT DO NOTHING" to actually
