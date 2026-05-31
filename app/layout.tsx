@@ -22,6 +22,10 @@ const newsreader = Newsreader({
 export const metadata: Metadata = {
   title: "The Market Brief — Multi-Analyst AI Analysis",
   description: "Editorial AI analysis of tracked market voices' commentary",
+  // video.twimg.com 403s any cross-site Referer (hotlink protection) but
+  // serves requests that send none. `same-origin` keeps the Referer for our
+  // own requests and strips it cross-origin, so embedded tweet videos play.
+  referrer: "same-origin",
 };
 
 export default function RootLayout({

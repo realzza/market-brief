@@ -30,11 +30,34 @@ interface SyndicationTweet {
   reply_count?: number;
   retweeted?: boolean;
   in_reply_to_status_id_str?: string;
-  extended_entities?: { media?: Array<{ media_url_https: string; type: string }> };
+  extended_entities?: { media?: SyndicationMedia[] };
   entities?: {
-    media?: Array<{ media_url_https: string; type: string }>;
+    media?: SyndicationMedia[];
     urls?: Array<{ url: string; expanded_url: string; display_url: string }>;
   };
+}
+
+interface SyndicationMedia {
+  media_url_https: string;
+  type: string; // 'photo' | 'video' | 'animated_gif'
+  video_info?: {
+    variants?: Array<{ bitrate?: number; content_type?: string; url?: string }>;
+  };
+}
+
+// Pick a single playable mp4 for a video/gif media item. Twitter offers
+// several bitrates plus an HLS (.m3u8) variant; native <video> can't play
+// HLS without a library, so we take the highest-bitrate mp4 at or below a
+// feed-friendly cap (avoids pulling a 25 Mbps 4K file into the timeline).
+function bestVideoUrl(media: SyndicationMedia): string | null {
+  const mp4s = (media.video_info?.variants ?? []).filter(
+    (v): v is { bitrate?: number; content_type: string; url: string } =>
+      v.content_type === 'video/mp4' && !!v.url,
+  );
+  if (mp4s.length === 0) return null;
+  const capped = mp4s.filter((v) => (v.bitrate ?? 0) <= 2_500_000);
+  const pool = capped.length > 0 ? capped : mp4s;
+  return pool.reduce((best, v) => ((v.bitrate ?? 0) > (best.bitrate ?? 0) ? v : best)).url;
 }
 
 function toRawTweet(t: SyndicationTweet): RawTweet {
@@ -49,9 +72,12 @@ function toRawTweet(t: SyndicationTweet): RawTweet {
   text = text.replace(/https:\/\/t\.co\/\S+/g, '').trim();
   text = decodeHtmlEntities(text);
 
+  // Photos contribute their image URL; videos / GIFs contribute a playable
+  // mp4 URL. Both land in the flat media_urls list — the card distinguishes
+  // them by URL (see isVideoUrl in TweetCard) and renders <video> vs <img>.
   const media = (t.extended_entities?.media ?? t.entities?.media ?? [])
-    .filter((m) => m.type === 'photo')
-    .map((m) => m.media_url_https);
+    .map((m) => (m.type === 'photo' ? m.media_url_https : bestVideoUrl(m)))
+    .filter((u): u is string => !!u);
 
   return {
     id: t.id_str,
@@ -104,10 +130,10 @@ function stripHtml(html: string): string {
     .trim();
 }
 
-function extractImages(item: JsonFeedItem): string[] {
+function extractMedia(item: JsonFeedItem): string[] {
   const urls = new Set<string>();
   for (const a of item.attachments ?? []) {
-    if (a.url && (!a.mime_type || a.mime_type.startsWith('image/'))) {
+    if (a.url && (!a.mime_type || a.mime_type.startsWith('image/') || a.mime_type.startsWith('video/'))) {
       urls.add(decodeHtmlEntities(a.url));
     }
   }
@@ -116,6 +142,10 @@ function extractImages(item: JsonFeedItem): string[] {
       // CRITICAL: RSSHub's HTML keeps URLs HTML-encoded (& → &amp;). Twitter
       // image URLs always have a query string with at least one &, so a raw
       // copy of the src attribute yields a 404. Decode entities to recover.
+      urls.add(decodeHtmlEntities(m[1]));
+    }
+    // <video src="…"> and nested <source src="…"> both carry the playable URL.
+    for (const m of item.content_html.matchAll(/<(?:video|source)[^>]+src="([^"]+)"/g)) {
       urls.add(decodeHtmlEntities(m[1]));
     }
   }
@@ -146,7 +176,7 @@ async function fetchFromRSSHub(username: string): Promise<RawTweet[]> {
       text,
       created_at: new Date(item.date_published ?? Date.now()).toISOString(),
       public_metrics: { like_count: 0, retweet_count: 0, reply_count: 0, impression_count: 0 },
-      media_urls: extractImages(item),
+      media_urls: extractMedia(item),
     });
   }
   return tweets;
