@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { StoredTweet, TickerMention, TradeSignal, Analyst, LinkCard } from '@/lib/types';
 import { domainColor } from '@/lib/domainConfig';
 import { fmtCompact, fmtDate, fmtPrice, filterValidTickers } from '@/lib/format';
@@ -93,8 +93,15 @@ function splitVideoUrl(url: string): { src: string; poster?: string } {
   return { src: url.slice(0, i), poster: decodeURIComponent(url.slice(i + 8)) };
 }
 
-// One media slot — a player for videos, a click-through image otherwise.
-function MediaSlot({ url, alt, className = '' }: { url: string; alt: string; className?: string }) {
+// One media slot — a player for videos, an image that opens the in-page
+// lightbox otherwise. `onOpen` is called with the image's index into the
+// gallery's image list (videos don't participate in the lightbox).
+function MediaSlot({
+  url, alt, className = '', imageIndex, onOpen,
+}: {
+  url: string; alt: string; className?: string;
+  imageIndex?: number; onOpen?: (index: number) => void;
+}) {
   if (isVideoUrl(url)) {
     const { src, poster } = splitVideoUrl(url);
     return (
@@ -110,34 +117,129 @@ function MediaSlot({ url, alt, className = '' }: { url: string; alt: string; cla
     );
   }
   return (
-    <a href={url} target="_blank" rel="noopener noreferrer" className={`media-slot ${className}`}>
+    <button
+      type="button"
+      className={`media-slot is-image ${className}`}
+      onClick={() => onOpen?.(imageIndex ?? 0)}
+      aria-label="View image"
+    >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={url} alt={alt} loading="lazy" />
-    </a>
+    </button>
+  );
+}
+
+// ─── Lightbox ─────────────────────────────────────────────────────────────────
+// In-page image viewer. Clicking a feed image opens it full-size over a blurred
+// scrim; clicking the backdrop (or the ✕, or Escape) closes it. When a gallery
+// has multiple images, ◀ / ▶ and the arrow keys page between them.
+function Lightbox({
+  images, index, onClose, onNavigate,
+}: {
+  images: string[]; index: number;
+  onClose: () => void; onNavigate: (index: number) => void;
+}) {
+  const count = images.length;
+  const go = useCallback((dir: number) => {
+    onNavigate((index + dir + count) % count);
+  }, [index, count, onNavigate]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+      else if (e.key === 'ArrowLeft' && count > 1) go(-1);
+      else if (e.key === 'ArrowRight' && count > 1) go(1);
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose, go, count]);
+
+  return (
+    <div className="lightbox-scrim" onClick={onClose} role="dialog" aria-modal="true" aria-label="Image viewer">
+      <button className="lightbox-close" onClick={onClose} aria-label="Close">
+        <svg width={14} height={14} viewBox="0 0 16 16" fill="none" stroke="currentColor"
+          strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 3l10 10M13 3L3 13" />
+        </svg>
+      </button>
+
+      {count > 1 && (
+        <button
+          className="lightbox-nav prev"
+          onClick={(e) => { e.stopPropagation(); go(-1); }}
+          aria-label="Previous image"
+        >
+          <svg width={20} height={20} viewBox="0 0 16 16" fill="none" stroke="currentColor"
+            strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10 3L5 8l5 5" />
+          </svg>
+        </button>
+      )}
+
+      <figure className="lightbox-figure" onClick={(e) => e.stopPropagation()}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={images[index]} alt={`Image ${index + 1} of ${count}`} />
+        {count > 1 && <figcaption className="lightbox-count">{index + 1} / {count}</figcaption>}
+      </figure>
+
+      {count > 1 && (
+        <button
+          className="lightbox-nav next"
+          onClick={(e) => { e.stopPropagation(); go(1); }}
+          aria-label="Next image"
+        >
+          <svg width={20} height={20} viewBox="0 0 16 16" fill="none" stroke="currentColor"
+            strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 3l5 5-5 5" />
+          </svg>
+        </button>
+      )}
+    </div>
   );
 }
 
 // 1 → narrow solo · 2 → paired side-by-side · 3+ → horizontally scrollable
 // filmstrip with edge-fade gradients so the user can see content extends.
 function MediaGallery({ urls }: { urls: string[] }) {
+  // Only images open in the lightbox; videos play inline. Track each image's
+  // position within the image-only list so the slot's click opens the right one.
+  const imageUrls = urls.filter((u) => !isVideoUrl(u));
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const imageIndexOf = (url: string) => imageUrls.indexOf(url);
+
   const n = urls.length;
   if (n === 0) return null;
 
+  const lightbox = lightboxIndex !== null && (
+    <Lightbox
+      images={imageUrls}
+      index={lightboxIndex}
+      onClose={() => setLightboxIndex(null)}
+      onNavigate={setLightboxIndex}
+    />
+  );
+
   if (n === 1) {
     return (
-      <div className="article-media is-single">
-        <MediaSlot url={urls[0]} alt="media" />
-      </div>
+      <>
+        <div className="article-media is-single">
+          <MediaSlot url={urls[0]} alt="media" imageIndex={imageIndexOf(urls[0])} onOpen={setLightboxIndex} />
+        </div>
+        {lightbox}
+      </>
     );
   }
 
   if (n === 2) {
     return (
-      <div className="article-media is-multi">
-        {urls.map((url, i) => (
-          <MediaSlot key={i} url={url} alt={`media ${i + 1}`} />
-        ))}
-      </div>
+      <>
+        <div className="article-media is-multi">
+          {urls.map((url, i) => (
+            <MediaSlot key={i} url={url} alt={`media ${i + 1}`} imageIndex={imageIndexOf(url)} onOpen={setLightboxIndex} />
+          ))}
+        </div>
+        {lightbox}
+      </>
     );
   }
 
@@ -145,13 +247,16 @@ function MediaGallery({ urls }: { urls: string[] }) {
   // touch swipe) handles paging. The edge gradients are pure CSS via the
   // .strip-track mask in globals.css.
   return (
-    <div className="article-media is-strip">
-      <div className="strip-track" role="region" aria-label={`${n} items, scroll horizontally`}>
-        {urls.map((url, i) => (
-          <MediaSlot key={i} url={url} alt={`media ${i + 1} of ${n}`} className="strip-slot" />
-        ))}
+    <>
+      <div className="article-media is-strip">
+        <div className="strip-track" role="region" aria-label={`${n} items, scroll horizontally`}>
+          {urls.map((url, i) => (
+            <MediaSlot key={i} url={url} alt={`media ${i + 1} of ${n}`} className="strip-slot" imageIndex={imageIndexOf(url)} onOpen={setLightboxIndex} />
+          ))}
+        </div>
       </div>
-    </div>
+      {lightbox}
+    </>
   );
 }
 

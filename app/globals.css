@@ -633,6 +633,15 @@ button:disabled { cursor: not-allowed; }
   font-family: var(--font-mono); font-size: 11px; color: var(--ink-4); letter-spacing: 0.04em;
   overflow: hidden;
 }
+/* Image slots are <button>s that open the in-page lightbox — strip the native
+   button chrome so they read exactly like the old click-through anchor, then
+   hint the zoom affordance. */
+.media-slot.is-image {
+  appearance: none; padding: 0; margin: 0; width: 100%; font: inherit;
+  text-align: inherit; cursor: zoom-in;
+}
+.media-slot.is-image img { transition: transform 220ms ease; }
+.media-slot.is-image:hover img { transform: scale(1.025); }
 .media-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .media-slot video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; }
 .article-media.is-multi .media-slot { aspect-ratio: 4/3; }
@@ -1348,6 +1357,68 @@ button:disabled { cursor: not-allowed; }
 .price-chart-foot {
   display: flex; justify-content: center;
   margin-top: 8px; font-family: var(--font-mono); font-size: 10px; color: var(--ink-4);
+}
+
+/* ── Image lightbox ── */
+/* In-page viewer for feed images. Darker scrim than the ticker modal (an image
+   wants contrast, not a frosted card), but the same blur + fade-in family so it
+   feels of-a-piece. */
+.lightbox-scrim {
+  position: fixed; inset: 0; z-index: 70;
+  background: color-mix(in oklab, var(--ink) 82%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 48px; cursor: zoom-out;
+  animation: lightbox-in 160ms ease;
+}
+@keyframes lightbox-in { from { opacity: 0; } to { opacity: 1; } }
+.lightbox-figure {
+  margin: 0; max-width: min(1100px, 92vw); max-height: 88vh;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  cursor: default;
+}
+.lightbox-figure img {
+  max-width: 100%; max-height: 84vh; object-fit: contain;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 24px 70px color-mix(in oklab, var(--ink) 60%, transparent);
+}
+.lightbox-count {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--paper) 70%, transparent);
+}
+.lightbox-close {
+  position: fixed; top: 20px; right: 24px; z-index: 71;
+  width: 38px; height: 38px; border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--paper) 28%, transparent);
+  background: color-mix(in oklab, var(--ink) 40%, transparent);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: color-mix(in oklab, var(--paper) 80%, transparent);
+  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+.lightbox-close:hover {
+  color: var(--paper); border-color: var(--paper);
+  background: color-mix(in oklab, var(--ink) 60%, transparent);
+}
+.lightbox-nav {
+  position: fixed; top: 50%; transform: translateY(-50%); z-index: 71;
+  width: 44px; height: 44px; border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--paper) 24%, transparent);
+  background: color-mix(in oklab, var(--ink) 40%, transparent);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: color-mix(in oklab, var(--paper) 78%, transparent);
+  transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+.lightbox-nav:hover {
+  color: var(--paper); border-color: var(--paper);
+  background: color-mix(in oklab, var(--ink) 60%, transparent);
+}
+.lightbox-nav.prev { left: 24px; }
+.lightbox-nav.next { right: 24px; }
+@media (max-width: 700px) {
+  .lightbox-scrim { padding: 16px; }
+  .lightbox-nav { width: 38px; height: 38px; }
+  .lightbox-nav.prev { left: 8px; }
+  .lightbox-nav.next { right: 8px; }
 }
 
 /* ── Empty state ── */
