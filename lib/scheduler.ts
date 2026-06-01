@@ -41,6 +41,16 @@ export function getLastFetchAt(): number | null {
   return lastFetchAt;
 }
 
+// Epoch ms of the next scheduled digest fire (recomputed on demand — the same
+// math the daily timer arms with). Consumed by the /status health surface.
+export function getNextDigestAt(): number {
+  return Date.now() + msUntilNextDigest();
+}
+
+export function getDigestHour(): number {
+  return DIGEST_HOUR;
+}
+
 /**
  * Fetch latest tweets from syndication and upsert into the DB.
  *
