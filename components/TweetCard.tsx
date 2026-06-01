@@ -156,7 +156,7 @@ function Lightbox({
 
   return (
     <div className="lightbox-scrim" onClick={onClose} role="dialog" aria-modal="true" aria-label="Image viewer">
-      <button className="lightbox-close" onClick={onClose} aria-label="Close">
+      <button className="lightbox-close" onClick={(e) => { e.stopPropagation(); onClose(); }} aria-label="Close">
         <svg width={14} height={14} viewBox="0 0 16 16" fill="none" stroke="currentColor"
           strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 3l10 10M13 3L3 13" />
@@ -201,11 +201,14 @@ function Lightbox({
 // 1 → narrow solo · 2 → paired side-by-side · 3+ → horizontally scrollable
 // filmstrip with edge-fade gradients so the user can see content extends.
 function MediaGallery({ urls }: { urls: string[] }) {
-  // Only images open in the lightbox; videos play inline. Track each image's
-  // position within the image-only list so the slot's click opens the right one.
+  // Only images open in the lightbox; videos play inline. We map each gallery
+  // position to its index within the image-only list (videos get -1) by
+  // position rather than URL value, so a gallery repeating the same image URL
+  // still opens the slot the user actually clicked.
   const imageUrls = urls.filter((u) => !isVideoUrl(u));
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const imageIndexOf = (url: string) => imageUrls.indexOf(url);
+  let imgCursor = 0;
+  const imageIndexByPos = urls.map((u) => (isVideoUrl(u) ? -1 : imgCursor++));
 
   const n = urls.length;
   if (n === 0) return null;
@@ -223,7 +226,7 @@ function MediaGallery({ urls }: { urls: string[] }) {
     return (
       <>
         <div className="article-media is-single">
-          <MediaSlot url={urls[0]} alt="media" imageIndex={imageIndexOf(urls[0])} onOpen={setLightboxIndex} />
+          <MediaSlot url={urls[0]} alt="media" imageIndex={imageIndexByPos[0]} onOpen={setLightboxIndex} />
         </div>
         {lightbox}
       </>
@@ -235,7 +238,7 @@ function MediaGallery({ urls }: { urls: string[] }) {
       <>
         <div className="article-media is-multi">
           {urls.map((url, i) => (
-            <MediaSlot key={i} url={url} alt={`media ${i + 1}`} imageIndex={imageIndexOf(url)} onOpen={setLightboxIndex} />
+            <MediaSlot key={i} url={url} alt={`media ${i + 1}`} imageIndex={imageIndexByPos[i]} onOpen={setLightboxIndex} />
           ))}
         </div>
         {lightbox}
@@ -251,7 +254,7 @@ function MediaGallery({ urls }: { urls: string[] }) {
       <div className="article-media is-strip">
         <div className="strip-track" role="region" aria-label={`${n} items, scroll horizontally`}>
           {urls.map((url, i) => (
-            <MediaSlot key={i} url={url} alt={`media ${i + 1} of ${n}`} className="strip-slot" imageIndex={imageIndexOf(url)} onOpen={setLightboxIndex} />
+            <MediaSlot key={i} url={url} alt={`media ${i + 1} of ${n}`} className="strip-slot" imageIndex={imageIndexByPos[i]} onOpen={setLightboxIndex} />
           ))}
         </div>
       </div>
