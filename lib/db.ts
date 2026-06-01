@@ -518,6 +518,18 @@ export function saveDigest(digest: {
   return Number(info.lastInsertRowid);
 }
 
+/**
+ * When the most recent post-fetch wrote to the DB (max fetched_at). Durable and
+ * process-independent — unlike the scheduler's in-memory lastFetchAt, which in
+ * Next dev lives in a different module instance than the route reading it. Null
+ * before any post has been fetched.
+ */
+export function getLastFetchTime(): string | null {
+  const db = getDb();
+  const row = db.prepare('SELECT MAX(fetched_at) AS t FROM tweets').get() as { t: string | null };
+  return row.t ?? null;
+}
+
 /** The most recent digest, items parsed. Null when none have been generated. */
 export function getLatestDigest(): Digest | null {
   const db = getDb();
