@@ -200,10 +200,16 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
     return m;
   }, [tweets]);
 
-  // Platforms tracked across the active roster. The platform filter is only
-  // worth showing when more than one platform is in play (e.g. X + Truth
-  // Social) — a single-platform roster has nothing to filter.
-  const platforms = trackedPlatforms();
+  // Platform filter options. Scoped to the *selected* analyst when one is
+  // pinned — e.g. Serenity is X-only, so picking her must not offer "Truth
+  // Social". With "All sources" we fall back to the roster-wide union. The
+  // filter only shows when that scoped set has more than one platform.
+  const platforms: Platform[] = selectedAnalyst
+    ? ([
+        selectedAnalyst.platforms.x ? 'x' : null,
+        selectedAnalyst.platforms.truthsocial ? 'truthsocial' : null,
+      ].filter(Boolean) as Platform[])
+    : trackedPlatforms();
   const showPlatformFilter = platforms.length > 1;
 
   const filteredTweets = tweets.filter((t) => {
@@ -338,7 +344,7 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
                   <span className="select select-source">
                     <select
                       value={analystFilter}
-                      onChange={(e) => { setAnalystFilter(e.target.value); setDisplayCount(20); e.target.blur(); }}
+                      onChange={(e) => { setAnalystFilter(e.target.value); setPlatformFilter('all'); setDisplayCount(20); e.target.blur(); }}
                       aria-label="Filter by source"
                     >
                       <option value="all">All sources</option>
@@ -481,7 +487,11 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
 
         <footer className="footer">
           <div className="colophon">Compiled with care · Set in Newsreader &amp; Geist</div>
-          <div>The Market Brief · {new Date().getFullYear()}</div>
+          <div>
+            <a href="/status" className="footer-link">System status</a>
+            <span style={{ margin: '0 8px', color: 'var(--ink-4)' }}>·</span>
+            The Market Brief · {new Date().getFullYear()}
+          </div>
         </footer>
       </div>
 
