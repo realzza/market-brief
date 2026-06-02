@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Digest, DashboardStats, Analyst } from '@/lib/types';
 import { authorKey } from '@/lib/analysts';
 import { fmtDate, fmtTime, fmtSigned, sentimentLabel, isValidTicker } from '@/lib/format';
+import { IS_STATIC } from '@/lib/static';
 
 const SENTIMENT_DOT: Record<string, string> = {
   bullish: 'dot-bull', bearish: 'dot-bear', neutral: 'dot-neutral', mixed: 'dot-mixed',
@@ -53,16 +54,20 @@ export default function DailyDigest({ digest, stats, analysts, authorByPost, onT
               <span className="eyebrow text-ink-4">
                 {fmtDate(digest.generated_at)} · {fmtTime(digest.generated_at)} · {digest.post_count} posts
               </span>
-              <button
-                type="button"
-                className="digest-regen"
-                onClick={onRegenerate}
-                disabled={regenerating}
-                title="Summarize posts tracked since the last brief (no cost when there are none)"
-              >
-                {regenerating ? <span className="spinner-inline" /> : null}
-                {regenerating ? 'Compiling…' : 'Refresh'}
-              </button>
+              {/* Recompile hits POST /api/digest — no backend in the static
+                  export, so the baked brief is read-only there. */}
+              {!IS_STATIC && (
+                <button
+                  type="button"
+                  className="digest-regen"
+                  onClick={onRegenerate}
+                  disabled={regenerating}
+                  title="Summarize posts tracked since the last brief (no cost when there are none)"
+                >
+                  {regenerating ? <span className="spinner-inline" /> : null}
+                  {regenerating ? 'Compiling…' : 'Refresh'}
+                </button>
+              )}
             </div>
 
             <h2 className="brief-headline">{digest.headline}</h2>

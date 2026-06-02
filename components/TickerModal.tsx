@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { fmtPrice, fmtCompact } from '@/lib/format';
+import { IS_STATIC } from '@/lib/static';
 
 interface ClosePoint { t: string; c: number }
 interface QuoteData {
@@ -180,11 +181,19 @@ function PriceChart({ points, intraday }: { points: ClosePoint[]; intraday: bool
   );
 }
 
+// Live quotes come from /api/quote (Yahoo) — absent in the static export. The
+// error is ticker-independent, so a module constant lets us seed state without
+// a setState-in-effect (the modal instance is reused across tickers).
+const STATIC_QUOTE: QuoteData = {
+  ticker: '', closes: [], intraday: [], performance: {},
+  error: 'Live market data is off in the static edition.',
+};
+
 // ── Main modal ────────────────────────────────────────────────────────────────
 export default function TickerModal({ ticker, onClose }: Props) {
-  const [data, setData] = useState<QuoteData | null>(null);
+  const [data, setData] = useState<QuoteData | null>(IS_STATIC ? STATIC_QUOTE : null);
   const [loadedTicker, setLoadedTicker] = useState('');
-  const loading = loadedTicker !== ticker;
+  const loading = !IS_STATIC && loadedTicker !== ticker;
   const [activePeriod, setActivePeriod] = useState('3M');
 
   useEffect(() => {
@@ -194,6 +203,7 @@ export default function TickerModal({ ticker, onClose }: Props) {
   }, [onClose]);
 
   useEffect(() => {
+    if (IS_STATIC) return; // static export shows STATIC_QUOTE, never fetches
     fetch(`/api/quote?ticker=${encodeURIComponent(ticker)}`)
       .then((r) => r.json())
       .then((d: QuoteData) => { setData(d); setLoadedTicker(ticker); })

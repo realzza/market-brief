@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef } from 'react';
 import type { Analyst } from '@/lib/types';
+import { IS_STATIC } from '@/lib/static';
 
 interface Props {
   analysts: Analyst[];
@@ -106,30 +107,38 @@ export default function Masthead({
                 <span ref={pillRef} className={`status-pill ${pillCls}`}>{statusMsg}</span>
               )}
 
-              <button
-                ref={fetchRef}
-                className="btn"
-                onClick={onFetch}
-                disabled={fetching}
-              >
-                <Icon name="download" size={13} />
-                {fetching ? 'Fetching…' : 'Fetch'}
-              </button>
+              {/* Fetch / Brief / Refresh all hit backend routes — hidden in
+                  the static export, which has no server. The daily brief is
+                  baked into the page at build time, so visitors still see it;
+                  they just can't trigger a new fetch or recompile. */}
+              {!IS_STATIC && (
+                <>
+                  <button
+                    ref={fetchRef}
+                    className="btn"
+                    onClick={onFetch}
+                    disabled={fetching}
+                  >
+                    <Icon name="download" size={13} />
+                    {fetching ? 'Fetching…' : 'Fetch'}
+                  </button>
 
-              <button
-                ref={briefRef}
-                className="btn btn-primary"
-                onClick={onDigest}
-                disabled={digesting}
-                title="Compile the Morning Wire digest from posts tracked since the last brief"
-              >
-                <Icon name="brief" size={13} />
-                {digesting ? 'Compiling…' : 'Brief'}
-              </button>
+                  <button
+                    ref={briefRef}
+                    className="btn btn-primary"
+                    onClick={onDigest}
+                    disabled={digesting}
+                    title="Compile the Morning Wire digest from posts tracked since the last brief"
+                  >
+                    <Icon name="brief" size={13} />
+                    {digesting ? 'Compiling…' : 'Brief'}
+                  </button>
 
-              <button className="btn btn-icon" onClick={onRefresh} title="Refresh" disabled={loading}>
-                <Icon name="refresh" size={13} />
-              </button>
+                  <button className="btn btn-icon" onClick={onRefresh} title="Refresh" disabled={loading}>
+                    <Icon name="refresh" size={13} />
+                  </button>
+                </>
+              )}
 
               <button className="btn btn-icon" onClick={onToggleTheme} title="Toggle theme">
                 <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={13} />

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fmtDate, fmtPrice, fmtPct } from '@/lib/format';
+import { IS_STATIC } from '@/lib/static';
 
 interface PerformanceEntry {
   id: number;
@@ -115,13 +116,18 @@ interface QuoteShape {
 // fall back to the 1-year daily series.
 const INTRADAY_DAYS = 5;
 
+// Price charts come from /api/quote (Yahoo) — no backend in the static export.
+// Seed state with the error (ticker-independent) so we never fetch there.
+const STATIC_CHART: QuoteShape = { error: 'Live price charts are off in the static edition.' };
+
 function PositionChart({ position }: { position: Position }) {
-  const [data, setData] = useState<QuoteShape | null>(null);
+  const [data, setData] = useState<QuoteShape | null>(IS_STATIC ? STATIC_CHART : null);
   const [errored, setErrored] = useState(false);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
 
   useEffect(() => {
+    if (IS_STATIC) return; // static export shows STATIC_CHART, never fetches
     let cancelled = false;
     fetch(`/api/quote?ticker=${encodeURIComponent(position.asset)}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
