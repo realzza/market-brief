@@ -513,7 +513,7 @@ export default function PerformanceDashboard({ entries, onTicker }: Props) {
 
   const cells = [
     { label: 'Positions', v: positions.length,    sub: `${open} open · ${closed} closed`,  bar: 100,                                              trend: 'accent'                      },
-    { label: 'Win rate',  v: winRate + '%',       sub: `${liveWins} winning · ${liveLosses} losing`,  bar: winRate,                               trend: 'bull'                        },
+    { label: 'Win rate',  v: decided > 0 ? winRate + '%' : '—',  sub: `${liveWins} winning · ${liveLosses} losing`,  bar: winRate,                trend: 'bull'                        },
     { label: 'Avg return',v: fmtPct(avgRet, 2),   sub: 'Across all positions',             bar: Math.min(100, Math.abs(avgRet) * 8),               trend: avgRet >= 0 ? 'bull' : 'bear' },
     { label: 'Open',      v: open,                sub: 'Still tracking',                   bar: positions.length ? (open / positions.length) * 100 : 0, trend: 'neutral'                  },
   ];
