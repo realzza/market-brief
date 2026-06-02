@@ -28,11 +28,15 @@ const MAX_ITEMS = 12;
 
 // Output ceiling. The brief now also returns a compact one-line classification
 // for EVERY post in the window (not just the ranked items) so the batch can
-// feed the market-mood gauge — see `classifications` below. At the 500-post cap
-// that's ~10k tokens of compact JSON on top of the ~2k editorial body, so the
-// budget is raised well above the old 4096. We only pay for tokens actually
-// produced; the ceiling just has to be high enough not to truncate the JSON.
-const MAX_OUTPUT_TOKENS = 16384;
+// feed the market-mood gauge — see `classifications` below. Each entry, with a
+// ~19-digit snowflake id, runs ~30 tokens, so the 500-post cap is ~15k tokens
+// of classifications on top of the ~2k editorial body. Truncation here is not a
+// cosmetic loss: the JSON is extracted with a single {…} match and parsed whole,
+// so a cut-off classifications tail makes the ENTIRE brief unparseable (headline
+// and items included). We therefore budget well above the worst case — 32k still
+// sits comfortably under Sonnet's 64k output limit, and we only pay for tokens
+// actually produced, so the headroom is free.
+const MAX_OUTPUT_TOKENS = 32000;
 
 const SYSTEM_PROMPT = `You are the markets editor of a financial news desk compiling a concise morning brief.
 You are given a batch of social-media posts from tracked traders, analysts, and public figures over a time window.
