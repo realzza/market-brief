@@ -1,0 +1,35 @@
+name: CI
+
+# Lint + typecheck gate. Runs on every PR (and pushes to main) so the
+# react-hooks / TypeScript errors that previously only surfaced locally can't
+# land unnoticed again. Kept deliberately light — no build/deploy here.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A newer push to the same PR/branch cancels the older in-flight run.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-typecheck:
+    name: Lint & typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22 # Next 16 requires Node 20.9+ / 22+
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
