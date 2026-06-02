@@ -22,9 +22,15 @@ services:
     image: serenity-tracker:latest
     container_name: serenity-tracker
     restart: unless-stopped
+    # pages-refresh is listed here (rather than depending on serenity) so a
+    # single `docker compose up -d --build serenity` brings up the publisher
+    # too — there's no point publishing snapshots when the app isn't running.
+    # depends_on only orders startup; the two are otherwise independent and
+    # talk solely through the shared serenity-data volume.
     depends_on:
       - rsshub
       - truthsocial
+      - pages-refresh
 
     # Host:container — change PORT_HOST in .env (or export it) if 3737 is
     # taken. The container always listens on 3000 internally.
@@ -78,15 +84,16 @@ services:
   # without the app being involved (though there's nothing new to publish
   # unless `serenity` is running and fetching). Force-pushes to gh-pages.
   #
-  # Opt-in: behind the `pages` profile, so a bare `docker compose up` won't
-  # start it. Run it explicitly — `docker compose up -d --build pages-refresh`
-  # (pulls in serenity via depends_on) — or `docker compose --profile pages up`.
+  # Comes up automatically with serenity (see its depends_on). NOT the reverse —
+  # it must not depend on serenity, or the two would deadlock on a startup cycle.
+  # On a cold first boot it may publish an empty snapshot before serenity has
+  # populated the DB; the next 30-min tick (or any with new data) fixes that.
   #
   # Requires GH_PAGES_TOKEN in .env — a GitHub token with write access to the
   # Pages repo (fine-grained: Contents → Read/Write on realzza/market-brief, or
-  # a classic token with `repo`). Without it, every push fails and logs an error.
+  # a classic token with `repo`). Without it, the refresh script skips cleanly
+  # (logs a one-line notice) rather than fail-looping on auth.
   pages-refresh:
-    profiles: ["pages"]
     build:
       context: .
       dockerfile: Dockerfile
@@ -94,8 +101,6 @@ services:
     image: serenity-pages-refresh:latest
     container_name: serenity-pages-refresh
     restart: unless-stopped
-    depends_on:
-      - serenity
     # Same DB volume as the app. Read-write because opening a WAL-mode SQLite
     # file (and the idempotent schema-init on connect) needs to touch -wal/-shm.
     volumes:

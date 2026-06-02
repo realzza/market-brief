@@ -18,6 +18,17 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO"
 
+# No token → nothing to push. Skip cleanly (this service now starts alongside
+# serenity, so without a token it would otherwise fail-loop on auth). The
+# compose-built PAGES_REMOTE has an empty userinfo (`x-access-token:@…`) when
+# GH_PAGES_TOKEN is unset.
+case "${PAGES_REMOTE:-}" in
+  *:@*)
+    echo "$(date '+%Y-%m-%d %H:%M:%S') — GH_PAGES_TOKEN not set; skipping publish"
+    exit 0
+    ;;
+esac
+
 STAMP=".pages-last-deploy.hash"
 
 # Portable sha256 — coreutils on Linux, Perl shim on macOS.

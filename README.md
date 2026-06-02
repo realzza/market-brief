@@ -57,21 +57,20 @@ paid plan; a public repo works on the free plan.)
 ### Auto-refresh every 30 min (Docker)
 
 `npm run deploy:pages` reads the **host** `data/serenity.db`. To instead keep the
-published site in sync with the **live** DB the app is writing, run the
-`pages-refresh` sidecar — it mounts the same `serenity-data` volume and
-rebuilds + pushes on a timer:
+published site in sync with the **live** DB the app is writing, the
+`pages-refresh` sidecar mounts the same `serenity-data` volume and rebuilds +
+pushes on a timer. It comes up automatically with the app:
 
 ```bash
 # In .env: GH_PAGES_TOKEN=<token with Contents:write on the Pages repo>
-docker compose up -d --build serenity pages-refresh
+docker compose up -d --build serenity
 ```
 
-The sidecar is behind the `pages` Compose profile, so a bare `docker compose up`
-won't start it — name it explicitly (as above) or use `--profile pages`. It
-republishes only when the DB actually changed (cheap no-op otherwise). Tune the
-cadence with `REFRESH_INTERVAL` (seconds). The sidecar is independent of
-`serenity`, but only has new data to publish while `serenity` is running and
-fetching. Watch it with `docker compose logs -f pages-refresh`.
+That one command brings up the app **and** the publisher (serenity `depends_on`
+pages-refresh). It republishes only when the DB actually changed (cheap no-op
+otherwise) and, without `GH_PAGES_TOKEN`, skips cleanly instead of erroring.
+Tune the cadence with `REFRESH_INTERVAL` (seconds). Watch it with
+`docker compose logs -f pages-refresh`.
 
 ⚠ **`basePath` must equal the repo name.** This repo is `market-brief` and the
 default `PAGES_BASE_PATH` is `/market-brief`, so they already match. If you fork
