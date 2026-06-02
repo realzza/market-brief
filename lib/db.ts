@@ -228,6 +228,48 @@ export function saveAnalysis(analysis: {
   `).run(analysis);
 }
 
+// Provenance note stored as the `sentiment_reasoning` of a batch-classified
+// row, so it's clear on the post page these came from the morning brief's
+// one-shot pass rather than the richer per-post pipeline.
+const BATCH_REASONING = 'Scored in the Morning Wire batch brief.';
+
+/**
+ * Persist lightweight per-post sentiment reads produced by the daily digest
+ * (lib/digest.ts `classifications`). These exist so the batch moves the
+ * market-mood gauge and shrinks the "X of Y posts analyzed" gap without paying
+ * for the full per-post pipeline.
+ *
+ * Gap-fill only: `ON CONFLICT(tweet_id) DO NOTHING` guarantees a richer
+ * per-post analysis (run via saveAnalysis, which REPLACEs) always wins, whether
+ * it ran before this or after. Returns the number of NEW rows inserted (rows
+ * that already had any analysis are skipped, not counted).
+ */
+export function saveBatchClassifications(rows: Array<{
+  tweet_id: string;
+  sentiment: string;
+  sentiment_score: number;
+  is_trade_call: number;
+  analyzed_at: string;
+}>): number {
+  const db = getDb();
+  if (rows.length === 0) return 0;
+  const insert = db.prepare(`
+    INSERT INTO tweet_analysis
+      (tweet_id, sentiment, sentiment_score, sentiment_reasoning, tickers, signals, key_themes, domains, risk_level, is_trade_call, summary, image_insights, analyzed_at)
+    VALUES
+      (@tweet_id, @sentiment, @sentiment_score, @sentiment_reasoning, '[]', '[]', '[]', '[]', 'none', @is_trade_call, '', NULL, @analyzed_at)
+    ON CONFLICT(tweet_id) DO NOTHING
+  `);
+  let inserted = 0;
+  const run = db.transaction((items: typeof rows) => {
+    for (const r of items) {
+      inserted += insert.run({ ...r, sentiment_reasoning: BATCH_REASONING }).changes;
+    }
+  });
+  run(rows);
+  return inserted;
+}
+
 export function getTweets(limit = 50, offset = 0): Array<Record<string, unknown>> {
   const db = getDb();
   return db.prepare(`
