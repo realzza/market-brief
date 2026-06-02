@@ -20,6 +20,10 @@
 # static-export build: files temporarily stashed by scripts/build-static.mjs
 /.next-static-stash/
 
+# static-export deploy bookkeeping (refresh skip-stamp + log)
+/.pages-last-deploy.hash
+/.pages-refresh.log
+
 # production
 /build
 
