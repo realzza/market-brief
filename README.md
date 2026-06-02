@@ -66,17 +66,15 @@ rebuilds + pushes on a timer:
 docker compose up -d --build serenity pages-refresh
 ```
 
-The sidecar is behind the `pages` Compose profile, so a bare `docker compose up`
-won't start it — name it explicitly (as above) or use `--profile pages`. It
-republishes only when the DB actually changed (cheap no-op otherwise). Tune the
-cadence with `REFRESH_INTERVAL` (seconds). The sidecar is independent of
-`serenity`, but only has new data to publish while `serenity` is running and
+It republishes only when the DB actually changed (cheap no-op otherwise).
+Tune the cadence with `REFRESH_INTERVAL` (seconds). The sidecar is independent
+of `serenity`, but only has new data to publish while `serenity` is running and
 fetching. Watch it with `docker compose logs -f pages-refresh`.
 
-⚠ **`basePath` must equal the repo name.** This repo is `market-brief` and the
-default `PAGES_BASE_PATH` is `/market-brief`, so they already match. If you fork
-or rename, set `PAGES_BASE_PATH=/<repo>` to match (a mismatch 404s every asset).
-Env knobs:
+⚠ **`basePath` must equal the repo name.** The default targets a repo named
+`market-brief` (→ `realzza.github.io/market-brief`). The current remote is
+`serenity-tracker`, so either rename the GitHub repo to `market-brief`, or set
+`PAGES_BASE_PATH=/serenity-tracker` (and re-run). Env knobs:
 
 - `PAGES_BASE_PATH` — URL sub-path / repo name (default `/market-brief`; `""` for a root/custom-domain site)
 - `PAGES_REMOTE` — remote name or URL to push to (default `origin`)
