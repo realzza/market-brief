@@ -51,25 +51,7 @@ npm run deploy:pages
 ```
 
 Then enable **Settings → Pages → Deploy from branch → `gh-pages`** once. The site
-serves at `https://<user>.github.io/<repo>/`. (Pages on a private repo needs a
-paid plan; a public repo works on the free plan.)
-
-### Auto-refresh every 30 min (Docker)
-
-`npm run deploy:pages` reads the **host** `data/serenity.db`. To instead keep the
-published site in sync with the **live** DB the app is writing, run the
-`pages-refresh` sidecar — it mounts the same `serenity-data` volume and
-rebuilds + pushes on a timer:
-
-```bash
-# In .env: GH_PAGES_TOKEN=<token with Contents:write on the Pages repo>
-docker compose up -d --build serenity pages-refresh
-```
-
-It republishes only when the DB actually changed (cheap no-op otherwise).
-Tune the cadence with `REFRESH_INTERVAL` (seconds). The sidecar is independent
-of `serenity`, but only has new data to publish while `serenity` is running and
-fetching. Watch it with `docker compose logs -f pages-refresh`.
+serves at `https://<user>.github.io/<repo>/`.
 
 ⚠ **`basePath` must equal the repo name.** The default targets a repo named
 `market-brief` (→ `realzza.github.io/market-brief`). The current remote is

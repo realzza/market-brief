@@ -14,7 +14,7 @@
 // this must run on a machine that has the populated DB (i.e. your local box).
 
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, renameSync, cpSync, rmSync, writeFileSync, readdirSync } from 'node:fs';
+import { existsSync, mkdirSync, renameSync, rmSync, writeFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 
 const ROOT = process.cwd();
@@ -27,19 +27,6 @@ const STASH_ITEMS = [
   [join(ROOT, 'instrumentation.ts'), 'instrumentation.ts'],
 ];
 
-// rename is atomic and fast on the host, but throws EXDEV on Docker's overlayfs
-// when the source directory lives in a lower image layer (a known overlayfs
-// limitation). Fall back to copy+delete there.
-function move(src, dest) {
-  try {
-    renameSync(src, dest);
-  } catch (err) {
-    if (err.code !== 'EXDEV') throw err;
-    cpSync(src, dest, { recursive: true });
-    rmSync(src, { recursive: true, force: true });
-  }
-}
-
 function restore() {
   if (!existsSync(STASH)) return;
   for (const [source, name] of STASH_ITEMS) {
@@ -47,7 +34,7 @@ function restore() {
     if (existsSync(stashed)) {
       mkdirSync(dirname(source), { recursive: true });
       if (existsSync(source)) rmSync(source, { recursive: true, force: true });
-      move(stashed, source);
+      renameSync(stashed, source);
     }
   }
   // Only remove the stash dir if it's now empty — never clobber unexpected files.
@@ -57,7 +44,7 @@ function restore() {
 function stash() {
   mkdirSync(STASH, { recursive: true });
   for (const [source, name] of STASH_ITEMS) {
-    if (existsSync(source)) move(source, join(STASH, name));
+    if (existsSync(source)) renameSync(source, join(STASH, name));
   }
 }
 

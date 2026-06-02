@@ -68,44 +68,6 @@ services:
         max-size: "10m"
         max-file: "5"
 
-  # pages-refresh — optional sidecar that republishes the static GitHub Pages
-  # snapshot from the shared DB every REFRESH_INTERVAL seconds. It reads the
-  # same serenity-data volume the app writes, so it picks up new posts/digests
-  # without the app being involved (though there's nothing new to publish
-  # unless `serenity` is running and fetching). Force-pushes to gh-pages.
-  #
-  # Requires GH_PAGES_TOKEN in .env — a GitHub token with write access to the
-  # Pages repo (fine-grained: Contents → Read/Write on realzza/market-brief, or
-  # a classic token with `repo`). Skips this whole service if you don't set it.
-  pages-refresh:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: pages-refresh
-    image: serenity-pages-refresh:latest
-    container_name: serenity-pages-refresh
-    restart: unless-stopped
-    depends_on:
-      - serenity
-    # Same DB volume as the app. Read-write because opening a WAL-mode SQLite
-    # file (and the idempotent schema-init on connect) needs to touch -wal/-shm.
-    volumes:
-      - serenity-data:/app/data
-    environment:
-      - TZ=${TZ:-UTC}
-      # Must equal the repo name (project-site base path). See README.
-      - PAGES_BASE_PATH=${PAGES_BASE_PATH:-/market-brief}
-      # Rebuild cadence in seconds (default 30 min).
-      - REFRESH_INTERVAL=${REFRESH_INTERVAL:-1800}
-      # Tokenized push URL — no .git or keychain in the container. The token
-      # comes from .env and is interpolated by Compose at `up` time.
-      - PAGES_REMOTE=https://x-access-token:${GH_PAGES_TOKEN}@github.com/${PAGES_REPO:-realzza/market-brief}.git
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "5"
-
   # RSSHub — scrapes Twitter/X (and other sources) into RSS/JSON feeds.
   # Internal-only; not exposed to the host. To inspect manually, run
   # `docker compose exec rsshub wget -qO- http://localhost:1200/twitter/user/USER`.
