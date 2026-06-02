@@ -15,6 +15,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # Pin the app to the runner stage. Required now that the Dockerfile has a
+      # later `pages-refresh` stage — without this, the build defaults to the
+      # final stage and the app container would run the refresh loop instead.
+      target: runner
     image: serenity-tracker:latest
     container_name: serenity-tracker
     restart: unless-stopped
