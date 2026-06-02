@@ -48,10 +48,18 @@ if (!remoteUrl) {
   process.exit(1);
 }
 
-const repoName = remoteUrl.replace(/\.git$/, '').split('/').pop();
+// A tokenized URL (https://x-access-token:TOKEN@github.com/...) is how the
+// Docker sidecar passes credentials — strip the userinfo before logging so the
+// token never lands in `docker compose logs`.
+const safeUrl = remoteUrl.replace(/\/\/[^@/]+@/, '//');
+const parts = safeUrl.replace(/\.git$/, '').split('/');
+const repoName = parts.pop();
+const owner = parts.pop() || '<owner>';
+const pagesUrl = `https://${owner}.github.io/${repoName}/`;
+
 if (basePath && `/${repoName}` !== basePath) {
   console.warn(`\n⚠  basePath "${basePath}" does not match repo "${repoName}".`);
-  console.warn(`   GitHub Pages will serve realzza.github.io/${repoName}, so assets under`);
+  console.warn(`   GitHub Pages will serve ${pagesUrl}, so assets under`);
   console.warn(`   ${basePath}/ will 404. Rename the repo to match, or set PAGES_BASE_PATH=/${repoName}.\n`);
 }
 
@@ -63,7 +71,7 @@ if (!existsSync(OUT)) {
   process.exit(1);
 }
 
-console.log(`\n▸ Publishing out/ → ${remoteUrl} (${BRANCH})\n`);
+console.log(`\n▸ Publishing out/ → ${safeUrl} (${BRANCH})\n`);
 // Throwaway repo so we force-push a single flat commit and never bloat history.
 rmSync(join(OUT, '.git'), { recursive: true, force: true });
 const git = (...args) => run('git', args, { cwd: OUT });
@@ -76,4 +84,4 @@ git('push', '-f', remoteUrl, `${BRANCH}:${BRANCH}`);
 rmSync(join(OUT, '.git'), { recursive: true, force: true });
 
 console.log(`\n✓ Deployed. Once Pages is enabled on the ${BRANCH} branch:`);
-console.log(`  https://realzza.github.io/${repoName}/\n`);
+console.log(`  ${pagesUrl}\n`);
