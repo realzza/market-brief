@@ -7,6 +7,7 @@
 
 import { getStats, getLatestDigest, getLastFetchTime } from './db';
 import { getNextDigestAt, getDigestHour } from './scheduler';
+import { IS_STATIC } from './static';
 
 export interface ServiceHealth {
   name: string;
@@ -66,10 +67,15 @@ export async function getHealth(): Promise<Health> {
 
   // Service pings run in parallel. RSSHub root proves reachability; the Truth
   // Social sidecar exposes /healthz (see truthsocial-sidecar/server.py).
-  const [rsshub, truthsocial] = await Promise.all([
-    ping('RSSHub', process.env.RSSHUB_URL?.trim(), '/'),
-    ping('Truth Social sidecar', process.env.TRUTHSOCIAL_URL?.trim(), '/healthz'),
-  ]);
+  // Skipped in the static export — there's no live process to reach the
+  // sub-services from, and a no-store fetch would force dynamic rendering that
+  // `output: 'export'` can't do. The status page hides the section instead.
+  const services = IS_STATIC
+    ? []
+    : await Promise.all([
+        ping('RSSHub', process.env.RSSHUB_URL?.trim(), '/'),
+        ping('Truth Social sidecar', process.env.TRUTHSOCIAL_URL?.trim(), '/healthz'),
+      ]);
 
   return {
     now: new Date().toISOString(),
@@ -94,6 +100,6 @@ export async function getHealth(): Promise<Health> {
           output_tokens: latest.output_tokens,
         }
       : null,
-    services: [rsshub, truthsocial],
+    services,
   };
 }
