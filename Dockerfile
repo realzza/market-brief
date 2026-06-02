@@ -52,3 +52,24 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD node -e "fetch('http://127.0.0.1:3000/').then(r => process.exit(r.status < 500 ? 0 : 1)).catch(() => process.exit(1))"
 
 CMD ["node", "server.js"]
+
+# ─── Stage 4: pages-refresh ─────────────────────────────────────────────────
+# Optional sidecar that rebuilds the static GitHub Pages snapshot from the
+# shared SQLite volume every REFRESH_INTERVAL seconds and force-pushes it to
+# gh-pages. Built FROM builder so it has the full source + glibc node_modules
+# (incl. the better-sqlite3 native binary) needed to run `next build` again in
+# static-export mode. Only `git` is added on top.
+#
+# The live DB arrives via a volume mount at /app/data (see docker-compose). The
+# push target + token come from PAGES_REMOTE (a tokenized https URL), so no
+# .git or keychain is needed in the container.
+FROM builder AS pages-refresh
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    NODE_ENV=production \
+    PAGES_BASE_PATH=/market-brief \
+    REFRESH_INTERVAL=1800
+# Loop the refresh script forever; a failed run logs and retries next tick
+# rather than killing the container.
+CMD ["sh", "-c", "while true; do sh /app/scripts/refresh-pages.sh || echo \"[pages-refresh] run failed ($?), retrying next interval\"; sleep \"${REFRESH_INTERVAL:-1800}\"; done"]
