@@ -14,6 +14,12 @@ export function getDb(): Database.Database {
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 
   _db = new Database(DB_PATH);
+  // Wait (up to 5s) for a lock rather than throwing SQLITE_BUSY immediately.
+  // Matters once more than one process opens this file — e.g. the pages-refresh
+  // sidecar reading the same volume the app writes, or the scheduler tick
+  // overlapping a request — where connect-time schema checks could otherwise
+  // collide with an in-flight write.
+  _db.pragma('busy_timeout = 5000');
   _db.pragma('journal_mode = WAL');
   _db.pragma('foreign_keys = ON');
   initSchema(_db);

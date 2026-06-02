@@ -74,10 +74,15 @@ services:
   # without the app being involved (though there's nothing new to publish
   # unless `serenity` is running and fetching). Force-pushes to gh-pages.
   #
+  # Opt-in: behind the `pages` profile, so a bare `docker compose up` won't
+  # start it. Run it explicitly — `docker compose up -d --build pages-refresh`
+  # (pulls in serenity via depends_on) — or `docker compose --profile pages up`.
+  #
   # Requires GH_PAGES_TOKEN in .env — a GitHub token with write access to the
   # Pages repo (fine-grained: Contents → Read/Write on realzza/market-brief, or
-  # a classic token with `repo`). Skips this whole service if you don't set it.
+  # a classic token with `repo`). Without it, every push fails and logs an error.
   pages-refresh:
+    profiles: ["pages"]
     build:
       context: .
       dockerfile: Dockerfile
