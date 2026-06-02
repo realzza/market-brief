@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { StoredTweet, DashboardStats, PerformanceEntry, Domain, Analyst, Platform, Digest } from '@/lib/types';
 import { authorKey, trackedPlatforms } from '@/lib/analysts';
 import { getFeaturedTweet } from '@/lib/featured';
@@ -491,7 +492,7 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
         <footer className="footer">
           <div className="colophon">Compiled with care · Set in Newsreader &amp; Geist</div>
           <div>
-            <a href="/status" className="footer-link">System status</a>
+            <Link href="/status" className="footer-link">System status</Link>
             <span style={{ margin: '0 8px', color: 'var(--ink-4)' }}>·</span>
             The Market Brief · {new Date().getFullYear()}
           </div>
