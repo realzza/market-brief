@@ -13,3 +13,10 @@
 // it's a `NEXT_PUBLIC_` var, Next inlines it into the client bundle at build,
 // so `IS_STATIC` is a compile-time constant — gated fetches dead-code away.
 export const IS_STATIC = process.env.NEXT_PUBLIC_STATIC_EXPORT === '1';
+
+// Project sub-path the export is served under (e.g. "/market-brief"). Needed
+// because raw `fetch()` to "/data/…" does NOT pick up Next's basePath the way
+// <Link> and bundled assets do — client code fetching baked JSON must prefix
+// it explicitly. Empty in server mode (where those fetches don't happen).
+export const ASSET_BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
+

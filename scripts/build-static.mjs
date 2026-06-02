@@ -86,7 +86,10 @@ try {
 
   const result = spawnSync('npx', ['next', 'build'], {
     stdio: 'inherit',
-    env: { ...process.env, NEXT_PUBLIC_STATIC_EXPORT: '1' },
+    // NEXT_PUBLIC_BASE_PATH lets client code (TickerModal) build absolute URLs
+    // to baked assets under the project sub-path — basePath isn't exposed to
+    // raw fetch() the way it is to <Link>/next assets.
+    env: { ...process.env, NEXT_PUBLIC_STATIC_EXPORT: '1', NEXT_PUBLIC_BASE_PATH: basePath },
     cwd: ROOT,
   });
   code = result.status ?? 1;
@@ -96,6 +99,12 @@ try {
     // underscore). `.nojekyll` disables that so our assets are served as-is.
     writeFileSync(join(ROOT, 'out', '.nojekyll'), '');
     console.log('\n✓ Static export ready in out/ (added .nojekyll)\n');
+
+    // Bake Yahoo quotes for clickable tickers into out/data/quotes/ so the
+    // TickerModal works offline. Honors BAKE_QUOTES=0. Non-fatal — a quote
+    // bake failure shouldn't sink an otherwise-good export.
+    const bake = spawnSync('node', ['scripts/bake-quotes.mjs'], { stdio: 'inherit', env: process.env, cwd: ROOT });
+    if (bake.status !== 0) console.warn('\n⚠  bake-quotes exited non-zero — ticker previews may be missing.\n');
   }
 } finally {
   runRestore();
