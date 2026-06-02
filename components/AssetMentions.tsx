@@ -48,14 +48,24 @@ export type TrendingByWindow = Partial<Record<WindowKey, TrendingResponse>>;
 
 export default function AssetMentions({ initialTrending }: { initialTrending?: TrendingByWindow }) {
   const [windowKey, setWindowKey] = useState<WindowKey>('30');
-  const [fetched, setFetched] = useState<TrendingResponse | null>(null);
-  const [loading, setLoading] = useState(!IS_STATIC);
+  // The last fetch tagged with the window it was for, so loading can be derived
+  // rather than stored (see below). null until the first fetch resolves.
+  const [fetched, setFetched] = useState<{ window: WindowKey; data: TrendingResponse | null } | null>(null);
   const [exchangeMap, setExchangeMap] = useState<Record<string, string>>({});
   const [activeTicker, setActiveTicker] = useState<string | null>(null);
 
-  // Static mode reads the baked per-window snapshot directly (no fetch, so the
-  // value is derived rather than stored). Server mode uses the last fetch.
-  const data = IS_STATIC ? (initialTrending?.[windowKey] ?? null) : fetched;
+  // Static mode reads the baked per-window snapshot directly (no fetch). Server
+  // mode uses the last fetch, but only when it's for the window in view — a
+  // stale fetch for a previously selected window reads as "still loading".
+  const data = IS_STATIC
+    ? (initialTrending?.[windowKey] ?? null)
+    : (fetched?.window === windowKey ? fetched.data : null);
+
+  // Loading is derived, not stored: in server mode we're loading whenever the
+  // last fetch isn't yet for the current window. Keeping it out of state avoids
+  // a synchronous setState in the effect body (the fetch just records its
+  // result + window when it resolves).
+  const loading = !IS_STATIC && fetched?.window !== windowKey;
 
   // Fetch trending data on mount + every window change. Latest-wins via the
   // `cancelled` guard so a fast window-toggle doesn't render stale results.
@@ -63,13 +73,10 @@ export default function AssetMentions({ initialTrending }: { initialTrending?: T
   useEffect(() => {
     if (IS_STATIC) return;
     let cancelled = false;
-    setLoading(true);
     fetch(`/api/trending?window=${windowKey}`)
       .then((r) => r.json())
-      .then((d: TrendingResponse) => {
-        if (!cancelled) { setFetched(d); setLoading(false); }
-      })
-      .catch(() => { if (!cancelled) setLoading(false); });
+      .then((d: TrendingResponse) => { if (!cancelled) setFetched({ window: windowKey, data: d }); })
+      .catch(() => { if (!cancelled) setFetched({ window: windowKey, data: null }); });
     return () => { cancelled = true; };
   }, [windowKey]);
 
