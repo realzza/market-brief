@@ -182,7 +182,7 @@ async function digestTick(): Promise<void> {
   // performance import below) — it only loads on the first digest fire.
   const t0 = Date.now();
   try {
-    const { buildDigest, dailyWindow } = await import('./digest');
+    const { buildDigest, dailyWindow, persistClassifications } = await import('./digest');
     const { saveDigest } = await import('./db');
     const built = await buildDigest(dailyWindow());
     if (!built) {
@@ -190,8 +190,11 @@ async function digestTick(): Promise<void> {
       return;
     }
     saveDigest(built);
+    // Fold the batch's per-post reads into tweet_analysis so the daily run
+    // moves the market-mood gauge (gap-fill — never clobbers richer analysis).
+    const classified = persistClassifications(built);
     console.log(
-      `[scheduler] digest · ${new Date(t0).toISOString()} · posts=${built.post_count} items=${built.items.length} tokens_in=${built.input_tokens} tokens_out=${built.output_tokens} took=${Date.now() - t0}ms`,
+      `[scheduler] digest · ${new Date(t0).toISOString()} · posts=${built.post_count} items=${built.items.length} scored=${classified} tokens_in=${built.input_tokens} tokens_out=${built.output_tokens} took=${Date.now() - t0}ms`,
     );
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

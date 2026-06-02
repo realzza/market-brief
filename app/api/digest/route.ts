@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getLatestDigest, saveDigest } from '@/lib/db';
-import { buildDigest, manualWindow } from '@/lib/digest';
+import { buildDigest, manualWindow, persistClassifications } from '@/lib/digest';
 
 // GET — the latest digest (what the dashboard hero seeds from on reload).
 export async function GET() {
@@ -20,7 +20,10 @@ export async function POST() {
       return NextResponse.json({ digest: null, message: 'No new posts to summarize.' });
     }
     const id = saveDigest(built);
-    return NextResponse.json({ digest: { id, ...built } });
+    // Fold the batch's per-post reads into tweet_analysis so the market-mood
+    // gauge moves. Gap-fill only — never clobbers a richer per-post analysis.
+    const classified = persistClassifications(built);
+    return NextResponse.json({ digest: { id, ...built }, classified });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     const status = msg.includes('already being generated') ? 409 : 500;

@@ -175,7 +175,18 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
       if (data.error) { setStatus(data.error, 'error', 'digest'); return; }
       if (!data.digest) { setStatus(data.message || 'No new posts to summarize.', 'info', 'digest'); return; }
       setDigest(data.digest);
-      setStatus(`Brief compiled — ${data.digest.items?.length ?? 0} highlights.`, 'success', 'digest');
+      const highlights = data.digest.items?.length ?? 0;
+      const scored = data.classified ?? 0;
+      // The batch now scores every post in the window into tweet_analysis, so
+      // the market-mood gauge + "X of Y analyzed" change — pull fresh stats.
+      if (scored > 0) await loadData();
+      setStatus(
+        scored > 0
+          ? `Brief compiled — ${highlights} highlights · ${scored} posts scored.`
+          : `Brief compiled — ${highlights} highlights.`,
+        'success',
+        'digest',
+      );
     } catch {
       setStatus('Failed to compile the brief.', 'error', 'digest');
     } finally {
