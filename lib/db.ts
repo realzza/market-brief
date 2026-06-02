@@ -356,19 +356,47 @@ export function getStats(): Record<string, unknown> {
   };
 }
 
-// Win rate over CLOSED entries in the performance table. Excludes 'pending'
-// because the dashboard already exposes "open" separately. Returns null when
-// no trades have closed yet — the consumer renders "—" in that case.
+// Realtime win rate, computed per POSITION (asset + direction) so it matches
+// the Performance tab exactly — multiple signals on the same trade collapse to
+// one row, just as components/PerformanceDashboard.tsx groups them. Without the
+// grouping the per-signal count over-weights positions called across several
+// posts and the two surfaces would disagree.
+//
+// One representative signal per group decides the position, mirroring the
+// component's `resolved ?? earliest` rule: the earliest RESOLVED signal if any
+// exists, otherwise the earliest signal overall (that's the ROW_NUMBER ordering
+// — resolved-first, then by date). The representative then counts by its final
+// outcome when resolved, or by the sign of its running P&L when still open, so
+// the rate reflects live standings instead of sitting empty until the first
+// trade closes. Open positions with no computed return yet are undecided and
+// excluded from both numerator and denominator. (Pending detection mirrors
+// getPendingPerformanceEntries — both 'pending' and NULL count as open.)
+// Returns null when nothing is decided yet — the consumer renders "—".
 function getWinRate(): number | null {
   const db = getDb();
   const row = db.prepare(
-    `SELECT
-       SUM(CASE WHEN outcome = 'win' THEN 1 ELSE 0 END) AS wins,
-       SUM(CASE WHEN outcome IN ('win', 'loss', 'breakeven') THEN 1 ELSE 0 END) AS closed
-     FROM performance`,
-  ).get() as { wins: number | null; closed: number | null };
-  if (!row.closed || row.closed === 0) return null;
-  return (row.wins ?? 0) / row.closed;
+    `WITH rep AS (
+       SELECT outcome, actual_return_pct,
+              ROW_NUMBER() OVER (
+                PARTITION BY asset, direction
+                ORDER BY CASE WHEN outcome IN ('win', 'loss', 'breakeven') THEN 0 ELSE 1 END ASC,
+                         signal_date ASC
+              ) AS rn
+       FROM performance
+     )
+     SELECT
+       SUM(CASE
+             WHEN outcome = 'win' THEN 1
+             WHEN (outcome = 'pending' OR outcome IS NULL) AND actual_return_pct > 0 THEN 1
+             ELSE 0 END) AS wins,
+       SUM(CASE
+             WHEN outcome IN ('win', 'loss', 'breakeven') THEN 1
+             WHEN (outcome = 'pending' OR outcome IS NULL) AND actual_return_pct IS NOT NULL THEN 1
+             ELSE 0 END) AS decided
+     FROM rep WHERE rn = 1`,
+  ).get() as { wins: number | null; decided: number | null };
+  if (!row.decided || row.decided === 0) return null;
+  return (row.wins ?? 0) / row.decided;
 }
 
 export function getPerformance(): Array<Record<string, unknown>> {

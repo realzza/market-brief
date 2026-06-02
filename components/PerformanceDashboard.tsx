@@ -385,6 +385,20 @@ function PositionChart({ position }: { position: Position }) {
   );
 }
 
+// Realtime per-position result. A resolved position keeps its final outcome; a
+// still-open one is graded by the sign of its running P&L, so a position up on
+// the day counts as a provisional win and one underwater as a provisional loss.
+// Open positions with no computed return yet stay 'pending' and don't count
+// toward the win rate (numerator or denominator).
+function liveResult(p: Position): 'win' | 'loss' | 'breakeven' | 'pending' {
+  if (p.outcome !== 'pending') return p.outcome;
+  const r = p.actual_return_pct;
+  if (r == null) return 'pending';
+  if (r > 0) return 'win';
+  if (r < 0) return 'loss';
+  return 'breakeven';
+}
+
 // ─── Position row ────────────────────────────────────────────────────────
 
 const OUTCOME_LABEL: Record<string, string> = {
@@ -479,12 +493,19 @@ function PositionRow({ position, onTicker }: { position: Position; onTicker: (t:
 export default function PerformanceDashboard({ entries, onTicker }: Props) {
   const positions = useMemo(() => groupPositions(entries), [entries]);
 
-  const wins      = positions.filter((p) => p.outcome === 'win').length;
-  const losses    = positions.filter((p) => p.outcome === 'loss').length;
-  const breakeven = positions.filter((p) => p.outcome === 'breakeven').length;
-  const open      = positions.filter((p) => p.outcome === 'pending').length;
-  const closed    = wins + losses + breakeven;
-  const winRate   = closed > 0 ? Math.round((wins / closed) * 100) : 0;
+  // Factual outcome counts — these drive the Positions and Open summary cells.
+  const open   = positions.filter((p) => p.outcome === 'pending').length;
+  const closed = positions.length - open;
+
+  // Realtime win rate: resolved positions keep their final outcome, still-open
+  // ones are scored by the sign of their running P&L (see liveResult). The rate
+  // now reflects live standings instead of reading 0% until the first trade
+  // closes. Positions with no computed return yet stay undecided (excluded).
+  const liveResults = positions.map(liveResult);
+  const liveWins   = liveResults.filter((r) => r === 'win').length;
+  const liveLosses = liveResults.filter((r) => r === 'loss').length;
+  const decided    = liveResults.filter((r) => r !== 'pending').length;
+  const winRate    = decided > 0 ? Math.round((liveWins / decided) * 100) : 0;
   // Returns aggregate from positions (one per ticker), not per-signal — that
   // way a position called out across 5 tweets doesn't get counted 5 times.
   const returns   = positions.filter((p) => p.actual_return_pct != null).map((p) => p.actual_return_pct!);
@@ -492,7 +513,7 @@ export default function PerformanceDashboard({ entries, onTicker }: Props) {
 
   const cells = [
     { label: 'Positions', v: positions.length,    sub: `${open} open · ${closed} closed`,  bar: 100,                                              trend: 'accent'                      },
-    { label: 'Win rate',  v: winRate + '%',       sub: `${wins} wins · ${losses} losses`,  bar: winRate,                                          trend: 'bull'                        },
+    { label: 'Win rate',  v: winRate + '%',       sub: `${liveWins} winning · ${liveLosses} losing`,  bar: winRate,                               trend: 'bull'                        },
     { label: 'Avg return',v: fmtPct(avgRet, 2),   sub: 'Across all positions',             bar: Math.min(100, Math.abs(avgRet) * 8),               trend: avgRet >= 0 ? 'bull' : 'bear' },
     { label: 'Open',      v: open,                sub: 'Still tracking',                   bar: positions.length ? (open / positions.length) * 100 : 0, trend: 'neutral'                  },
   ];

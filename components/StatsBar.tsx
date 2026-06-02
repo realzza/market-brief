@@ -21,7 +21,7 @@ export default function StatsBar({ stats }: Props) {
     { label: 'Bearish',  v: bearPct + '%',         sub: `${stats.bearish_count} posts`,        bar: bearPct,     trend: 'bear'    },
     { label: 'Neutral',  v: neutPct + '%',         sub: `${stats.neutral_count ?? 0} posts`,   bar: neutPct,     trend: 'neutral' },
     { label: 'Signals',  v: stats.trade_calls,     sub: `${sigPct}% are calls`,               bar: sigPct,      trend: 'signal'  },
-    { label: 'Win rate', v: winPct != null ? winPct + '%' : '—', sub: 'Tracked outcomes',     bar: winPct || 0, trend: 'bull'    },
+    { label: 'Win rate', v: winPct != null ? winPct + '%' : '—', sub: 'Live · incl. open',     bar: winPct || 0, trend: 'bull'    },
   ];
 
   return (
