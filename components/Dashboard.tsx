@@ -12,7 +12,7 @@ import DailyDigest from '@/components/DailyDigest';
 import StatsBar from '@/components/StatsBar';
 import TweetCard from '@/components/TweetCard';
 import SentimentChart from '@/components/SentimentChart';
-import AssetMentions from '@/components/AssetMentions';
+import AssetMentions, { type TrendingByWindow } from '@/components/AssetMentions';
 import PerformanceDashboard from '@/components/PerformanceDashboard';
 import TickerModal from '@/components/TickerModal';
 
@@ -36,6 +36,9 @@ export interface DashboardInitial {
   performance: PerformanceEntry[];
   digest: Digest | null;
   analysts: Analyst[];
+  // Baked trending per window — populated only in the static export, where
+  // AssetMentions can't hit /api/trending. Null/undefined in server mode.
+  trending?: TrendingByWindow;
   edition: number;
   dateStr: string;
   tab: Tab;
@@ -474,7 +477,7 @@ export default function Dashboard({ initial }: { initial: DashboardInitial }) {
         {/* ── Assets ── */}
         {activeTab === 'assets' && (
           <div className="panel">
-            <AssetMentions />
+            <AssetMentions initialTrending={initial.trending} />
           </div>
         )}
 

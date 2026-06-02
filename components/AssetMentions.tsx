@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { domainColor } from '@/lib/domainConfig';
+import { IS_STATIC } from '@/lib/static';
 import TickerModal from './TickerModal';
 
 // ─── Trending mentions ───────────────────────────────────────────────────
@@ -40,22 +41,33 @@ const WINDOW_OPTS: Array<{ key: WindowKey; label: string }> = [
   { key: 'all', label: 'All' },
 ];
 
-export default function AssetMentions() {
+// In the static export every window's trending is computed at build time and
+// passed in here, keyed by window. `getTrending` is pure-sqlite (no external
+// calls), so the Assets tab stays fully functional offline.
+export type TrendingByWindow = Partial<Record<WindowKey, TrendingResponse>>;
+
+export default function AssetMentions({ initialTrending }: { initialTrending?: TrendingByWindow }) {
   const [windowKey, setWindowKey] = useState<WindowKey>('30');
-  const [data, setData] = useState<TrendingResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [fetched, setFetched] = useState<TrendingResponse | null>(null);
+  const [loading, setLoading] = useState(!IS_STATIC);
   const [exchangeMap, setExchangeMap] = useState<Record<string, string>>({});
   const [activeTicker, setActiveTicker] = useState<string | null>(null);
 
+  // Static mode reads the baked per-window snapshot directly (no fetch, so the
+  // value is derived rather than stored). Server mode uses the last fetch.
+  const data = IS_STATIC ? (initialTrending?.[windowKey] ?? null) : fetched;
+
   // Fetch trending data on mount + every window change. Latest-wins via the
   // `cancelled` guard so a fast window-toggle doesn't render stale results.
+  // No-op in static mode — there's no /api/trending to call.
   useEffect(() => {
+    if (IS_STATIC) return;
     let cancelled = false;
     setLoading(true);
     fetch(`/api/trending?window=${windowKey}`)
       .then((r) => r.json())
       .then((d: TrendingResponse) => {
-        if (!cancelled) { setData(d); setLoading(false); }
+        if (!cancelled) { setFetched(d); setLoading(false); }
       })
       .catch(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
@@ -63,7 +75,10 @@ export default function AssetMentions() {
 
   // Exchange labels — resolved against Yahoo once per ticker set. Keyed by
   // the visible tickers so windows that share symbols reuse cached lookups.
+  // Skipped in static mode (Yahoo lookup needs the backend); rows just render
+  // without the exchange suffix.
   useEffect(() => {
+    if (IS_STATIC) return;
     const tickers = data?.tickers ?? [];
     if (tickers.length === 0) return;
     const query = tickers.map((t) => `${t.name}:unknown`).join(',');

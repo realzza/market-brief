@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# static-export build: files temporarily stashed by scripts/build-static.mjs
+/.next-static-stash/
+
 # production
 /build
 
