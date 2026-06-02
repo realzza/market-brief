@@ -125,6 +125,11 @@ function PositionChart({ position }: { position: Position }) {
   const [errored, setErrored] = useState(false);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  // Snapshot "now" once when the drawer mounts rather than reading the clock
+  // during render (which is impure). It only seeds the signal-age decision
+  // below — picking intraday vs daily chart resolution — so a single capture
+  // is both correct and stable across re-renders.
+  const [mountedAt] = useState(() => Date.now());
 
   useEffect(() => {
     if (IS_STATIC) return; // static export shows STATIC_CHART, never fetches
@@ -145,7 +150,7 @@ function PositionChart({ position }: { position: Position }) {
   // (today's close hasn't printed yet), which is what was producing the
   // "Not enough data" empty state. Intraday handles that case.
   const startTime = new Date(position.first_signal_date).getTime();
-  const ageDays = (Date.now() - startTime) / 86_400_000;
+  const ageDays = (mountedAt - startTime) / 86_400_000;
   const useIntraday = ageDays <= INTRADAY_DAYS && (data.intradayAll?.length ?? 0) > 0;
   const sourcePoints = useIntraday ? (data.intradayAll ?? []) : (data.closes ?? []);
   const points = sourcePoints.filter((p) => new Date(p.t).getTime() >= startTime);
