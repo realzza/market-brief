@@ -6,7 +6,6 @@ import { domainColor } from '@/lib/domainConfig';
 import { fmtCompact, fmtDate, fmtPrice, filterValidTickers } from '@/lib/format';
 import { renderWithTickers, renderRichSummary } from '@/lib/richText';
 import { formatDistanceToNow } from 'date-fns';
-import { IS_STATIC } from '@/lib/static';
 import TickerModal from './TickerModal';
 
 interface Props {
@@ -503,24 +502,22 @@ export default function TweetCard({ tweet, serial, source, onAnalyzed }: Props) 
             </div>
           )}
 
-          {/* Analyze CTA (unanalyzed only, when form is closed). Gated off in
-              the static export — there's no backend to run on-demand analysis,
-              and leaving the button would let visitors spend our API budget. */}
-          {!IS_STATIC && !a && !showPrompt && !busy && (
+          {/* Analyze CTA (unanalyzed only, when form is closed) */}
+          {!a && !showPrompt && !busy && (
             <button className="analyze-cta" onClick={() => setShowPrompt(true)}>
               <Icon name="zap" size={12} />Analyze this post
             </button>
           )}
 
           {/* Busy indicator (replaces button while a request is in flight) */}
-          {!IS_STATIC && busy && (
+          {busy && (
             <div className="analyze-cta is-busy">
               <span className="spinner-inline" />Analyzing…
             </div>
           )}
 
           {/* Custom-prompt form — opens when user clicks Analyze or Re-analyze */}
-          {!IS_STATIC && showPrompt && !busy && (
+          {showPrompt && !busy && (
             <div className="analyze-form">
               <label className="eyebrow" htmlFor={`prompt-${tweet.id}`}>
                 Ask a specific question (optional)
@@ -565,7 +562,7 @@ export default function TweetCard({ tweet, serial, source, onAnalyzed }: Props) 
               <span className="metric num">{fmtCompact(tweet.impression_count)} views</span>
             )}
 
-            {!IS_STATIC && a && !showPrompt && !busy && (
+            {a && !showPrompt && !busy && (
               <button
                 className="reanalyze"
                 onClick={() => setShowPrompt(true)}

@@ -5,11 +5,8 @@
 // props and takes over from there.
 
 import { getTweets, getStats, getSentimentTimeline, getPerformance, getLatestDigest } from '@/lib/db';
-import { getTrending } from '@/lib/trending';
 import { serializeTweetRow } from '@/lib/serialize';
 import { getAnalysts } from '@/lib/analysts';
-import { IS_STATIC } from '@/lib/static';
-import type { TrendingByWindow } from '@/components/AssetMentions';
 import Dashboard, { type DashboardInitial } from '@/components/Dashboard';
 import { type Tab, type SentimentFilter, TAB_IDS, SENTIMENT_IDS } from '@/lib/dashboardTabs';
 import type { DashboardStats, PerformanceEntry } from '@/lib/types';
@@ -37,12 +34,7 @@ interface PageProps {
 }
 
 export default async function Page({ searchParams }: PageProps) {
-  // The static export prebuilds a single HTML document — there's no request to
-  // read query params from, and awaiting `searchParams` would force dynamic
-  // rendering that `output: 'export'` can't do. IS_STATIC is inlined to a
-  // literal at build, so the `await` below is dead-code-eliminated in the
-  // export build. Filters still work client-side after hydration.
-  const sp = IS_STATIC ? {} : await searchParams;
+  const sp = await searchParams;
 
   // 5000 matches the previous client-side limit so behavior is identical
   // for users with bookmarks / shared filter URLs. The actual corpus is
@@ -64,14 +56,6 @@ export default async function Page({ searchParams }: PageProps) {
 
   const analyst = typeof sp.analyst === 'string' ? sp.analyst : 'all';
 
-  // Bake every trending window at build time for the static export — the
-  // Assets tab can't hit /api/trending offline. getTrending is pure-sqlite,
-  // so this is cheap. Skipped entirely in server mode (AssetMentions fetches
-  // live there), keeping the homepage's per-request cost identical to main.
-  const trending: TrendingByWindow | undefined = IS_STATIC
-    ? { '7': getTrending(7), '30': getTrending(30), '90': getTrending(90), all: getTrending('all') }
-    : undefined;
-
   const initial: DashboardInitial = {
     tweets,
     stats,
@@ -79,7 +63,6 @@ export default async function Page({ searchParams }: PageProps) {
     performance,
     digest,
     analysts: getAnalysts(),
-    trending,
     edition: editionNumber(now),
     dateStr: dateString(now),
     tab,
