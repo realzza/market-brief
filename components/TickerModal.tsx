@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { fmtPrice, fmtCompact } from '@/lib/format';
-import { IS_STATIC } from '@/lib/static';
+import { IS_STATIC, ASSET_BASE } from '@/lib/static';
 
 interface ClosePoint { t: string; c: number }
 interface QuoteData {
@@ -181,19 +181,18 @@ function PriceChart({ points, intraday }: { points: ClosePoint[]; intraday: bool
   );
 }
 
-// Live quotes come from /api/quote (Yahoo) — absent in the static export. The
-// error is ticker-independent, so a module constant lets us seed state without
-// a setState-in-effect (the modal instance is reused across tickers).
-const STATIC_QUOTE: QuoteData = {
+// Shown when a ticker has no baked quote in the static snapshot (Yahoo failed
+// at build, or the symbol isn't in the clickable set).
+const STATIC_MISS: QuoteData = {
   ticker: '', closes: [], intraday: [], performance: {},
-  error: 'Live market data is off in the static edition.',
+  error: 'No quote in this snapshot.',
 };
 
 // ── Main modal ────────────────────────────────────────────────────────────────
 export default function TickerModal({ ticker, onClose }: Props) {
-  const [data, setData] = useState<QuoteData | null>(IS_STATIC ? STATIC_QUOTE : null);
+  const [data, setData] = useState<QuoteData | null>(null);
   const [loadedTicker, setLoadedTicker] = useState('');
-  const loading = !IS_STATIC && loadedTicker !== ticker;
+  const loading = loadedTicker !== ticker;
   const [activePeriod, setActivePeriod] = useState('3M');
 
   useEffect(() => {
@@ -203,11 +202,17 @@ export default function TickerModal({ ticker, onClose }: Props) {
   }, [onClose]);
 
   useEffect(() => {
-    if (IS_STATIC) return; // static export shows STATIC_QUOTE, never fetches
-    fetch(`/api/quote?ticker=${encodeURIComponent(ticker)}`)
-      .then((r) => r.json())
-      .then((d: QuoteData) => { setData(d); setLoadedTicker(ticker); })
-      .catch(() => setLoadedTicker(ticker));
+    // Live server hits /api/quote; the static export reads the baked snapshot
+    // at <basePath>/data/quotes/<TICKER>.json (see scripts/bake-quotes.mjs).
+    const url = IS_STATIC
+      ? `${ASSET_BASE}/data/quotes/${encodeURIComponent(ticker.toUpperCase())}.json`
+      : `/api/quote?ticker=${encodeURIComponent(ticker)}`;
+    let cancelled = false;
+    fetch(url)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((d: QuoteData) => { if (!cancelled) { setData(d); setLoadedTicker(ticker); } })
+      .catch(() => { if (!cancelled) { setData(IS_STATIC ? STATIC_MISS : null); setLoadedTicker(ticker); } });
+    return () => { cancelled = true; };
   }, [ticker]);
 
   const periodMeta = PERIODS.find((p) => p.key === activePeriod) ?? PERIODS[2];
@@ -269,6 +274,12 @@ export default function TickerModal({ ticker, onClose }: Props) {
               {data?.exchange && (
                 <span className="eyebrow" style={{ padding: '3px 7px', border: '1px solid var(--rule)', borderRadius: 3 }}>
                   {data.exchange}
+                </span>
+              )}
+              {IS_STATIC && data && !data.error && (
+                <span className="eyebrow" style={{ padding: '3px 7px', border: '1px solid var(--rule)', borderRadius: 3, color: 'var(--ink-4)' }}
+                  title="Prices are from the last snapshot build, not live">
+                  snapshot
                 </span>
               )}
             </div>
