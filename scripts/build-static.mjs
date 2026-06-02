@@ -2,12 +2,11 @@
 // Build the GitHub Pages static snapshot into `out/`.
 //
 // The full app is a Node server (sqlite, scheduler, live Claude/Yahoo calls).
-// `output: 'export'` can only emit prebuilt HTML, so these must leave the tree
-// for the export build — they're not statically exportable:
+// `output: 'export'` can only emit prebuilt HTML, so three things must leave
+// the tree for the export build — none are statically exportable:
 //   • app/api/*      — Request-based / POST route handlers
+//   • app/status/*   — `export const dynamic = 'force-dynamic'`
 //   • instrumentation.ts — boots the background scheduler
-//
-// (/status stays in — it self-degrades to a build-time snapshot via IS_STATIC.)
 //
 // We physically stash them aside, run `next build`, then restore — so `main`
 // source is untouched and the local/Docker build keeps every feature. The DB
@@ -24,6 +23,7 @@ const STASH = join(ROOT, '.next-static-stash');
 // [source, stash-name] — restored to `source` on exit.
 const STASH_ITEMS = [
   [join(ROOT, 'app', 'api'), 'api'],
+  [join(ROOT, 'app', 'status'), 'status'],
   [join(ROOT, 'instrumentation.ts'), 'instrumentation.ts'],
 ];
 

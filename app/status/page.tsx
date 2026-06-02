@@ -1,15 +1,12 @@
 // System status page — a glanceable health view of the sub-services and the
 // background scheduler. Server-rendered from lib/health (same process as the
-// scheduler). On the live server it's rendered per-request (always current);
-// in the static export it's a build-time snapshot of the DB-derived facts
-// (content counts, last digest, schedule) with the live sub-service checks
-// omitted — there's no process to reach them from.
+// scheduler), never cached so each load is live.
 
 import Link from 'next/link';
-import { connection } from 'next/server';
 import { formatDistanceToNow } from 'date-fns';
 import { getHealth, type ServiceHealth } from '@/lib/health';
-import { IS_STATIC } from '@/lib/static';
+
+export const dynamic = 'force-dynamic';
 
 function dotClass(s: ServiceHealth): string {
   if (!s.configured) return 'dot-neutral';
@@ -43,11 +40,6 @@ function Row({ label, value, sub, dot }: { label: string; value: string; sub?: s
 }
 
 export default async function StatusPage() {
-  // Force per-request rendering on the live server so the page is always
-  // current. Gated out of the static export (IS_STATIC inlines to a literal,
-  // so the call is dead-code-eliminated), where this is a build-time snapshot.
-  if (!IS_STATIC) await connection();
-
   const h = await getHealth();
   const allUp = h.services.every((s) => !s.configured || s.ok);
 
@@ -62,35 +54,22 @@ export default async function StatusPage() {
 
       <h1 className="status-title">System Status</h1>
       <p className="status-asof">
-        {IS_STATIC ? (
-          <>
-            <span className="dot dot-neutral" />
-            Static snapshot · as of {fmtTime(h.now)}
-          </>
-        ) : (
-          <>
-            <span className={`dot ${allUp ? 'dot-bull' : 'dot-bear'}`} />
-            {allUp ? 'All systems operational' : 'Degraded — a service is unreachable'} · as of {fmtTime(h.now)}
-          </>
-        )}
+        <span className={`dot ${allUp ? 'dot-bull' : 'dot-bear'}`} />
+        {allUp ? 'All systems operational' : 'Degraded — a service is unreachable'} · as of {fmtTime(h.now)}
       </p>
 
-      {/* Live sub-service reachability can't be probed from a static snapshot —
-          the section only renders on the live server. */}
-      {!IS_STATIC && (
-        <section className="status-section">
-          <div className="eyebrow status-section-head">Sub-services</div>
-          {h.services.map((s) => (
-            <Row
-              key={s.name}
-              label={s.name}
-              dot={dotClass(s)}
-              value={!s.configured ? 'Not configured' : s.ok ? 'Up' : 'Down'}
-              sub={s.detail}
-            />
-          ))}
-        </section>
-      )}
+      <section className="status-section">
+        <div className="eyebrow status-section-head">Sub-services</div>
+        {h.services.map((s) => (
+          <Row
+            key={s.name}
+            label={s.name}
+            dot={dotClass(s)}
+            value={!s.configured ? 'Not configured' : s.ok ? 'Up' : 'Down'}
+            sub={s.detail}
+          />
+        ))}
+      </section>
 
       <section className="status-section">
         <div className="eyebrow status-section-head">Scheduler</div>
@@ -116,11 +95,7 @@ export default async function StatusPage() {
       </section>
 
       <p className="status-foot">
-        {IS_STATIC ? (
-          <>Snapshot rebuilt on each publish · counts and digest reflect the last refresh</>
-        ) : (
-          <>Live JSON at <Link href="/api/health" className="status-link">/api/health</Link> · reload for the latest</>
-        )}
+        Live JSON at <Link href="/api/health" className="status-link">/api/health</Link> · reload for the latest
       </p>
     </div>
   );
