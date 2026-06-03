@@ -192,20 +192,28 @@ export async function buildDigest(window: { start: string; end: string }): Promi
       )
       .join('\n\n');
 
-    const response = await client.messages.create({
-      model: MODEL,
-      max_tokens: MAX_OUTPUT_TOKENS,
-      system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: SCHEMA_INSTRUCTION, cache_control: { type: 'ephemeral' } },
-            { type: 'text', text: `Posts in window (${posts.length}):\n\n${postList}` },
-          ],
-        },
-      ],
-    });
+    // Must stream, not .create(): the SDK rejects any non-streaming request
+    // whose max_tokens implies a >10-minute worst case (max_tokens > ~21.3k at
+    // its 128k-tokens/hour estimate), throwing "Streaming is required …" before
+    // it ever hits the network. MAX_OUTPUT_TOKENS (32k) sits above that line —
+    // see its comment for why the headroom is needed — so the daily build and
+    // the manual REFRESH both stream and await the assembled final message.
+    const response = await client.messages
+      .stream({
+        model: MODEL,
+        max_tokens: MAX_OUTPUT_TOKENS,
+        system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: SCHEMA_INSTRUCTION, cache_control: { type: 'ephemeral' } },
+              { type: 'text', text: `Posts in window (${posts.length}):\n\n${postList}` },
+            ],
+          },
+        ],
+      })
+      .finalMessage();
 
     const usage = response.usage as unknown as Record<string, number>;
     if (process.env.NODE_ENV === 'development') {
