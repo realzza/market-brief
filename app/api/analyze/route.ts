@@ -3,10 +3,16 @@ import { getUnanalyzedTweets, getTweetForAnalysis, saveAnalysis, upsertPerforman
 import { analyzeBatch } from '@/lib/claude';
 import { derivePerformanceEntry } from '@/lib/performance';
 
+function analyzeLimit(raw: unknown): number {
+  const n = Number(raw);
+  if (!Number.isInteger(n)) return 10;
+  return Math.min(50, Math.max(1, n));
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const limit = body.limit ?? 10;
+    const limit = analyzeLimit(body.limit);
     const tweetId: string | undefined = body.tweet_id;
     // Free-form user question. Only honored on single-tweet analyze (batch
     // mode would apply the same question to every tweet — almost never what
