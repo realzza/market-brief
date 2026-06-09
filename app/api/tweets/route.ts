@@ -3,10 +3,16 @@ import { getTweets } from '@/lib/db';
 import { runFetch } from '@/lib/scheduler';
 import { serializeTweetRow } from '@/lib/serialize';
 
+function intParam(raw: string | null, fallback: number, min: number, max: number): number {
+  const n = Number.parseInt(raw ?? '', 10);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, n));
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const limit = parseInt(searchParams.get('limit') || '50');
-  const offset = parseInt(searchParams.get('offset') || '0');
+  const limit = intParam(searchParams.get('limit'), 50, 1, 5000);
+  const offset = intParam(searchParams.get('offset'), 0, 0, 100_000);
 
   const tweets = getTweets(limit, offset).map(serializeTweetRow);
   return NextResponse.json({ tweets });

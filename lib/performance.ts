@@ -336,12 +336,7 @@ export function backfillPerformance(): { scanned: number; inserted: number } {
   for (const row of calls) {
     const entry = derivePerformanceEntry(row.tweet_id, row.created_at, row.analysis);
     if (!entry) continue;
-    const before = inserted;
-    upsertPerformance({ ...entry, updated_at: now });
-    // upsertPerformance is silent on conflict, so we can't tell from a return
-    // value whether this was a fresh insert or a no-op. Counting "attempts"
-    // is fine for the scheduler log message.
-    inserted = before + 1;
+    inserted += upsertPerformance({ ...entry, updated_at: now });
   }
   return { scanned: calls.length, inserted };
 }

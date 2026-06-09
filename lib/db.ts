@@ -304,16 +304,29 @@ export function getUnanalyzedTweets(limit = 20): Array<Record<string, unknown>> 
 export function getStats(): Record<string, unknown> {
   const db = getDb();
   const total = (db.prepare('SELECT COUNT(*) as count FROM tweets').get() as { count: number }).count;
-  const analyzed = (db.prepare('SELECT COUNT(*) as count FROM tweet_analysis').get() as { count: number }).count;
-  const sentiments = db.prepare(`
-    SELECT sentiment, COUNT(*) as count FROM tweet_analysis GROUP BY sentiment
-  `).all() as Array<{ sentiment: string; count: number }>;
-  const tradeCalls = (db.prepare('SELECT COUNT(*) as count FROM tweet_analysis WHERE is_trade_call = 1').get() as { count: number }).count;
-  const avgScore = (db.prepare('SELECT AVG(sentiment_score) as avg FROM tweet_analysis').get() as { avg: number | null }).avg;
+  const analysisStats = db.prepare(`
+    SELECT
+      COUNT(*) AS analyzed,
+      SUM(CASE WHEN sentiment = 'bullish' THEN 1 ELSE 0 END) AS bullish,
+      SUM(CASE WHEN sentiment = 'bearish' THEN 1 ELSE 0 END) AS bearish,
+      SUM(CASE WHEN sentiment = 'neutral' THEN 1 ELSE 0 END) AS neutral,
+      SUM(CASE WHEN sentiment = 'mixed' THEN 1 ELSE 0 END) AS mixed,
+      SUM(CASE WHEN is_trade_call = 1 THEN 1 ELSE 0 END) AS trade_calls,
+      AVG(sentiment_score) AS avg_score
+    FROM tweet_analysis
+  `).get() as {
+    analyzed: number;
+    bullish: number | null;
+    bearish: number | null;
+    neutral: number | null;
+    mixed: number | null;
+    trade_calls: number | null;
+    avg_score: number | null;
+  };
 
   // Count tickers purely from raw tweet text — no join with analysis results
   const TICKER_RE = /\$([A-Z]{1,6}(?:[-][A-Z]{1,4})?)\b/g;
-  const allTexts = db.prepare('SELECT text FROM tweets').all() as Array<{ text: string }>;
+  const allTexts = db.prepare("SELECT text FROM tweets WHERE text LIKE '%$%'").all() as Array<{ text: string }>;
   const tickerCount: Record<string, number> = {};
   for (const row of allTexts) {
     TICKER_RE.lastIndex = 0;
@@ -326,32 +339,28 @@ export function getStats(): Record<string, unknown> {
     .sort((a, b) => b[1] - a[1]).slice(0, 10)
     .map(([ticker, count]) => ({ ticker, count, asset_type: 'unknown' }));
 
-  const allDomains = db.prepare("SELECT domains FROM tweet_analysis WHERE domains != '[]'").all() as Array<{ domains: string }>;
-  const domainCount: Record<string, number> = {};
-  for (const row of allDomains) {
-    try {
-      const domains = JSON.parse(row.domains) as string[];
-      for (const d of domains) domainCount[d] = (domainCount[d] || 0) + 1;
-    } catch {}
-  }
-  const topDomains = Object.entries(domainCount)
-    .sort((a, b) => b[1] - a[1]).slice(0, 10)
-    .map(([domain, count]) => ({ domain, count }));
-
-  const sentimentMap: Record<string, number> = {};
-  for (const s of sentiments) sentimentMap[s.sentiment] = s.count;
+  const topDomains = db.prepare(`
+    SELECT json_each.value AS domain, COUNT(*) AS count
+    FROM tweet_analysis, json_each(tweet_analysis.domains)
+    WHERE tweet_analysis.domains != '[]'
+      AND json_valid(tweet_analysis.domains)
+      AND json_each.type = 'text'
+    GROUP BY json_each.value
+    ORDER BY count DESC, domain ASC
+    LIMIT 10
+  `).all() as Array<{ domain: string; count: number }>;
 
   return {
     total_tweets: total,
-    analyzed_tweets: analyzed,
-    bullish_count: sentimentMap['bullish'] || 0,
-    bearish_count: sentimentMap['bearish'] || 0,
-    neutral_count: sentimentMap['neutral'] || 0,
-    mixed_count: sentimentMap['mixed'] || 0,
-    trade_calls: tradeCalls,
+    analyzed_tweets: analysisStats.analyzed,
+    bullish_count: analysisStats.bullish ?? 0,
+    bearish_count: analysisStats.bearish ?? 0,
+    neutral_count: analysisStats.neutral ?? 0,
+    mixed_count: analysisStats.mixed ?? 0,
+    trade_calls: analysisStats.trade_calls ?? 0,
     top_tickers: topTickers,
     top_domains: topDomains,
-    avg_sentiment_score: avgScore ?? 0,
+    avg_sentiment_score: analysisStats.avg_score ?? 0,
     win_rate: getWinRate(),
   };
 }
@@ -414,11 +423,11 @@ export function upsertPerformance(entry: {
   entry_price?: number; target_price?: number; stop_loss_price?: number;
   signal_date: string; outcome?: string; actual_return_pct?: number;
   notes?: string; updated_at: string;
-}) {
+}): number {
   const db = getDb();
   // Nullify undefined numerics — better-sqlite3 won't bind `undefined`, and
   // re-running this with optional prices missing should still insert a row.
-  db.prepare(`
+  const info = db.prepare(`
     INSERT INTO performance (tweet_id, asset, direction, entry_price, target_price, stop_loss_price, signal_date, outcome, actual_return_pct, notes, updated_at)
     VALUES (@tweet_id, @asset, @direction, @entry_price, @target_price, @stop_loss_price, @signal_date, @outcome, @actual_return_pct, @notes, @updated_at)
     ON CONFLICT(tweet_id, asset) DO NOTHING
@@ -431,6 +440,7 @@ export function upsertPerformance(entry: {
     notes: null,
     ...entry,
   });
+  return info.changes;
 }
 
 /** All trade-call analyses, shaped for the performance backfill. */
@@ -633,6 +643,7 @@ export function getLatestDigest(): Digest | null {
 
 export function getSentimentTimeline(days = 30): Array<Record<string, unknown>> {
   const db = getDb();
+  const safeDays = Number.isInteger(days) && days > 0 ? Math.min(days, 365) : 30;
   return db.prepare(`
     SELECT DATE(t.created_at) as date,
            AVG(a.sentiment_score) as avg_score,
@@ -642,8 +653,8 @@ export function getSentimentTimeline(days = 30): Array<Record<string, unknown>> 
            SUM(CASE WHEN a.sentiment = 'neutral' THEN 1 ELSE 0 END) as neutral
     FROM tweets t
     JOIN tweet_analysis a ON t.id = a.tweet_id
-    WHERE t.created_at >= datetime('now', '-${days} days')
+    WHERE t.created_at >= datetime('now', ?)
     GROUP BY DATE(t.created_at)
     ORDER BY date ASC
-  `).all() as Array<Record<string, unknown>>;
+  `).all(`-${safeDays} days`) as Array<Record<string, unknown>>;
 }
