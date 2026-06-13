@@ -1,0 +1,26 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T634,GUESS WHAT ANON?
+After today’s new news with Ayar joining Nvidia NVLink fusion.
+$SIVE is now the laser source for likely:
+The entire Nvidia’s NVLink CPO listed supply chain ecosystem partners.
+From Marvell Celestial, Lightmatter, and now Ayar today (the three listed in NVLink CPO).
+This is why I call $SIVE a structural photonics laser chokepoint over CPO and now Nvidia ecosystem supply chains.
+-> Celestial was likely a direct customer to Sivers, not through Poet. (2023 investor presentation mapping), then bought by Marvell.
+-> Lightmatter was also listed there as a customer in 2023 investor presentation deck mapping.
+And… Guess what else?
+Then they all happen to use GlobalFoundries.
+Which Sivers is now the GFS silicon photonics foundry-level reference laser (also new news yesterday).
+Supply chain mapping all starting to make sense now anon?
+Sivers is also likely now the primary laser source for Ayar after they removed Macom/Lumentum their laser supply chain section (now just gfs/sivers), as a cherry on top.
+Algorithms completely miss this type of image based mapping.
+After this announcement, I personally think current valuations are very undervalued:
+Given Sivers now holds one of the most important structural laser chokepoint over Nvidia CPO NVLink ecosystem supply chains.
+Serenity: Wow… new extremely transformative news got released today.
+Making a certain photonics company:
+The effective upstream laser chokepoint for $NVDA NVLink fusion CPO ecosystem.
+With their lasers now in Nvidia’s optical infrastructure supply chains.
+Can anyone guess the name?0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2062079425475473595","text":"$3","created_at":"2026-06-03T07:50:21.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-05T08:58:30.407Z","media_urls":["https://pbs.twimg.com/media/HJ35-cUbUAAe0XH?format=jpg&name=orig","https://pbs.twimg.com/media/HJ35-9EbkAApUfp?format=jpg&name=orig","https://pbs.twimg.com/media/HJ36ASBaMAAgEKJ?format=jpg&name=orig"],"card":null,"analysis":{"tweet_id":"2062079425475473595","sentiment":"bullish","sentiment_score":0.85,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-06-03T16:29:04.510Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"qUUqBN-DZebU-rnGZHg21"}
+6:null

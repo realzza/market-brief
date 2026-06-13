@@ -1,0 +1,25 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T741,Basically this… and it’s how cycles work.
+Retail was early and completely frontran institutions on next architectural shifts.
+There was close to 0 US institutional ownership on $SIVE.
+And now you see active institutions like JP Morgan, Fidelity Research, and others on the cap table.
+Happened last year with $NBIS.
+> I called out close to <30% institutional accumulation and said they wanted more shares.
+> institutions bought up majority of the float
+> bunch of negative articles back then, now it’s positive and ATHs.
+Two years before it was $RKLB
+> Was long at $16, but institutional analysts kept giving record low PTs and told retail to sell, although it had such a high reusable rocket rate.
+> retail sold, institutional ownership stocked up
+> now it’s ATHs
+I expect Foci (3363) to be a bottleneck for both $NVDA and $TSM optical programs and now there’s firms implying you to sell that at $2.5B valuations alongside $HIMX.
+So if you see negative sellside reports or an uncanny wave of negative news, if’s a good signal they need liquidity.
+Recently some smaller hedge funds have been so desperate that they’re likely even using bot farms on X that told retail to sell lol… which I’ve uncovered recently.
+Regardless, it’s also why I spend a lot of time doing research on individual names so people can build their own conviction in the face of noise.
+Unfortunately, it’s just a part of life how the modern liquidity cycles/transfers of US retail -> Institutions work.
+They don’t work in the best interest of retail investors.Cyberpunk Sense 👑: This really is making me wonder.  What happened is retail based on @aleabitoreddit and some other frontier analysts front ran the optics/photonics cycle.
+Then we started seeing statements that $JPM Fidelity etc have been buying $SIVE
+Now we start hearing a narrative saying "you0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2064884912667439129","text":"$3","created_at":"2026-06-11T01:38:21.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-12T08:21:26.155Z","media_urls":[],"card":null,"analysis":{"tweet_id":"2064884912667439129","sentiment":"bullish","sentiment_score":0.4,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-06-11T15:00:00.405Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"qUUqBN-DZebU-rnGZHg21"}
+6:null

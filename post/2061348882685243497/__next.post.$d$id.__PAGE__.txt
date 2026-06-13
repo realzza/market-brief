@@ -1,0 +1,41 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+7:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+8:"$Sreact.suspense"
+3:Tdab,Just some mobile shower thoughts around $XFAB and train of thought:
+1. 800vdc $NVDA push look for GaN/SiC players / power semis.
+2. $NVTS and other fabless/fab-lite beneficiaries of $NVDA push probably use foundry models
+3. care more about Western supply chains over Asia, want to build up Western capabilities + Western premiums.
+4 China has a lot of capacity, maybe risk into 2028, but again it’s building up Western supply chains
+5. XFAB only high volume SiC foundry in America (others like $ON or Infineon are vertically integrated)
+6. advanced 6in SiC, 8in GaN on Si, building out 8in GaN
+7. Maybe likely they’re developing 8in SiC from CHIPS backing, just not public material
+8. check SiC revenue -> 152% Y/Y growth okay. Probably something markets missed, since blended looks worse from automotive slump, that should come out recovery
+9. $NVTS and others turns out to use $XFAB. $POWI cites $XFAB in filings, among others.
+10. both are $NVDA power semi explicit partners, great exposure indicator to 800vdc power semi players.
+11. US Dpt. of commerce cites $XFAB as only high volume SiC foundry in the US, $50M PMT
+12. validation from US Gov about critical component in supply chains is amazing
+13. EU CHIPS Act gives $XFAB $128M EU, for foundry (MEMS, AI, etc), okay turns out they’re critical MEMS player
+14. So that’s validation from EU gov about critical component in supply chains, dual continent subsidies
+15. So now we know $XFAB is a critical MEMS foundry so you get SiC capabilities, GaN development, and MEMS upside
+16. they also got $47.6M EU funding for leading Silicon Photonics supply chain in EU. So that’s EU funding on multiple angles.
+17. Turns out, I know all the players there from smartphotonics from $GFS deck.
+18. $NVDA and $NOK are qualifying them for silicon photonics HVM. I think this is just a government backing angle for success in EU photonics so likely to succeed… kinda like how Us gov encourages everyone to use $INTC.
+19. Okay chips act 2 is coming out next week… so they’ll probably get funding there or more revenue commitments
+20. 1.28 p/b, now that’s probably just book cost? Likely coming out of $SOI type legacy drag cycle.
+21. Did some modeling around actually replacement values, true replacement p/b cost likely ~.5/.7.
+22. Getting business for free, while having upside from SiC near term into Silicon Photonics / GaN as main growth past H2 2027.
+Thoughts: derisked by p/b values + replacement value. maybe like 20% downside from macro.
+However, critical dual continent importance. So downside risk seems low, but upside is compelling.
+Lot of capex likely backstopped by upcoming chips act catalyst + national security concerns.
+Maybe 2.5-4x rerating seems possible/likely.
+Not a 10-20x, but recovery from depressed valuations from silicon photonics upside with SiC / GaN bridge.
+TLDR: likely trading lower than replacement value, dual continent subsidies likely subsidize capex.
+Gov grants shows importance to Western supply chains, photonics longer term upside, SiC/GaN demand likely near term upside and bridge.
+Don’t control any recent volatility, should shake out anyone not really confident in the thesis though.
+CHIPS act 2 from EU is coming up, $XFAB was listed in earlier blueprints for optical ecosystem, so should get a boost after that comes out as near term event catalysts.
+So now is the risk reward seems compelling, we’ll see if this is right or notGantiq: @aleabitoreddit Whats your expectation for $XFAB ?0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2061348882685243497","text":"$3","created_at":"2026-06-01T07:27:26.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-02T07:48:25.366Z","media_urls":[],"card":null},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],["$L4","$L5"],"$L6"]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"qUUqBN-DZebU-rnGZHg21"}
+4:["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}]
+5:["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]
+6:["$","$L7",null,{"children":["$","$8",null,{"name":"Next.MetadataOutlet","children":"$@9"}]}]
+9:null

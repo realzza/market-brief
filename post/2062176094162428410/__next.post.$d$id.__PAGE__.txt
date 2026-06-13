@@ -1,0 +1,27 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+6:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+7:"$Sreact.suspense"
+3:T970,EU CHIPS Act 2.0 proposal is now released.
+Great news: Photonics is now confirmed to be the new structural addition to EU policy.
+This is thematically bullish for the EU photonics sector.
+Thematically:
+- "This new component of the Chips for Europe Initiative supports the development of photonic integrated circuits and associated technologies"
+- "building and strengthening advanced design, prototyping, and industrial deployment capacities for photonic integrated circuit technologies and other photonic technologies across the Union"
+- "extend the Union’s design capabilities, including in photonics"
+- "strengthen existing and develop new pilot lines and open-access semiconductor manufacturing facilities for the prototyping and production of photonic integrated circuits and associated photonic technologies
+- "develop and maintain design libraries and design automation tools for photonic integrated circuits, associated photonic technologies"
+===
+More specifically policy specifically focuses on
+-> co-packaged optics for AI data centres (CPO/interconnects focus is bullish read through for $SIVE)
+-> “Silicon photonics … applications in high-bandwidth data-centre interconnects…”
+-> Capabilities in production technologies including co-packaging and heterogeneous integration with electronic chips, manufacturing equipment, and materials platforms for photonic integrated circuits shall be strengthened ( $XFAB)
+-> $SOI directly mentioned in impact analysis regarding structural strengths of the EU. "The EU has a relatively strong global position in SOI wafers, with Soitec and Siltronic being notable players"
+-> $XFAB also directly mentioned in impact analysis, as part of creating the current funding framework.
+Obviously structurally positive for $XFAB since they're literally leading the European Silicon Photonics Value chain and listed in First of a Kind (FOAK) category.
+Initial interpretation, this is heavily positive for EU photonics leaders that go inside AI DCs as part of EU Policy.  I'm expecting optical players broadly to get a tailwind from this framework.
+TLDR: EU photonics structurally go brrr long term. Most positive confirmation is that photonics is structurally a part of European Union policy now.
+We'll likely see the individual photonics names come out after this release, within 3-15 months (typically in the middle somewhere). Markets are forward looking in general.0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2062176094162428410","text":"$3","created_at":"2026-06-03T14:14:28.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-05T23:58:31.557Z","media_urls":["https://pbs.twimg.com/media/HJ5Frx9aUAA9ua0?format=jpg&name=orig","https://pbs.twimg.com/media/HJ5F-yVasAAe8lM?format=jpg&name=orig","https://pbs.twimg.com/media/HJ5O3PQbQAAykXs?format=jpg&name=orig","https://pbs.twimg.com/media/HJ5PBszaYAAO6Mm?format=jpg&name=orig"],"card":null,"analysis":{"tweet_id":"2062176094162428410","sentiment":"bullish","sentiment_score":0.8,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-06-03T16:29:04.510Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],"$L4"],"$L5"]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"qUUqBN-DZebU-rnGZHg21"}
+4:["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]
+5:["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]
+8:null

@@ -1,0 +1,21 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T77c,Sure, #1 thing is toxic financing structure/float dynamics.
+Best example is current Neoclouds landscape:
+- $IREN is basically trash, since they have $6,000,000,000 ATMs and virtually infinite dilution, likely selling into every rally (structural overhang)
+- While $NBIS is now YTD 153%+, from optimal structures (eg. $NVDA direct funding, mix of convertibles, etc.).
+- On the other hand, $CRWV has endless debt interest given they took out high interest rate loans to finance GPUs.
+It's extremely nuanced, but you need to take a look at the float dynamics.
+If they're legitimately a good company, then it might be a good idea to go long after all the existing holders get diluted to oblivion.
+But if you care about your equity appreciation, it's a good idea to stay far away from toxic financing structures or toxic overhang (eg. debt interest, that eats away at a company FCF long term)
+With smaller companies, they have this all the time, like
+$SLNH, where there's new $500m ATMs on a $250m MC.
+Or like $BKKT where there's endless dilution to fund executive pay.
+With these companies you're basically transferring your money over to the company while influencers talk about them. So those are red flags.
+With many software names like $SNAP, they mask stock-based compensation with profitability. So while the company optically looks profitable, you'll likely see the value of your equity decrease due to dilution.
+There's endless types of these share structures you need to look when screening ideas.跟着Serenity学投资: @aleabitoreddit 想请教一个具体问题：
+你在筛选这类早期机会时，除了「现实世界观察 + 行业人脉」，还有没有一个你自己总结的「最小验证 checklist」？比如某个信号一旦出现，你就会把仓位从观察池提到重仓池？
+非常欣赏这种把金融、VC和硬科技研发背景融合起来的打法，期待继续看你分享！0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2063571485739106593","text":"$3","created_at":"2026-06-07T10:39:16.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-09T07:19:23.987Z","media_urls":[],"card":null,"analysis":{"tweet_id":"2063571485739106593","sentiment":"mixed","sentiment_score":0.2,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":true,"summary":"","image_insights":null,"analyzed_at":"2026-06-07T15:00:00.458Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"qUUqBN-DZebU-rnGZHg21"}
+6:null

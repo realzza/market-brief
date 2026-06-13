@@ -1,0 +1,17 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T489,$SIVE is my favorite CPO / photonics stock after AAOI.
+Partly because it's Swedish and you have entertainment from comedians over there.
+Today a new non-technical hedge fund called Protean Funds (likely shorting), went on air.
+To said $SIVE CPO applications are imaginary.
+Right after $GFS just made $SIVE their reference laser.
+(Just for some context to newer readers: Lot of people in Sweden can only look at past 12 month revenue, and don't understand concepts of forward growth)
+Also because they don't understand that no CPO application has scaled up yet at all.
+So Swedish hedge funds keep going short (with many of their hedge funds like Colosseum / Origo heavily underwater).
+But... for the technical readers... from H2 2026 to 2028, it goes from near $0 to $91B TAM in 1 1/2 years. (we're entering H2 now).
+Overall TAM hits $141B (which is also 10x+ or so in 1 1/2 years)... and $SIVE has scaled into pluggable market with $JBL + other unnamed pluggable players with that too.
+Probably not going to end well for the local Swedish firms, shorting right before the largest inflection points ever hits for $SIVE.
+Just a matter of time before volume ramps.0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2062903639300309302","text":"$3","created_at":"2026-06-05T14:25:29.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-08T06:13:35.678Z","media_urls":["https://pbs.twimg.com/media/HKDkXj2bEAABTrc?format=jpg&name=orig"],"card":null,"analysis":{"tweet_id":"2062903639300309302","sentiment":"bullish","sentiment_score":0.6,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-06-05T15:00:00.460Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"qUUqBN-DZebU-rnGZHg21"}
+6:null

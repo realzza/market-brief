@@ -1,0 +1,39 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:Ta20,$SIVE is the most compelling CPO/photonics exposure to me.
+Addressing the disinformation: I haven’t sold and don’t plan to sell a single share.
+I do think this ends up the next $80B+ $LITE one day from ~$2.1B.
+And I personally have plans to acquire more ownership + support their M&A prospects.
+I believe earnings transcripts will be strongly positive.
+As in the part few months we’ve discovered:
+> AlChip/Amazon private placements, which is positive for Ayar -> $SIVE implying Trainium 4 design in
+> Wiwynn + Ayar CPO scale up
+> $JBL 1.6T optical transceiver ramp with Sivers incoming faster than markets expected (with relatively dramatic moat + demand as much as they can produce)
+> O-Net scaling up ELS efforts with $SIVE
+> $YSS acquisition of $SIVE allspace lead partner, designing Sivers into Space defense primes
+> New CHIPS ACT funding for $SIVE
+> $POET H2 volume ramp and their new $50m -> $500m order (with $SIVE as light source)
+> information discovery around $AAPL using $SIVE lasers for next gen consumer devices
+> information discovery around links to Lightelligence (went public $10B+ MC) + Lightmatter as likely customers.
+> Celestial volume ramp with $MRVL indicators.
+> new customers working on TFLN with $SIVE like Lightium
+> $AMD going with $GFS for CPO, and GFS listing sivers as one of two laser suppliers
+> Ayar removing $MTSI / $LITE from their website and signaling $SIVE as primary source/sole source
+> Ayar raising $500m for volume ramp (intel, Mediatek, Nvidia, amd etc)
+> pluggable TAM expansion signaled from 2025 annual report
+> Nasdaq listing expected soon
+> MSCI small cap index / Nasdaq omx inclusion, making Blackrock, Vanguard and others passive buyers
+> M&A signaled from 2025 annual report + 2 new board members that have experience in that area
+> $NOK as likely customer from 2025 annual report.
+> $LITE getting cw bottlenecked from EML contracts, $SIVE signaling capacity agreements in place with Win, making the a likely bottleneck owner + chokepoint in CPO sector.
+All of this market research was done before earnings.
+Any results is just confirmation of supply chain mapping done.
+I don’t think anyone cares about former quarter revenue since $SIVE is an exceptionally compelling 2027 long, especially H2 onward.
+Only thing I’m looking at are:
+> TAM expansion of the overall photonics supercycle (eg. optical engine, ELS, pluggables) either from M&A or developments
+> volume ramp expectations from existing companies
+> Nasdaq listing timelines for more liquidity to support their M&A efforts
+> any new customers signaled for CPO/Pluggables0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2060002002994971046","text":"$3","created_at":"2026-05-28T14:15:25.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-05-30T11:28:41.675Z","media_urls":["https://pbs.twimg.com/media/HJaY5p4bkAAY7OB?format=jpg&name=orig"],"card":null},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"qUUqBN-DZebU-rnGZHg21"}
+6:null

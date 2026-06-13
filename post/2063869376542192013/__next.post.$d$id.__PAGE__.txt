@@ -1,0 +1,45 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T514,Okay chat, here's your compiled list chat of your favorite 800V DC related ideas.
+1. $IFNNY - $115.8B
+2. $ON - $46.2B
+3. Lite-On (2301) - $16.03B
+4. 6504.T - $14.1B
+5. $VICR - $12.8B
+6. $LFUS - $11.57B
+7. http://2577.HK - $8.34B
+8. $VSH - $7.86B
+9. $ENPH - $7.36B
+10. $NVTS - $5.77B
+11. $POWI - $4.30B
+12. $BDC - $4.18B
+13. $EOSE - $3.86B
+14. $SEDG - $3.82B
+15. $AEHR - $3.1B
+16. 6890.T - $2.66B
+17. $WOLF - $2.16B
+18. $CWR.L - $1.75B
+19. $AMSC - $1.68B
+20. http://300376.SZ - $1.68B
+21. $XFAB - $1.54B
+22. $AOSL - $1.25B
+23. $HYLN - $1.23B
+24. $FCEL - $835M
+25. $IQE.L - $780M
+26. $ASYS - $276M
+27. $RELL - $239M
+28. 6844.T - $222M
+29. 4973.T - $207M
+30. $PAY.BR - $189M
+31. 6616.T - $186M
+32. 6882.T - $124M
+33. $IPWR - $96m
+Also included some adjacent ones you all mentioned like $FCEL or $EOSE anyway, tho idk it's great exposure. Ignored the clearer irrelevant stuff like $POET that people mentioned tho.
+There's like 500 comments, but I guess X limits everything I can see.
+We'll see how your highest conviction ideas do.Serenity: All right chat, crowdsourcing your #1 highest conviction (10x only) stock long for the Power Semi trade.
+Especially given $NVDA pushing shift to 800 VDC.
+Stuff like $NVTS or $WOLF, but high-beta, 10x potential only.  Anywhere around the world.
+What's your pick?0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2063869376542192013","text":"$3","created_at":"2026-06-08T06:22:58.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-10T04:19:25.477Z","media_urls":["https://pbs.twimg.com/media/HJGJYjcbkAAJD9S?format=jpg&name=orig"],"card":null,"analysis":{"tweet_id":"2063869376542192013","sentiment":"neutral","sentiment_score":0.2,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-06-08T15:00:00.395Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"qUUqBN-DZebU-rnGZHg21"}
+6:null

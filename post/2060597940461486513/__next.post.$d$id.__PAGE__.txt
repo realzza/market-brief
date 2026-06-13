@@ -1,0 +1,28 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T883,Had some more time go through $SIVE earnings transcript, it’s very bullish:
+- $JBL pluggable partnership led to more optical transceiver requests for $SIVE
+So maybe Innolight/Eoptolink and other large players are my guess.
+- More laser capacity on top of Win Semi with more partners being developed. “When the timing is right, we will bring those details to the market.”
+CEO said it’s not just Win/Glasgow. I’m already confident in Win Semi scaling capacity, given they’re critical in SpaceX / $AVGO supply chains already.
+But this derisks those capacity ramp even more. Just not publicly disclosed yet.
+-  tremendous executive credibility and experience with U.S. markets, as well as strong M&A experience
+Flagged M&A in regards to new board members, which we guessed based on their backgrounds.
+- “Production orders are imminent from our lead SATCOM”…
+So that’s volume ramp for space
+- U.S dual listing progressing smoothly
+No exact timeline, my personal guess was around late Q3 or Q4. Probably after June board meeting, they’ll announce timing since that’s when new board members come in.
+- “Viewing the ecosystem vendors as competitors is the wrong way to go about it in supercycles where demand far outstrips supply.”
+Too much demand in photonics
+- “Over the last five months, there's been a rapid increase in the Photonics pipeline as well”
+Basically 77% growth pipeline came from photonics (which validated thesis about cpo/pluggable growth vectors for sivers)
+TLDR:
+We moved from “can sivers get customers this small and can they compete with $LITE?”
+To execution eg. “how much can sivers even produce to feed into each supercycle” as they’re volume ramping while demand > supply.”
+To me that’s very positive if anything they make gets bought.
+Also there’s likely to be a lot of TAM expansion in the photonics space post-M&A as well as more ongoing hyperscaler supplier qualifications hinted.
+Again, revenue pipeline surged 77% in just their quarter (5m) largely from photonics… over the entire company’s history.
+As CPO scales up h2 2027 onwards, I’m expecting the revenue numbers to look like an exponential curve.0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2060597940461486513","text":"$3","created_at":"2026-05-30T05:43:27.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-01T01:55:26.791Z","media_urls":["https://pbs.twimg.com/media/HJi25yTbcAAlOQJ?format=jpg&name=orig"],"card":null},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"qUUqBN-DZebU-rnGZHg21"}
+6:null

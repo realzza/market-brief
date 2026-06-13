@@ -1,0 +1,28 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T727,-> IP acquisition
+-> Just waiting for CPO to take off
+$SIVE is a laser chokepoint for photonics and are publicly validated by:
+- $GFS (1 of 2 public laser suppliers with $LITE for CPO per presentation)
+- $JBL (“Relatively dramatic moat” for pluggables built with Sivers)
+- CHIPS ACT for the overall company
+For highest visibility:
+-> Ayar is the largest CPO player that primary sources $SIVE and are expected to ramp in 2027.
+-> $POET is another near term CPO volume player that’s heavily visible with Sivers.
+For OSINT mapping:
+$MRVL Celestial (direct, not through Poet), Lightmatter, Lightelligence, were all high confidence customers of Sivers.
+$SIVE is also developing/qualifying with multiple more optical transceiver players following Jabil.
+It feels like they’re going to end up everywhere.
+I’m not sure people realize how special that many qualifications is coming from a <$2B MC laser company is… right before 2027 volume ramp.
+Especially while all the other laser companies trade at $15B-$70B valuations.
+Just need pluggables to bridge revenue gap into H2 2027 (CPO Scale up)
+Then making every laser they sell more valuable following the $LITE playbook, to capture more TAM of both markets.
+- In the overarching optical $141B TAM (10x) in the next 1 1/2 years. (Goldman Sachs)
+- and CPO TAM going from 0 to $81B in the next 1 1/2 years.
+So, easily multiply revenue opportunity overnight doing IP acquisition downstream.
+It’s more of just a waiting game, I think $SIVE is very undervalued relative to forward revenue potential.
+If it were a private Silicon Valley startup it would probably be worth $4-6B today.
+Just needs to get listed on NASDAQ for premiums to bridge that gap.Ribeyes & GPUs 🥩💻: @aleabitoreddit If your Sivers thesis goes tits up, what do you think the most likely reason would be?0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2061538735595069534","text":"$3","created_at":"2026-06-01T20:01:50.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-03T10:47:40.335Z","media_urls":[],"card":null},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"qUUqBN-DZebU-rnGZHg21"}
+6:null

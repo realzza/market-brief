@@ -1,0 +1,26 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T88c,Just some random notes about $AVGO earnings transcript
+- Revenue target reiterated ($100B+ 2027, pretty sure markets wanted that to be raised this earning, hence the drop)
+Remember $NVDA Jensen comments about $MRVL $1T company around networking/connectivity/interconnects?
+- “So as the TPUs continue to accelerate, there’ll be pressure overall on margins.
+But the connectivity side, the AI networking side of the business has very rich margins”
+“Demand for …  networking is simply insatiable”
+Also very positive read through as well for the $LITE and the other players. But for TPU margins it goes down at scale, which is understandable.
+- “they are placing orders in fairly huge demand, which basically gives us a lot more visibility.. runs all the way to 2028 right now”
+positive read through on overall AI demand since it’s 2026 now… and orders are out in 2028
+- The initial order for 1 gigawatt, which includes XPUs and our networking has been received and will start Delivery in the second half of 2027. for our other two customers, we expect shipments to begin late 2026 and accelerate into 2027.
+$META custom AI program h2 2027 timelines
+- “Our revenue, our content per gigawatt will increase. you start putting a lot, you start putting embedding CPU cores into the same XPUs and making those chips basically multi die with lots of hvm.”
+Just for the GW modelers.
+- “For OpenAI we have delivered silicon and we are on track for production late 2026”
+OpenAI custom program timeline
+- “If you ask about 27 or 28 that will continue to grow. We expect in fact 28 to be a substantial growth from what we are forecasting in 27.”
+More about the demand ramp, go brrr
+- “Google, that we expect a diversity of sources from them”
+Mediatek (2454) primary beneficary, maybe $MRVL. Already expected though Google doesn’t sole source so they don’t get bottlenecked.
+There’s quite a lot of AI demand visibility way until 2028, which is bullish on the AI sector as a whole. Regardless, Broadcom ends the week +0% lol.
+TLDR: Strongly bullish AI demand, especially networking. Stocks don’t move in a straight line up, but demand curves 2026-> 2027 -> 2028.0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2062322546809381094","text":"$3","created_at":"2026-06-03T23:56:25.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-06T01:43:31.713Z","media_urls":["https://pbs.twimg.com/media/HJ7Xa8yawAAAHgy?format=jpg&name=orig","https://pbs.twimg.com/media/HJ7Xa8ybkAA-pUk?format=jpg&name=orig","https://pbs.twimg.com/media/HJ7Xa8yacAAjAg9?format=jpg&name=orig"],"card":null,"analysis":{"tweet_id":"2062322546809381094","sentiment":"mixed","sentiment_score":0.1,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-06-04T15:00:00.249Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"qUUqBN-DZebU-rnGZHg21"}
+6:null

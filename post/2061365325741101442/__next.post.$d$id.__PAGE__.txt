@@ -1,0 +1,23 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T6c9,It’s actually just a cultural thing in Sweden to dislike anything special or growth related.
+They’re telling everyone to “give up on markets”
+Don’t take it to heart, just something to laugh at and welcome.
+Since it shifts control to US funds + likely makes Sivers a US company down the road.
+Because it’s cultural, many will start crying if they see $SIVE balloon forward revenue pipelines 77% from $JBL photonics 1.6T LRO in just a few months.
+Even more so if they learn Sivers is likely to supply more pluggable optical transceiver players.
+You’ve already kinda seen it with $SOI, at this point even with local French firms/retail shorting + negative press..
+US institutions/investors don’t really care anymore since they own a large part of the float, and that’s up 4x now.
+Just from personal ests on share structure:
+Maybe ~5% Swedish retail ownership to go (down from ~60%+ -> 8% -> 5%)…
+Which might be 13% of free float. So these types of local media publications are very positive for US investors/institutions.
+Qualitatively speaking, everyone in Western institutional side of things seem very overwhelming positive on optical companies like $SIVE.
+Since they’re familiar with Ayar, Celestial, and private CPO leaders compared to a lot of retail or local Swedish funds who don’t understand.
+And majority of access should unlock after likely NASDAQ listing soon.
+You’re just witnessing how ownership changes to Western institutions and it’s a good reminder to know what you own so you’re not influenced by Swedish culture.
+MoonGuy: Swedish hedge funds really trying anything to save their shorts
+To bad the Swedes sold all their $SIVE at 25 SEK 😂🫵
+Thanks to @ekroth for getting this newspaper0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2061365325741101442","text":"$3","created_at":"2026-06-01T08:32:46.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-02T13:03:25.839Z","media_urls":["https://pbs.twimg.com/media/HJtw1MHasAApHD-?format=jpg&name=orig","https://pbs.twimg.com/media/HJtw1MFboAAcCzd?format=jpg&name=orig","https://pbs.twimg.com/media/HJlux2lW4AEEXC2?format=jpg&name=orig"],"card":null},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"qUUqBN-DZebU-rnGZHg21"}
+6:null
