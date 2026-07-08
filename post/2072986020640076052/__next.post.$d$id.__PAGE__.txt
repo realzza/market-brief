@@ -1,0 +1,13 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T418,So positive readthrough on the upstream glass substrate supply chain:
+- Sumitomo Chemical and Samsung Electro-Mechanics formally establish JV in Korea within the year to handle the glass core substrate business (GlaSSEM).
+Main thing was timeline/funding was finalized:  "full scale commercialization targeted H2 2027" for the Samsung/Dongwoo JV / KRW 482.1B planned capital.
+Think the "full scale commercialization" is the word to highlight, since that would imply timeline moving faster than expected than starting ramp or early production H2 2027.
+So... TGV/LIDE with $LPK (that I own)/E&R  and Onto in terms of yields are just some examples of possible sector beneficiaries.
+Since companies like LPK stated in the past: “80% of customers among major global players have selected LPKF equipment” and targeted "70% of LIDE market share target for TGV in the glass-core ramp".
+These players also typically have revenue pulled forward, since equipment orders during capex cycle hit before actual ramp.
+Regardless, just an update on developments.0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2072986020640076052","text":"$3","created_at":"2026-07-03T10:09:16.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-07-06T14:45:43.608Z","media_urls":["https://pbs.twimg.com/media/HMS21nVbkAAUTPC?format=jpg&name=orig","https://pbs.twimg.com/media/HMS37WgagAAGFy6?format=jpg&name=orig"],"card":null,"analysis":{"tweet_id":"2072986020640076052","sentiment":"bullish","sentiment_score":0.6,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-07-03T15:00:00.265Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"hr19Whv0gDhoo20XX2Y1K"}
+6:null

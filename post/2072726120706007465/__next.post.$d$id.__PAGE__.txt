@@ -1,0 +1,17 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T647,Photonics is backed by actual revenue numbers and it's an architectural shift championed by $NVDA.
+Quantum barely has any revenue.
+$LITE is completely sold out for the next 2 years (per $POET AGM) likely starting into 2029. Lumentum is so strained that they buy CW lasers off competitors (earnings transcript)
+$COHR is bottlenecked, so they buy EML off Lumentum.
+Then, $AAOI is coming in with Made-in-America independent CW capacity, are projecting $1.4B/quarterly revenue ending H1 2027 of a stupid $9.3B MC today.
+So all the CW capacity from independent players who have it now like $AAOI or $SIVE are likely to become scarce resources.
+Many other hyperscalers have already started LTA discussions (per Trendforce). And players like $AMD are currently talking with players such as $AAOI (Rosenblatt channel checks).
+Thematically, next 2 years is 9x TAM to US$154B per GS reports, especially with 16x/45x dollar content increase in scale out/scale up.
+Then there's the overall thematic AI drop from $META, which is widely misunderstood because people conflate what "excess capacity" means. And as UBS mentioned, Meta planning a cloud offering is NOT NEW NEWS.
+Bloomberg just has a tendency to publish information that causes doom drops across the semi sector like Nvidia export controls a few months back.
+But I'm familiar with what I'm holding so I'm confident in these numbers playing out.
+Especially when all the major players are sold out, the fundamentals catch up eventually.C.G.D. Walker: @aleabitoreddit All photon stocks are dropping like rocks.   Is it going to be like quantum stocks in 2025 ?0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2072726120706007465","text":"$3","created_at":"2026-07-02T16:56:31.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-07-04T18:00:40.873Z","media_urls":[],"card":null,"analysis":{"tweet_id":"2072726120706007465","sentiment":"bullish","sentiment_score":0.7,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":true,"summary":"","image_insights":null,"analyzed_at":"2026-07-03T15:00:00.265Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"hr19Whv0gDhoo20XX2Y1K"}
+6:null

@@ -1,0 +1,23 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T6f9,just throwing out a random thought, the UBS report is anecdotally true + and it's interesting there's more Chinese reports on Anthropic distillation.
+Many US startups/companies using AI:
+Are using Chinese models like DeepSeek since they’re much cheaper than Gemini/OpenAI/Anthropic reasoning models for cost per task.
+Kinda a catch 22 when US is built on capitalism and everyone goes for the cheaper options.
+I think the US just has to get good and out innovate here:
+- both with heavy KYC-auth frontier models for US only like Mythos given those are being distilled by competitors. and amybe staggered tiers for allied partners so US is always ahead
+Maybe something like dedicated AI Google auth like FaceID + Persona would do the trick before access/key creation for the newer models, then short lived scopes.
+At least addressing those simpler fake/stolen account + pool allegations, requiring biometrics before use.
+Then US Gov drafting new regulations making it illegal for sharing access similar to identity forgery with bank accounts.
+- then the most obvious one is just heavily optimized reasoning models that mogs DeepSeek and others.
+Kinda good Trump admin paused Fable/Mythos access, imo not quite sure why a trillion dollar company keeps letting itself get distilled over and over again.
+There should be friction added if you’re accessing something close to ASI.
+TLDR: US just needs to good at cheap inference and add bank-grade authentication to AI model access. Easier said than done tho.
+Serenity: Today, Anthropic called out DeepSeek, Moonshot, and Minimax for distillation.
+OpenAI has also faced the same issues with Chinese labs.
+The most braindead fix nobody is doing:
+KYC verification.
+Every financial institution from $HOOD to $IBKR does this to track flow of0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2070493783804813451","text":"$3","created_at":"2026-06-26T13:06:00.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-30T14:09:53.773Z","media_urls":["https://pbs.twimg.com/media/HLvfHq9b0AA_HK0?format=jpg&name=orig","https://pbs.twimg.com/media/HLvfHq8bkAAtyJo?format=jpg&name=orig","https://pbs.twimg.com/media/HB3Wmf0bYAAK-o-?format=jpg&name=orig"],"card":null},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"hr19Whv0gDhoo20XX2Y1K"}
+6:null

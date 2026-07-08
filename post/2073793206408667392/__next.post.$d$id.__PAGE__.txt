@@ -1,0 +1,17 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T510,Just some consolidated updates on memory:
+-  $MU leads new 1.5T Yen investment in Hiroshima ~$9.3B. (bullish read through for Disco, Advantest, Resonac, Towa) since capex is localized.
+- Morgan Stanley pointed out NAND will continue to be in short supply into 2027 so $SNDK / Kioxia type players are happy alongisde $SIMO and upstream.
+- MS remains especially positive on Macronix/Winbond
+- UBS expects the average price of DDR contracts in the Q3 2026 to increase 32% | 18% Q4, vs. 17% and 12% est.
+- UBS expects NAND flash to be raised 30% from prev quarter.
+- Samsung reportedly plans 20% DRAM hike Q3. TrendForce recently forecast DRAM contract prices to rise 13 to 18 percent in the third quarter from the previous quarter, so this hike beats expectations.
+Something to note:
+Lot people see 20%... and don't think it's a lot compared to the 70-80% from previous quarters.
+But if you hike something by 100%, then hike something by 100%, then hike something by 30%, it's a lot more than people estimate since it's compounded. Similar to tracking inflation.
+I've already made projections going into 2028 from the start of the year on my memory names...
+I'm just sitting back and watching things play out through all the "memory optimization" and "they can't keep price hiking like this!" noise.0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2073793206408667392","text":"$3","created_at":"2026-07-05T15:36:44.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-07-07T17:29:08.836Z","media_urls":[],"card":null,"analysis":{"tweet_id":"2073793206408667392","sentiment":"bullish","sentiment_score":0.9,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-07-06T15:00:00.422Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"hr19Whv0gDhoo20XX2Y1K"}
+6:null

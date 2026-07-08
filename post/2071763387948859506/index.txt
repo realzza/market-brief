@@ -1,0 +1,78 @@
+1:"$Sreact.fragment"
+2:I[39756,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"default"]
+3:I[37457,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"default"]
+4:I[79520,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],""]
+6:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+7:"$Sreact.suspense"
+a:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"ViewportBoundary"]
+c:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"MetadataBoundary"]
+e:I[68027,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"default",1]
+:HL["/market-brief/_next/static/chunks/04hac7m5.47oj.css","style"]
+:HL["/market-brief/_next/static/media/5f402bd2d8eef81a-s.p.16whm0euli40m.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/market-brief/_next/static/media/797e433ab948586e-s.p.08e28id.o-okb.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/market-brief/_next/static/media/9433d1a810498265-s.p.0h26ys03~gfbk.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/market-brief/_next/static/media/caa3a2e1cccd8315-s.p.09~u27dqhyhd6.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+0:{"P":null,"c":["","post","2071763387948859506",""],"q":"","i":false,"f":[[["",{"children":["post",{"children":[["id","2071763387948859506","d",null],{"children":["__PAGE__",{}]}]}]},"$undefined","$undefined",16],[["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/market-brief/_next/static/chunks/04hac7m5.47oj.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}],["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0g65zv~fun4x7.js","async":true,"nonce":"$undefined"}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","async":true,"nonce":"$undefined"}]],["$","html",null,{"lang":"en","className":"geist_a71539c9-module__T19VSG__variable geist_mono_8d43a2aa-module__8Li5zG__variable newsreader_cc074312-module__O3kc-W__variable h-full","suppressHydrationWarning":true,"children":[["$","head",null,{"children":["$","script",null,{"dangerouslySetInnerHTML":{"__html":"try{var t=localStorage.getItem('serenity-theme')||'light';document.documentElement.setAttribute('data-theme',t);document.documentElement.setAttribute('data-density','standard');}catch(e){}"}}]}],["$","body",null,{"className":"min-h-full","children":[["$","$L2",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L3",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]],"forbidden":"$undefined","unauthorized":"$undefined"}],["$","$L4",null,{"src":"https://www.googletagmanager.com/gtag/js?id=G-3VFXG18BGK","strategy":"afterInteractive"}],["$","$L4",null,{"id":"google-analytics","strategy":"afterInteractive","children":"\n            window.dataLayer = window.dataLayer || [];\n            function gtag(){dataLayer.push(arguments);}\n            gtag('js', new Date());\n\n            gtag('config', 'G-3VFXG18BGK');\n          "}]]}]]}]]}],{"children":[["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L3",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["$","$1","c",{"children":[null,["$","$L2",null,{"parallelRouterKey":"children","error":"$undefined","errorStyles":"$undefined","errorScripts":"$undefined","template":["$","$L3",null,{}],"templateStyles":"$undefined","templateScripts":"$undefined","notFound":"$undefined","forbidden":"$undefined","unauthorized":"$undefined"}]]}],{"children":[["$","$1","c",{"children":["$L5",[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true,"nonce":"$undefined"}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true,"nonce":"$undefined"}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],{},null,false,null]},null,false,"$@9"]},null,false,"$@9"]},null,false,null],["$","$1","h",{"children":[null,["$","$La",null,{"children":"$Lb"}],["$","div",null,{"hidden":true,"children":["$","$Lc",null,{"children":["$","$7",null,{"name":"Next.Metadata","children":"$Ld"}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],false]],"m":"$undefined","G":["$e",[["$","link","0",{"rel":"stylesheet","href":"/market-brief/_next/static/chunks/04hac7m5.47oj.css","precedence":"next","crossOrigin":"$undefined","nonce":"$undefined"}]]],"S":true,"h":null,"s":"$undefined","l":"$undefined","p":"$undefined","d":"$undefined","b":"hr19Whv0gDhoo20XX2Y1K"}
+f:[]
+9:"$Wf"
+10:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+11:T18a5,I've reached 900k followers, thank you everyone!
+Just some reflection, it's actually a nightmare at higher counts...
+Which is new to me, since I started at almost nothing earlier this year.
+1. Threats of safety, which I don't enjoy.
+- Random new accounts sending personal threats
+- Mysterious foreign accounts, sending coercive messages the moment I mention a foreign ticker
+If I hold an opinion about a stock, I'd prefer not to have anyone show up on the street with a knife at night since it's safety risk at this point...
+Never felt like I'd have to take that into consideration for holding an opinion.
+2. Egregious media narratives
+- Lot of outlets try to dismiss my ideas like $RPI or $SIVE as "meme stocks" or me as "meme trader" when I talk about supply chain chokepoints or fundamental catalysts to revenue due to AI.
+Without ever covering the core ideas or hyperscaler mapping I've done.
+I let success validate my ideas, but it's annoying when they can just pretend their claims like "___ will imminently crash as a fact" which ends up not happening.
+Or that "___" is just a retail meme stock without mentioning $JBL, Ayar, $GFS or others for CPO scale up or pluggables.
+I'm grateful to some outlets, like in Belgium for $XFAB coverage, but many others try and paint their own narrative rather than covering a very nuanced thesis objectively.
+- When I mention a ticker in a foreign market, some try to frame me as some "adversarial account"!
+I'm just sharing ideas, and I'll always disclose positions/financial interest if I have them.
+If I say I have none, they just make up some narrative that I'm some foreign institution or random group inside their country that does.
+Some have even tried hilariously forging screenshots of me to harm my reputation, which was annoying to deal with. Since it's easier to textedit a photo and spread it around than it is to dispel disinformation.
+Lot of institutions know me personally by now.
+I just don't go broadcasting my identity to random people in the media/public, since personal security gets expensive and I just want to live about my day.
+3. Endless X bot spam
+- I have endless hundreds of comments a day trying to link external communities pretending they're me.
+I manually delete, and block thousands of these accounts, sometimes hit regular people by accident.
+And it's extremely exhausting to the point my fingers cramp certain days.
+Even if I give the most blatant warnings in bio, people still get scammed and think it's me. Then I get blamed for it too.
+I actually had a conversation where someone asked if a scammer was me.
+I said no verbatim, then they double checked like 2-3 more times because they didn't believe I said no because someone had the same username on another scam platform.
+In another world, maybe we'll get automod type tools. But until then,  it's mentally exhausting dealing with all of this. But I do so anyways since I don't want my followers to get scammed.
+4. Endless engagement baiting
+- I have tons of people making up fake stuff about me, tagging me in posts, randomly bashing my ideas while missing any technical nuance in order to get me to comment or farm views.
+It's a catch 22 since the moment I reply, they get a lot of views, which was their goal. And if I don't reply it just looks like I'm avoiding something (which is not true).
+I'm very transparent, I always try and entertain people who disagree first. But when it gets into personal attacks or leading questions/disinformation rather than substance then I don't engage.
+It's a little sad though when people I've interacted with end up caring more about engagement over relationships down the road.
+5. People missing the nuance
+- I share ideas pretty often and I always maintain I don't want people to copytrade or blindly follow, which is why I haven't set up any copytrading apps.
+Before it was just posting with a few $RDDT friends on ideas like $AXTI, $NBIS, or $ALAB, and people were more knowledgeable traders.
+Then seeing if markets validate my guesses like with InP substrate bottlenecks.
+But because many turned out directionally right, to the point it became a central talking point between China/US trade relations, lot of random folks started to follow my account last few months.
+But many of them miss nuances with float dilution, or material updates along the way such as rate hikes, and I get blamed if a thesis changes.
+Now since there's so many random people, even if I share an idea about $CBRS last Friday.
+At market open I had people panicking over a 2% drop, asking me if I did something to a $44B+ company, even if it went up 20%+ today.
+Now I have compliance review for posts, which delays things a lot but makes sure people don't get the wrong idea. And I have to be careful about my timing, so I post new ideas when markets close.
+Before, it was just sharing ideas the moment I had them during lunch or in the shower, so this is becoming a headache.
+6. I post my core ideas for free. And I've always said this from the start.
+I actually made my subscribers chat literally by accident, and set the bare minimum amount on purpose since I didn't want to take people's money. But kept it so I could avoid the bots and not spam the main timeline with random thoughts/scrapped research.
+I think me becoming the #1 most subscribed to person on X was literally by accident.
+But lot of weird narratives out there when media or others don't believe that I just genuinely want to share my ideas for free.
+And that people shouldn't need to pay $300 in a paywalled community to see them.
+_
+Not sure if people want to read it all, but just some things I've gone through.
+It's not as much fun at higher numbers and it would be nice to go back to when I was smaller.
+Regardless, I'd rather not turn this into a job, or make it feel like one.
+Will probably take a break when I hit 1M as a milestone and do something else that will help out the community like sharing my research pipelines and such.
+Think a lot of my friends at 10-50K follower counts, seem to experience some of these issues too. But problems get magnified a lot at this level.
+I never needed the X creator fees or anything, just wanted to share ideas for fun if people wanted to listen.
+And didn't expect any popularity, but it's nice to see that people find my ideas compelling.5:["$","$L10",null,{"tweet":{"id":"2071763387948859506","text":"$11","created_at":"2026-06-30T01:10:57.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-07-02T09:09:56.309Z","media_urls":["https://pbs.twimg.com/media/HMBgSDKbsAATWpN?format=jpg&name=orig"],"card":null,"analysis":{"tweet_id":"2071763387948859506","sentiment":"neutral","sentiment_score":0,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-06-30T15:00:00.081Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}]
+b:[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]
+12:I[27201,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"IconMark"]
+8:null
+d:[["$","title","0",{"children":"The Market Brief — Multi-Analyst AI Analysis"}],["$","meta","1",{"name":"description","content":"Editorial AI analysis of tracked market voices' commentary"}],["$","meta","2",{"name":"referrer","content":"same-origin"}],["$","link","3",{"rel":"icon","href":"/market-brief/favicon.ico?favicon.0x3dzn~oxb6tn.ico","sizes":"256x256","type":"image/x-icon"}],["$","$L12","4",{}]]

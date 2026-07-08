@@ -1,0 +1,26 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T66b,As for $LPK: Maybe $3B-$5B seems reasonable when they fully volume ramp if I had to guess.
+Feels more asymmetrical to me personally since it's just a waiting game and they have the customers for glass substrates.
+Small machine supplier chokepoints usually cap out from TAM though and don't go to $20B+ unless you're ASML or hold many chokepoints like KLAC.
+Not many dominant "monopolies" like these out there right before volume ramp this small:
+Maybe you have stuff like:
+- Aixtron (MOCVD) ~$8B
+- Towa (compression bonding) ~$2B
+- Techwing (memory handler/cube probes) ~$1.5B
+- MSScorps (CPO inspection), but pre-ramp. $850M
+- Riber (quantum MBE), very pre-ramp ~$350M
+Then LPK Laser for glass core substrates (about to ramp) at ~$730M, which thematically should have more premiums than memory. (eg. major advanced packaging shift, CPO adjacent, etc).
+Lot of obscure chemical monopolies I know of, but those don't get as much attention cause BOM is much lower than equipment.
+But for lpk you have:
+eg. “80% of customers among major global players have selected LPKF equipment”.
+70% of LIDE market share target for TGV in the glass-core ramp, should be very material. (disclosure: own, the listed names above aside from techwing/aixtron, NFI).
+Just kinda the path they go if you follow $AEHR at ~$3.5B now:
+- <$500m: "Oh they have no customers!"
+---> (probably somewhere in the middle here).
+- < $1.5B: "Maybe volume comes soon!"
+- $3B+ onward: "Looks like they're starting to volume ramp.
+Just a lesson for the cycle of the chokepoint machine suppliers from my personal experiences.межа: @aleabitoreddit @jeongpark0509 And for $LPK?0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2069005921318281566","text":"$3","created_at":"2026-06-22T10:33:46.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-24T05:28:52.242Z","media_urls":[],"card":null,"analysis":{"tweet_id":"2069005921318281566","sentiment":"bullish","sentiment_score":0.65,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":true,"summary":"","image_insights":null,"analyzed_at":"2026-06-22T15:00:00.359Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"hr19Whv0gDhoo20XX2Y1K"}
+6:null

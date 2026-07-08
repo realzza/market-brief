@@ -1,0 +1,25 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T787,oh i think u misunderstand... I'm actually more bullish than ever as prices go down.
+$SIVE at ~$1.9B MC you have:
+- $GFS reference laser
+- laser for Ayar and others in $NVDA NVLink ecosystem for CPO scale up
+- $POET and others for CPO scale out
+- $JBL and others for 1.6T+ pluggable optical transcivers
+- O-Net for ELS mass production
+So you have all these hyperscaler suppliers trying to create as much as possible with Sivers as the laser bottleneck...
+And it's just a matter of how much Win Semi + others partners can make, with $SIVE receiving ~60% gross margins + optionality to TAM expand downward.
+The 15% recent share expansion that Swedish media have been bearposting is for NASDAQ listing float + M&A (and it's authorization).
+You just have potential short sellers running illegal bot farms, Swedish media bearposting a company Swedish exchange, on top of a general macro drop.
+The ~$140M convertible note is real, but it's pennies to US institutions. We'll likely see more institutional ownership when data comes out.
+But this is also why it's good for $SIVE to prioritize NASDAQ listing so they don't need to deal with this noise and local media.
+With $AAOI at $10B, you have:
+- A end-to-end US laser/design/assembly player projecting $471m month revenue H1 entering H2 2027.
+- With other hyperscalers like $AMD apparently discussing LTAs.
+And they probably are sitting on a ton of cash after running ~$1.4B in ATMs (400M + 400m+ 600m).
+Kinda all that needs to be said with those insane revenue projections as long as management doesn't BS.
+This just reminds me of when $NBIS crashed to $70 last year even while projecting $7-9B ARR, and as timelines got closer it recovered to $250+. Feels like dejavu.
+I'm just waiting for both volume ramps to hit. Photonics are generally more volatile than the rest.Suly: @aleabitoreddit Stock God, did u lose your conviction about photonics? SIVE and AAOI are crazily down :(0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2070179074048409662","text":"$3","created_at":"2026-06-25T16:15:27.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-29T06:54:29.128Z","media_urls":[],"card":null},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"hr19Whv0gDhoo20XX2Y1K"}
+6:null

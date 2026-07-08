@@ -1,0 +1,17 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T520,IMO photonics theme + CW laser chokepoint is goated.
+It's legit like markets have short term memory loss and forgot how $LITE went from $3B -> $65B+ from 2024 to now.
+Because $NVDA caused EML bottlenecks, and forced architectural changes.
+We're literally seeing the same thing today with CW lasers + 1.6T/CPO shifts with Nvidia signing LTAs everywhere.
+Now, $AMD + other CSPs are hunting for remaining scraps with large LTAs for CW lasers + optical components.
+GS Research's ~9-10x $154B optical TAM in 2028 and near $0 -> $91B CPO TAM in just 2 1/2 years.
+Don't just magically disappear from a month of trading volatility.
+$AAOI sitting at ~$13B, $SIVE sitting at ~$3B, and other CW laser players look strategically very valuable.
+And next year I think we'll look back and say "Why didn't I learn my lesson the first time with EML from Nvidia and pick up CW laser adjacent names!"
+Then there's likely gonna be some new mini trend 1-2 years from now like microled or quantum dot and we're gonna see the same thing repeat.
+Think Sumitomo's projections with CW laser share + silicon photonics being majority / dominant architecture should be correct.
+I'm personally just focusing on that bottleneck as you've seen with $SOI, $TSEM, $SIVE, and others.VeggieChicken: @aleabitoreddit second best time is now, right?0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2069258326505140653","text":"$3","created_at":"2026-06-23T03:16:44.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-25T03:43:53.659Z","media_urls":[],"card":null,"analysis":{"tweet_id":"2069258326505140653","sentiment":"bullish","sentiment_score":0.7,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-06-23T15:00:00.251Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"hr19Whv0gDhoo20XX2Y1K"}
+6:null

@@ -1,0 +1,28 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T67e,Came across an interesting report from SVRC Research called "State of Robotics 2026", published in April.
+Which listed:
+1. Figure AI
+2. Agility Robotics $CCXI
+3. Apptronik
+4. $TSLA
+5. Boston Dynamics
+6. Physical Intelligence
+7. 1X Technologies
+8. $AMZN Robotics
+9. Covariant
+10. Skild AI
+As the National Champions of the United States robotics program.
+"The United States leads the world in where robotics is heading: Fundation models, OpenAI-style scaling laws applied to action, autonomous vehicles.
+While losing the race on where robotics is shipping today."
+Then it frames:
+1. Rare Earths Exposure: from Neodymium for motors to samarium-cobalt for high-temp applications as a critical vulnerability.
+2. Actuator dependency. Series elastic actuators, quasi-direct-drive motors, and precision reducers overwhelmingly sourced from Japan, Germany, and China
+As one of the main vulnerabilities alongside Manufacturing velocity/data collection cost/regulations. Then their take was:
+"With at least six well-funded US humanoid companies competing for a market still in early formation, we expect at least two significant consolidation events (acquisition or merger) in 2027".
+With Logistics / E-commerce (like $AMZN / $FDX) and Automotive from $GM to $FORD as being the immediate top use cases for deployment.
+I think it's just interesting to see a lot of my points I've been talking about reiterated by research firms. Regardless, I do think it's going to be a major frontier race between the US and China.
+Agility Robotics (which I own), Tesla, Figure, and Apptronik as leaders representing the USA. Competing against Unitree, AGIbot, Ubtech, and others in China.0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2073867745243127973","text":"$3","created_at":"2026-07-05T20:32:55.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-07-07T18:44:08.864Z","media_urls":["https://pbs.twimg.com/media/HMfUKWmbgAA1z-j?format=jpg&name=orig","https://pbs.twimg.com/media/HMfUKwPboAAARvn?format=jpg&name=orig","https://pbs.twimg.com/media/HMfVAZ_a0AA7NwP?format=jpg&name=orig","https://pbs.twimg.com/media/HMfZJUgacAAJmfC?format=jpg&name=orig"],"card":null,"analysis":{"tweet_id":"2073867745243127973","sentiment":"bullish","sentiment_score":0.5,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-07-06T15:00:00.422Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"hr19Whv0gDhoo20XX2Y1K"}
+6:null

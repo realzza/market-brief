@@ -1,0 +1,29 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T6e5,Just dropping these 3 slides from Agility Robotics ( $CCXI ) presentations.
+For the US robotic program doomposters:
+1. “75% of parts” - sourced from the USA
+2. Just eyeballing the graph, looks like <$30k BOM mass production.
+People were just looking at the ~$145K cost.
+3. 10,000 RoboFab capacity, and they build in Salem/Pittsburgh/Fremont (USA).
+So looks like majority US supply chains with targets of <$30K mass production
+It does help they’re backed by $AMZN / SoftBank / Foxconn / $NVDA as investors to get this done.
+Just personal thoughts as a shareholder in $CCXI (NFA):
+My personal biggest fear were US humanoid leaders like $TSLA were just building out their entire supply chains in China.
+So US robotics could just be export controlled/halted down the road.
+eg. South China Morning Post: ‘Optimus chain’: Chinese suppliers form the backbone of Tesla’s humanoid robot initiative and engaged with hundreds of Chinese component suppliers.
+And that Western companies are not able to lower costs to a competitive level + are forced to use Chinese components.
+I'm still not sure how they're going to do it but if Agility can achieve those mass production targets with that BOM cost in the USA/West.
+It would be a great validation for Made in America US robotics programs.
+IMO the top 5 US humanoid programs right now in terms of commercialization potential are:
+1. Tesla Optimus
+2. Figure
+3. Agility Robotics
+4. Boston Dynamics (yeah KR parent)
+5. Apptronik
+Tesla is a $1T+ company. Figure is private and valued around ~$39B. Owning Boston Dynamics through Hyundai is a bit messy.
+And I’d prefer not to invest in adversarial programs just as a personal preference.
+So I’ve been personally excited for Agility to be listed as early as September.0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2072367082248040621","text":"$3","created_at":"2026-07-01T17:09:49.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-07-03T06:30:38.508Z","media_urls":["https://pbs.twimg.com/media/HMKG4B1b0AApnu8?format=jpg&name=orig","https://pbs.twimg.com/media/HMKG4B3acAEk_8m?format=jpg&name=orig","https://pbs.twimg.com/media/HMKG4Bya8AA4o6s?format=jpg&name=orig"],"card":null,"analysis":{"tweet_id":"2072367082248040621","sentiment":"bullish","sentiment_score":0.65,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-07-02T15:00:00.318Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"hr19Whv0gDhoo20XX2Y1K"}
+6:null

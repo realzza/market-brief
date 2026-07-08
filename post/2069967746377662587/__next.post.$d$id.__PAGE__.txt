@@ -1,0 +1,18 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T513,Think so. But in the meantime, I call my strategy: Diversified Losses.
+With $AXTI, $SOI, $AAOI, and many others.
+Had a massive drawdown recently,
+CPO exposure was hit the hardest (Foci, Msscorp, etc) and adjacent names, feels bad.
+Probably lesson personally, I had too much concentration in photonics vs. memory/other sectors without weighting/hedging properly.
+With Soitec, there's been a few negative institutional reports that I'd disagree with.
+Think AXT was hit harder in specific just because of float expansion/dilution concerns. AAOI, probably just brought down with the theme.
+I can't give advice on buying, so completely up to you to make for cost averaging or entering positions.
+But I do think we're still early in the Supercycle with photonics, there's bound to be corrections/crashes along the way up.
+If my personal thesis is correct though, many of these names will have a major inflection point in midway through 2027 scaling up to 2028.
+Markets don't typically wait to price things in advance, but some ideas might be a tad early or in the buildout given it's H2 2026 now.
+Which is why it's important to build your own conviction.
+discussing stocks: @aleabitoreddit Do you think there's a possibility for $AXTI and $AAOI going rippy mode again soon? Super heavy losses this month0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2069967746377662587","text":"$3","created_at":"2026-06-25T02:15:43.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-27T08:36:44.589Z","media_urls":["https://pbs.twimg.com/media/HLoAsS4b0AAZUxw?format=jpg&name=orig","https://pbs.twimg.com/media/HLoAsS6aUAAUsPU?format=jpg&name=orig","https://pbs.twimg.com/media/HLoAsS4bEAAAVvC?format=jpg&name=orig"],"card":null,"analysis":{"tweet_id":"2069967746377662587","sentiment":"bearish","sentiment_score":-0.55,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-06-25T15:00:00.405Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"hr19Whv0gDhoo20XX2Y1K"}
+6:null

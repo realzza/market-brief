@@ -1,0 +1,29 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+6:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+7:"$Sreact.suspense"
+3:Ta40,Just some random thoughts, I do think AI is the most disruptive technology in human history.
+To the level of agricultural or industrial revolution.
+Since Anthropic, OpenAi, XAI, and others are racing to build superintelligence.
+The amount of economic impact can't be measured if AI helps find cures for cancer or accelerates discovery for Quantum Computing.
+Or if AI end up displacing the workforce, which increases profitability for companies.
+The US Gov has every incentive to keep the buildout going too, as the implications from Warfare, Cybersecurity, is also immeasurable if China takes the lead.
+So there's likely to be incentives and subsidies to win, even if there's not enough profit derived LLM training/inference.
+As for sustainability, when you look upstream, $GOOGL is able to fund it majorly with their own cashflow, same with $AMZN, $MSFT.
+More lukewarm on $META. Very iffy about $ORCL.
+But I do see some bubbles forming around debt interest like $CRWV.
+Maybe circular valuations that's happening with OpenAI backlog agreements or $NVDA / $AMD agreements with Neoclouds to buy their GPUs.
+But as seen with $MSFT and having OpenAI be a major part of the backlog, it did correct off the information, so "bubbles" like that do pop despite the overall markets increasing.
+Definitely don't see a bubble in upstream semiconductors from $LITE to Sk Hynix though since the amount of profit they get from the buildout would likely be insane to make up for capex decreasing.
+OpenAI was actually my biggest fear from contagion, eg. $CRWV, $CBRS and others, but they just raised a lot.
+So think it will be fine for another 1 1/2 years of capex, especially if they IPO this year.
+I also don't think we'll get massive Fed tightening despite "predictions" since this will trigger a contagion since many of these players rely heavily on debt.
+And although the Fed is independent, don't think Trump would have supported someone who is against his administration goals.
+As for semiconductor valuations going up every day like $AMD or $MU, there's probably going to be some corrections here and there. Everything going up together is kinda unhealthy.
+Can't time the capex peak but just from $AVGO and other projections, it just keeps accelerating exponentially into 2028.
+Especially as everyone is starting to sign multi year agreements as well.
+OpenAI contagion / hyperscaler capex decreasing / fed tightening was what I'm looking out for, and no blaring signs of any of those yet.
+So I think the music will keep playing for this year at the bare minimum.Mr.GK: @aleabitoreddit Do you the ai bubble is not popping this year?0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2066868456457416871","text":"$3","created_at":"2026-06-16T13:00:15.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-19T02:13:44.158Z","media_urls":[],"card":null,"analysis":{"tweet_id":"2066868456457416871","sentiment":"bullish","sentiment_score":0.5,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-06-16T15:00:00.332Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],"$L4"],"$L5"]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"hr19Whv0gDhoo20XX2Y1K"}
+4:["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]
+5:["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]
+8:null

@@ -1,0 +1,20 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T58d,This is gonna upset a lot of people:
+But TA is astrology for traders.
+It's confirmation bias + trading human psychology about entries.
+Kinda like how people frontran $SPCE from $SPCX IPO expecting retail to mess up tickers by trading psychology.
+$SIVE didn't go up 1900% because of the golden cross space comet firebreathing dragon candle that someone is trying to sell for $499.
+It's because markets are pricing in future revenue from $JBL, $GFS that got announced.
+$AXTI didn't go up 8000% because the golden waterfall candle alert sounded back at $8.
+it's because of InP substrate, game theory on ASP hikes, export controls, photonics demand, and others.
+If you want to figure out psychologically what other regards are believing, you use TA.
+But for determining the actual upside... nah
+People have been drawing $120+ TAs on $IREN for the past idk how many months none of that crap matters when there's a $6B ATM that needs to be bought through first.
+It's by theme (eg. $LITE to $AAOI relations), any news catalysts that affect forward revenue, projections, macro news, earnings, float dynamics, and so on.
+Then you can just derive what MC that company should be at.
+So for entry points, sure you can use TA.
+For determining where the stock heads, just throw the tyrannosaurs rex omega-green candle indicator out the window.Max Williamson: @aleabitoreddit Do you use TA at all or are you 100% bottle neck research?0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2066180704661356593","text":"$3","created_at":"2026-06-14T15:27:22.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-06-16T23:43:40.948Z","media_urls":[],"card":null,"analysis":{"tweet_id":"2066180704661356593","sentiment":"neutral","sentiment_score":0.1,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-06-15T15:00:00.351Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"hr19Whv0gDhoo20XX2Y1K"}
+6:null

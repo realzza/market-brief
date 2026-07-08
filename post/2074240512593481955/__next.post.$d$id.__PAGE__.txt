@@ -1,0 +1,18 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+4:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+5:"$Sreact.suspense"
+3:T458,Was a sad few months for $RDDT. But glad it's finally back above $200.
+Reddit was doing:
+- $663M revenue w/ 91.5% gross margins
+- $204M GAAP net income
+- 45%+ fwd Y/Y growth after 69%+ growth.
+- Net profit is ~30.7% of revenue
+Felt very weird to see a profitable company get dragged down after earnings.
+But in hindsight, given the increase hyperscaler capex, the drop felt more like it's more relative opportunity cost more than fundamentals?
+Since a lot of inflow poured into $MU / Sk Hynix that are bottlenecked into 2029. Or with laser bottlenecks like $LITE that last into 2029 as well.
+Same thing happens in reverse after selloffs ig, even if fundamentals didn't change.
+Been seeing a lot of noise with memory optimization or Chinese players... but don't quite think you sign 16T+ LTAs if memory was getting flooded or not used anytime soon.
+Same with optical players... if in earnings, they state anything they make gets bought, I don't quite think a lot of the noise has material effect on their fundamentals.
+Regardless, nice to see some recovery with familiar faces like $HOOD, $HIMS, and $RDDT though.0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2074240512593481955","text":"$3","created_at":"2026-07-06T21:14:10.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-07-08T02:59:09.257Z","media_urls":["https://pbs.twimg.com/media/HMkrWFjbUAA2QsW?format=jpg&name=orig"],"card":null,"analysis":{"tweet_id":"2074240512593481955","sentiment":"bullish","sentiment_score":0.6,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":false,"summary":"","image_insights":null,"analyzed_at":"2026-07-07T15:00:00.300Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],[["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}],["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]],["$","$L4",null,{"children":["$","$5",null,{"name":"Next.MetadataOutlet","children":"$@6"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"hr19Whv0gDhoo20XX2Y1K"}
+6:null

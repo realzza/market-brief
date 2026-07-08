@@ -1,0 +1,43 @@
+1:"$Sreact.fragment"
+2:I[64267,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js","/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","/market-brief/_next/static/chunks/0ncpngjg0w-3p.js"],"default"]
+7:I[97367,["/market-brief/_next/static/chunks/0g65zv~fun4x7.js","/market-brief/_next/static/chunks/0d3shmwh5_nmn.js"],"OutletBoundary"]
+8:"$Sreact.suspense"
+3:Tee1,I personally think $SIVE can be the next $LITE.
+In the past few months alone, we've seen:
+1. Partnerships with O-Net pushing ELS into mass production
+2. $JBL 1.6T LRO mass production signals with "relatively dramatic moats" for pluggables using Sivers.
+3. $GFS SCALE reference level laser for hyperscalers with pluggable, NPO, CPO.
+-> -> where $AMD and others went to GFS for CPO.
+4. Ayar, which joined $NVDA NVLink for CPO
+-> -> which removed Lumentum/Macom from their website and likely made Sivers their primary laser supplier.
+-> -> AlChip likely Trainium win from Amazon price placement (Ayar's customer)
+-> -> GUC rack level design in with Ayar.
+-> -> Raised $500m for mass production by AMD, Alchip, Mediatek, and NVIDIA
+5.  ~ $AEVA starting HVM H2 2026.
+6. $POET starting HVM H2 2026 with hyperscaler suppliers like Lumilens ("top 3 hyperscaler initial customer")
+7. TFLN + $SIVE CW Lasers with Lightium
+8. Likely direct relationships with $MRVL Celestial and CPO players like Lightelligence/Lightmatter.
+9. Multiple new undisclosed relationships for pluggables following Jabil in their quarterly transcripts
+With new Trendforce reports that $AMD and other hyperscalers are trying to source LTAs for CW laser sources, serving as a direct catalyst for independent CW sources.
+So when hyperscaler suppliers from Jabil to O-Net are incentivized to mass produce as many as they can: That's very material for revenue for Sivers relative to current valuations, and it looks like just a waiting game.
+Even in the past week:
+- $SIVE raised an oversubscribed institutional round for volume ramp... This is very nuanced since Sivers is fab-lite so it's not going to in-house foundry capex to scale. Likely toward Win Semi and others (they mentioned other partners too), for laser scaling + foundry allocations.
+So this is likely signaling material for revenue ramp is coming.
+- Sivers also mentioned NASDAQ listing completion targeted in the next few quarters (probably H2 2026 or Q1 2027 is my est. timeframe).
+This would fund M&A efforts, since it's impossible with the fundraising environments in local Swedish markets.
+As for becoming the next $LITE:
+M&A makes their lasers more valuable, so downstream IP acqusition -> into contract manufacturing like $FN, and others to make the full 1.6T pluggable or optical engines. Is how they get there, since laser array ASP scaling that people are modeling off of, wouldn't command a $60B+   valuations.
+There's going to be a lot of bridge architectures like NPO/pluggables, etc and noise around certain architectural delays in the meantime.
+But markets misunderstand laser companies like $LITE, $SIVE, $AAOI and others are used across different architectures compared to if you just look at certain passive optical components.
+So markets see "CPO delay headlines" algos sell off laser companies that benefit from other architectures.
+Being included in the pluggable 1.6T ramp to CPO scale out (Which Sivers is included in), helps bridge revenue waiting gaps until scale up inflection point H2 2027.
+I'm personally holding long term, since I haven't seen a ~$1.4B company mapping to this many hyperscalers before.
+TLDR:
+- Waiting on volume ramps from different architectures to play out across their hyperscaler supplier mapping
+-> 1.6T LRO/CPO scale out late H2 2026 start into high volume ramp 2027
+-> H2 2027 CPO scale up volume ramp
+- Waiting on NASDAQ listing likely H2 2026/Q1 2027 for M&A efforts to fully take off, unless Sivers get more creative with equity financing in the meantime.Jeong: @aleabitoreddit Hi stock God, you said before $SIVE has potential to be the next $LITE. What milestones do you expect $SIVE to hit in order to achieve this? Is it simply mass production of lasers for pluggable first and then CPO/NPO? How does M&As play into this?0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{"tweet":{"id":"2074046947434860971","text":"$3","created_at":"2026-07-06T08:25:00.000Z","author":"aleabitoreddit","platform":"x","like_count":0,"retweet_count":0,"reply_count":0,"impression_count":0,"fetched_at":"2026-07-08T02:59:09.257Z","media_urls":[],"card":null,"analysis":{"tweet_id":"2074046947434860971","sentiment":"bullish","sentiment_score":0.85,"sentiment_reasoning":"Scored in the Morning Wire batch brief.","tickers":[],"signals":[],"key_themes":[],"domains":[],"risk_level":"none","is_trade_call":true,"summary":"","image_insights":null,"analyzed_at":"2026-07-06T15:00:00.422Z"}},"source":{"id":"serenity","name":"Serenity","blurb":"Markets & trade signals","platforms":{"x":"aleabitoreddit"}}}],["$L4","$L5"],"$L6"]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"hr19Whv0gDhoo20XX2Y1K"}
+4:["$","script","script-0",{"src":"/market-brief/_next/static/chunks/0_a2-xskc5-ab.js","async":true}]
+5:["$","script","script-1",{"src":"/market-brief/_next/static/chunks/0ncpngjg0w-3p.js","async":true}]
+6:["$","$L7",null,{"children":["$","$8",null,{"name":"Next.MetadataOutlet","children":"$@9"}]}]
+9:null
